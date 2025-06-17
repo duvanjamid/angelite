@@ -1,0 +1,44 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cabeza principal - forma de oso -->
+  <circle cx="100" cy="100" r="45" fill="#3d6c6f" stroke="none"/>
+  
+  <!-- Orejas -->
+  <circle cx="75" cy="70" r="18" fill="#3d6c6f"/>
+  <circle cx="125" cy="70" r="18" fill="#3d6c6f"/>
+  
+  <!-- Hocico área -->
+  <ellipse cx="100" cy="115" rx="20" ry="15" fill="#cb9573"/>
+  
+  <!-- Las marcas naturales "anteojos" del oso de anteojos -->
+  <!-- Círculo izquierdo alrededor del ojo -->
+  <circle cx="85" cy="90" r="18" fill="#ef7b4f" stroke="#cb9573" stroke-width="2"/>
+  <!-- Círculo derecho alrededor del ojo -->
+  <circle cx="115" cy="90" r="18" fill="#ef7b4f" stroke="#cb9573" stroke-width="2"/>
+  
+  <!-- Puente que conecta los "anteojos naturales" -->
+  <ellipse cx="100" cy="88" rx="12" ry="8" fill="#ef7b4f"/>
+  
+  <!-- Ojos dentro de las marcas -->
+  <circle cx="85" cy="90" r="5" fill="#bf3f27"/>
+  <circle cx="115" cy="90" r="5" fill="#bf3f27"/>
+  
+  <!-- Reflejos en los ojos -->
+  <circle cx="87" cy="88" r="2" fill="#72a2ac"/>
+  <circle cx="117" cy="88" r="2" fill="#72a2ac"/>
+  
+  <!-- Nariz -->
+  <ellipse cx="100" cy="110" rx="4" ry="3" fill="#bf3f27"/>
+  
+  <!-- Boca -->
+  <path d="M100 115 Q95 120 90 118 M100 115 Q105 120 110 118" 
+        stroke="#bf3f27" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Líneas de textura del pelaje (estilo origami sutil) -->
+  <path d="M70 85 Q80 80 90 85" stroke="#72a2ac" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M110 85 Q120 80 130 85" stroke="#72a2ac" stroke-width="1" fill="none" opacity="0.3"/>
+  
+  <!-- Texto -->
+  <text x="100" y="175" font-family="Arial, sans-serif" font-size="18" font-weight="300" text-anchor="middle">
+    <tspan fill="#bf3f27">Ang</tspan><tspan fill="#72a2ac">elite</tspan>
+  </text>
+</svg>
