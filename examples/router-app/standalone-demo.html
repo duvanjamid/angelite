@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagunlar Standalone Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Lagunlar Standalone Demo</h1>
+        <div class="card">
+            <h2>Contador: <span id="counter-value">0</span></h2>
+            <button id="increment">Incrementar</button>
+            <button id="decrement">Decrementar</button>
+            <button id="reset">Reiniciar</button>
+        </div>
+        
+        <div class="card">
+            <h2>Lista de Tareas</h2>
+            <input type="text" id="new-task" placeholder="Nueva tarea">
+            <button id="add-task">Añadir</button>
+            <ul id="task-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Implementación mínima del contador
+        let count = 0;
+        const counterValue = document.getElementById('counter-value');
+        
+        document.getElementById('increment').addEventListener('click', () => {
+            count++;
+            counterValue.textContent = count;
+        });
+        
+        document.getElementById('decrement').addEventListener('click', () => {
+            count--;
+            counterValue.textContent = count;
+        });
+        
+        document.getElementById('reset').addEventListener('click', () => {
+            count = 0;
+            counterValue.textContent = count;
+        });
+        
+        // Implementación mínima de la lista de tareas
+        const taskInput = document.getElementById('new-task');
+        const taskList = document.getElementById('task-list');
+        
+        document.getElementById('add-task').addEventListener('click', () => {
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                const li = document.createElement('li');
+                li.textContent = taskText;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Eliminar';
+                deleteBtn.style.marginLeft = '10px';
+                deleteBtn.addEventListener('click', () => {
+                    li.remove();
+                });
+                
+                li.appendChild(deleteBtn);
+                taskList.appendChild(li);
+                taskInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

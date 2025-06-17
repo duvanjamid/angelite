@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagunlar Simple App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #3498db;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .error-message {
+            padding: 15px;
+            background-color: #ffdddd;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lagunlar Demo App</h1>
+        <div id="app">
+            <div class="card">
+                <h2>Cargando...</h2>
+                <p>Inicializando la aplicación Lagunlar</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar errores
+        function showError(message, details = '') {
+            document.getElementById('app').innerHTML = `
+                <div class="error-message">
+                    <h2>Error</h2>
+                    <p>${message}</p>
+                    ${details ? `<pre>${details}</pre>` : ''}
+                </div>
+            `;
+        }
+
+        // Función para mostrar contenido
+        function showContent(title, content) {
+            document.getElementById('app').innerHTML = `
+                <div class="card">
+                    <h2>${title}</h2>
+                    ${content}
+                </div>
+            `;
+        }
+
+        // Implementación mínima de Lagunlar
+        const Lagunlar = {
+            // Componente básico
+            createComponent: function(config, ComponentClass) {
+                ComponentClass.prototype._selector = config.selector;
+                ComponentClass.prototype._template = config.template;
+                
+                if (config.styles) {
+                    ComponentClass.prototype._styles = Array.isArray(config.styles) 
+                        ? config.styles.join('\n') 
+                        : config.styles;
+                }
+                
+                return ComponentClass;
+            },
+            
+            // Renderizar un componente
+            bootstrap: function(ComponentClass, container) {
+                // Crear instancia del componente
+                const component = new ComponentClass();
+                
+                // Renderizar el template
+                container.innerHTML = component._template;
+                
+                // Procesar interpolaciones
+                this.processInterpolation(container, component);
+                
+                // Procesar eventos
+                this.processEvents(container, component);
+                
+                // Llamar al método ngOnInit si existe
+                if (component.ngOnInit) {
+                    component.ngOnInit();
+                }
+                
+                return component;
+            },
+            
+            // Procesar interpolaciones {{ expresión }}
+            processInterpolation: function(element, context) {
+                // Procesar texto en nodos de texto
+                const textNodes = this.getTextNodes(element);
+                textNodes.forEach(node => {
+                    const text = node.nodeValue;
+                    if (text.includes('{{') && text.includes('}}')) {
+                        node.nodeValue = text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
+                            try {
+                                return this.evaluateExpression(expr.trim(), context);
+                            } catch (e) {
+                                console.error('Error evaluating expression:', expr, e);
+                                return '';
+                            }
+                        });
+                    }
+                });
+            },
+            
+            // Obtener todos los nodos de texto en un elemento
+            getTextNodes: function(element) {
+                const textNodes = [];
+                const walker = document.createTreeWalker(
+                    element,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                
+                let node;
+                while (node = walker.nextNode()) {
+                    textNodes.push(node);
+                }
+                
+                return textNodes;
+            },
+            
+            // Evaluar una expresión en un contexto
+            evaluateExpression: function(expr, context) {
+                // Manejar acceso a propiedades con notación de punto
+                if (expr.includes('.')) {
+                    const parts = expr.split('.');
+                    let value = context;
+                    
+                    for (const part of parts) {
+                        if (value === null || value === undefined) return '';
+                        value = value[part];
+                    }
+                    
+                    return value;
+                }
+                
+                // Manejar acceso simple a propiedades
+                return context[expr];
+            },
+            
+            // Procesar eventos (click), etc.
+            processEvents: function(element, context) {
+                // Buscar elementos con atributos de eventos
+                const elements = element.querySelectorAll('*[\\(click\\)]');
+                elements.forEach(el => {
+                    const eventExpr = el.getAttribute('(click)');
+                    el.removeAttribute('(click)');
+                    
+                    el.addEventListener('click', (event) => {
+                        // Obtener el nombre del método
+                        const methodName = eventExpr.replace('()', '').trim();
+                        
+                        // Llamar al método en el contexto
+                        if (typeof context[methodName] === 'function') {
+                            context[methodName](event);
+                        }
+                    });
+                });
+            }
+        };
+
+        // Mostrar información sobre Lagunlar
+        const features = [
+            'Detección de cambios automática',
+            'Directivas estructurales modernas (@if, @for, etc.)',
+            'Pipes para transformación de datos',
+            'Comunicación entre componentes',
+            'Sistema de enrutamiento',
+            'Formularios reactivos'
+        ];
+
+        const featuresList = features.map(feature => `<li>${feature}</li>`).join('');
+        
+        // Definir componente principal
+        function MainComponent() {
+            this.title = 'Lagunlar Simple App';
+            this.features = features;
+        }
+
+        // Configurar el componente
+        const AppComponent = Lagunlar.createComponent({
+            selector: 'app-main',
+            template: `
+                <div class="card">
+                    <h2>{{ title }}</h2>
+                    <p>Se ha cargado correctamente el framework Lagunlar.</p>
+                    <h3>Características implementadas:</h3>
+                    <ul>${featuresList}</ul>
+                    <div>
+                        <button (click)="showCounter">Probar contador</button>
+                        <button (click)="showDemo">Ver ejemplo completo</button>
+                    </div>
+                </div>
+            `
+        }, MainComponent);
+
+        // Añadir métodos al componente
+        MainComponent.prototype.showCounter = function() {
+            showCounterExample();
+        };
+
+        MainComponent.prototype.showDemo = function() {
+            window.location.href = 'standalone-demo.html';
+        };
+
+        // Ejemplo simple de contador
+        function showCounterExample() {
+            // Crear un componente simple
+            function CounterComponent() {
+                this.count = 0;
+                this.title = 'Ejemplo de Contador';
+            }
+
+            CounterComponent.prototype.increment = function() {
+                this.count++;
+                this.updateView();
+            };
+
+            CounterComponent.prototype.decrement = function() {
+                this.count--;
+                this.updateView();
+            };
+
+            CounterComponent.prototype.back = function() {
+                // Volver a la vista principal
+                document.addEventListener('DOMContentLoaded', initApp);
+                initApp(); // Inicializar inmediatamente también
+            };
+
+            CounterComponent.prototype.updateView = function() {
+                document.getElementById('counter-value').textContent = this.count;
+            };
+
+            // Configurar el componente
+            const CounterApp = Lagunlar.createComponent({
+                selector: 'app-counter',
+                template: `
+                    <div class="card">
+                        <h2>{{ title }}</h2>
+                        <p>Un componente simple que demuestra la funcionalidad básica.</p>
+                        <div>
+                            <h3>Contador: <span id="counter-value">{{ count }}</span></h3>
+                            <button (click)="increment">Incrementar</button>
+                            <button (click)="decrement">Decrementar</button>
+                            <button (click)="back">Volver</button>
+                        </div>
+                    </div>
+                `
+            }, CounterComponent);
+
+            // Renderizar el componente
+            const app = document.getElementById('app');
+            Lagunlar.bootstrap(CounterApp, app);
+        }
+
+        // Función para inicializar la aplicación
+        function initApp() {
+            try {
+                const app = document.getElementById('app');
+                Lagunlar.bootstrap(AppComponent, app);
+            } catch (error) {
+                showError('Error al inicializar la aplicación', error.stack);
+            }
+        }
+
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Si el DOM ya está cargado, inicializar inmediatamente
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initApp();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagunlar Router App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        nav {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav li {
+            margin-right: 15px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #f0f0f0;
+        }
+
+        nav a.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        main {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .user-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .user-card h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+
+        .user-card p {
+            margin: 5px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .error-message {
+            padding: 20px;
+            background-color: #ffdddd;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="card">
+            <h2>Cargando aplicación...</h2>
+            <p>Por favor espere mientras se inicializa Lagunlar.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Capturar errores de carga
+        window.addEventListener('error', function(e) {
+            console.error('Error de carga:', e.message, e.filename);
+            document.getElementById('app').innerHTML = `
+                <div class="error-message">
+                    <h2>Error al cargar la aplicación</h2>
+                    <p><strong>Mensaje:</strong> ${e.message}</p>
+                    <p><strong>Archivo:</strong> ${e.filename}</p>
+                    <p><strong>Línea:</strong> ${e.lineno}</p>
+                </div>
+            `;
+        }, true);
+        
+        // Importar todos los módulos necesarios
+        try {
+            // Importar Lagunlar
+            const LagunlarModule = await import('../../src/lagunlar.js');
+            
+            // Importar componentes y servicios
+            const AppComponentModule = await import('./components/app.component.js');
+            const HomeComponentModule = await import('./components/home.component.js');
+            const AboutComponentModule = await import('./components/about.component.js');
+            const UsersComponentModule = await import('./components/users.component.js');
+            const UserDetailComponentModule = await import('./components/user-detail.component.js');
+            const FormExampleComponentModule = await import('./components/form-example.component.js');
+            const NotFoundComponentModule = await import('./components/not-found.component.js');
+            
+            const UserServiceModule = await import('./services/user.service.js');
+            const AuthServiceModule = await import('./services/auth.service.js');
+            const AuthGuardModule = await import('./services/auth.guard.js');
+            const UserResolverModule = await import('./services/user.resolver.js');
+            
+            // Extraer las clases de los módulos
+            const { AppComponent } = AppComponentModule;
+            const { HomeComponent } = HomeComponentModule;
+            const { AboutComponent } = AboutComponentModule;
+            const { UsersComponent } = UsersComponentModule;
+            const { UserDetailComponent } = UserDetailComponentModule;
+            const { FormExampleComponent } = FormExampleComponentModule;
+            const { NotFoundComponent } = NotFoundComponentModule;
+            
+            const { UserService } = UserServiceModule;
+            const { AuthService } = AuthServiceModule;
+            const { AuthGuard } = AuthGuardModule;
+            const { UserResolver } = UserResolverModule;
+            
+            // Definir las rutas
+            const routes = [
+                new LagunlarModule.Route({
+                    path: '',
+                    component: HomeComponent
+                }),
+                new LagunlarModule.Route({
+                    path: 'home',
+                    component: HomeComponent
+                }),
+                new LagunlarModule.Route({
+                    path: 'about',
+                    component: AboutComponent
+                }),
+                new LagunlarModule.Route({
+                    path: 'users',
+                    component: UsersComponent,
+                    guards: [AuthGuard]
+                }),
+                new LagunlarModule.Route({
+                    path: 'users/:id',
+                    component: UserDetailComponent,
+                    guards: [AuthGuard],
+                    resolvers: [UserResolver],
+                    data: {
+                        title: 'User Detail'
+                    }
+                }),
+                new LagunlarModule.Route({
+                    path: 'forms',
+                    component: FormExampleComponent
+                }),
+                new LagunlarModule.Route({
+                    path: '**',
+                    component: NotFoundComponent
+                })
+            ];
+
+            // Inicializar el router
+            LagunlarModule.initializeRouter(routes, AppComponent);
+
+            // Inicializar servicios
+            new UserService();
+            new AuthService();
+
+            // Inicializar la aplicación
+            document.addEventListener('DOMContentLoaded', () => {
+                const app = document.getElementById('app');
+                LagunlarModule.bootstrap(AppComponent, app);
+            });
+            
+            // Si el evento DOMContentLoaded ya ocurrió, inicializar ahora
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                const app = document.getElementById('app');
+                LagunlarModule.bootstrap(AppComponent, app);
+            }
+        } catch (error) {
+            console.error('Error al inicializar la aplicación:', error);
+            document.getElementById('app').innerHTML = `
+                <div class="error-message">
+                    <h2>Error al inicializar la aplicación</h2>
+                    <p><strong>Mensaje:</strong> ${error.message}</p>
+                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                    <p>Verifica que los archivos de Lagunlar existen y están correctamente estructurados.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

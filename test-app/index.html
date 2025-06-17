@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagunlar Test App</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <h1>Lagunlar Framework Demo</h1>
+    <div id="app"></div>
+
+    <!-- Include the framework -->
+    <script type="module">
+        // Import Lagunlar framework
+        import { Component, bootstrap } from '../src/lagunlar.js';
+        import { CounterComponent } from './components/counter.component.js';
+        import { TodoComponent } from './components/todo.component.js';
+        import { UserComponent } from './components/user.component.js';
+
+        // Define the root component
+        class AppComponent {
+            constructor() {
+                this.title = 'Lagunlar Demo';
+                this.currentTime = new Date().toLocaleTimeString();
+                this.updateInterval = null;
+            }
+            
+            ngOnInit() {
+                // Update time every second
+                this.updateInterval = setInterval(() => {
+                    this.currentTime = new Date().toLocaleTimeString();
+                    this.updateView();
+                }, 1000);
+                
+                // Render child components
+                this.renderChildComponents();
+            }
+            
+            ngOnDestroy() {
+                // Clear interval when component is destroyed
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                }
+            }
+            
+            updateView() {
+                // This would be handled by the framework in a real implementation
+                const app = document.getElementById('app');
+                bootstrap(AppComponent, app);
+            }
+            
+            renderChildComponents() {
+                // This would be handled by the framework in a real implementation
+                setTimeout(() => {
+                    // Render counter component
+                    const counterContainer = document.getElementById('counter-container');
+                    if (counterContainer) {
+                        bootstrap(CounterComponent, counterContainer);
+                    }
+                    
+                    // Render todo component
+                    const todoContainer = document.getElementById('todo-container');
+                    if (todoContainer) {
+                        bootstrap(TodoComponent, todoContainer);
+                    }
+                    
+                    // Render user component
+                    const userContainer = document.getElementById('user-container');
+                    if (userContainer) {
+                        bootstrap(UserComponent, userContainer);
+                    }
+                }, 0);
+            }
+        }
+
+        // Register App Component
+        Component({
+            selector: 'app-root',
+            template: `
+                <div class="app-container">
+                    <header>
+                        <h2>{{title}}</h2>
+                        <div class="time">Current time: {{currentTime}}</div>
+                    </header>
+                    
+                    <div class="component-container">
+                        <div class="component" id="counter-container"></div>
+                        <div class="component" id="todo-container"></div>
+                        <div class="component" id="user-container"></div>
+                    </div>
+                </div>
+            `
+        })(AppComponent);
+
+        // Bootstrap the application
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = document.getElementById('app');
+            bootstrap(AppComponent, app);
+        });
+    </script>
+</body>
+</html>

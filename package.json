@@ -1,0 +1,25 @@
+{
+  "name": "lagunlar",
+  "version": "0.1.0",
+  "description": "A lightweight framework combining Preact's simplicity with Angular's features",
+  "main": "dist/lagunlar.js",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "http-server -c-1 .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "framework",
+    "frontend",
+    "angular",
+    "preact",
+    "lightweight"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "rollup": "^3.20.0",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}

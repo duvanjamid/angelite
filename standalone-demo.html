@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lagunlar Standalone Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .app-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        header h2 {
+            margin: 0;
+            color: #3498db;
+        }
+
+        .time {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .component-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .component {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .component h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button.danger {
+            background: #e74c3c;
+        }
+
+        button.danger:hover {
+            background: #c0392b;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: calc(100% - 16px);
+        }
+
+        .todo-item, .user-item {
+            margin: 5px 0;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
+        .counter-value {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: #3498db;
+        }
+
+        .counter-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-form, .todo-form {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lagunlar Framework Demo</h1>
+    <div id="app"></div>
+
+    <script>
+        // Simplified Lagunlar framework implementation
+        class MicroAngular {
+            constructor() {
+                this.components = new Map();
+                this.instances = new Map();
+            }
+
+            // Component factory function (replaces decorator)
+            createComponent(config, ComponentClass) {
+                ComponentClass._selector = config.selector;
+                ComponentClass._template = config.template;
+                ComponentClass._styles = config.styles || '';
+                this.components.set(config.selector, ComponentClass);
+                return ComponentClass;
+            }
+
+            // Template parser and renderer
+            parseTemplate(template, context) {
+                // Handle interpolation {{ }}
+                template = template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
+                    try {
+                        const value = this.evaluateExpression(expr.trim(), context);
+                        return value !== undefined ? value : '';
+                    } catch (e) {
+                        console.error('Error evaluating expression:', expr, e);
+                        return match;
+                    }
+                });
+
+                return template;
+            }
+
+            // Simple expression evaluator
+            evaluateExpression(expr, context) {
+                // Handle method calls like todos.length
+                if (expr.includes('.')) {
+                    const parts = expr.split('.');
+                    let value = context;
+                    for (const part of parts) {
+                        if (value === null || value === undefined) return '';
+                        value = value[part];
+                    }
+                    return value;
+                }
+                return context[expr];
+            }
+
+            // Event binding handler
+            bindEvents(element, instance) {
+                // Handle (click) events
+                const clickElements = element.querySelectorAll('[data-click]');
+                clickElements.forEach(el => {
+                    const method = el.getAttribute('data-click');
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (typeof instance[method] === 'function') {
+                            instance[method]();
+                            this.updateComponent(instance);
+                        }
+                    });
+                });
+
+                // Handle (input) events for two-way binding
+                const inputElements = element.querySelectorAll('[data-model]');
+                inputElements.forEach(el => {
+                    const property = el.getAttribute('data-model');
+                    
+                    // Set initial value
+                    el.value = instance[property] || '';
+                    
+                    // Bind input event
+                    el.addEventListener('input', (e) => {
+                        instance[property] = e.target.value;
+                        this.updateComponent(instance);
+                    });
+                });
+
+                // Handle *ngFor-like iterations
+                const forElements = element.querySelectorAll('[data-for]');
+                forElements.forEach(el => {
+                    const forExpr = el.getAttribute('data-for');
+                    const template = el.getAttribute('data-template');
+                    this.renderForLoop(el, forExpr, template, instance);
+                });
+            }
+
+            // Handle *ngFor equivalent
+            renderForLoop(container, forExpr, template, instance) {
+                // Parse "item of items" syntax
+                const match = forExpr.match(/(\w+)\s+of\s+(\w+)/);
+                if (!match) return;
+                
+                const [, itemName, arrayName] = match;
+                const array = instance[arrayName] || [];
+                
+                container.innerHTML = array.map((item, index) => {
+                    return template
+                        .replace(new RegExp(`{{\\s*${itemName}\\s*}}`, 'g'), item)
+                        .replace(/{{\\s*index\\s*}}/g, index);
+                }).join('');
+            }
+
+            // Process template for event binding
+            preprocessTemplate(template) {
+                // Convert (click)="method()" to data-click="method"
+                template = template.replace(/\(click\)="([^"(]+)\(\)"/g, 'data-click="$1"');
+                
+                // Convert [(ngModel)]="property" to data-model="property"
+                template = template.replace(/\[\(ngModel\)\]="([^"]+)"/g, 'data-model="$1"');
+                
+                // Convert *ngFor="let item of items" to data-for and data-template
+                template = template.replace(
+                    /\*ngFor="let\s+(\w+)\s+of\s+(\w+)"[^>]*>([^<]*)</g,
+                    'data-for="$1 of $2" data-template="$3">'
+                );
+                
+                return template;
+            }
+
+            // Render component
+            renderComponent(ComponentClass, container) {
+                const instance = new ComponentClass();
+                const selector = ComponentClass._selector;
+                
+                // Store instance for updates
+                this.instances.set(container, instance);
+
+                // Process template
+                let template = this.preprocessTemplate(ComponentClass._template);
+                template = this.parseTemplate(template, instance);
+
+                // Create element
+                container.innerHTML = template;
+
+                // Add styles if any
+                if (ComponentClass._styles) {
+                    const style = document.createElement('style');
+                    style.textContent = ComponentClass._styles;
+                    document.head.appendChild(style);
+                }
+
+                // Bind events
+                this.bindEvents(container, instance);
+
+                // Call lifecycle hooks
+                if (typeof instance.ngOnInit === 'function') {
+                    instance.ngOnInit();
+                }
+
+                return instance;
+            }
+
+            // Update component after state change
+            updateComponent(instance) {
+                // Find container for this instance
+                let container = null;
+                this.instances.forEach((inst, cont) => {
+                    if (inst === instance) {
+                        container = cont;
+                    }
+                });
+
+                if (container) {
+                    // Re-render with updated state
+                    let template = this.preprocessTemplate(instance.constructor._template);
+                    template = this.parseTemplate(template, instance);
+                    container.innerHTML = template;
+                    this.bindEvents(container, instance);
+                }
+            }
+
+            // Bootstrap application
+            bootstrap(RootComponent, container) {
+                return this.renderComponent(RootComponent, container);
+            }
+        }
+
+        // Create global instance
+        const lagunlar = new MicroAngular();
+
+        // Counter Component
+        class CounterComponent {
+            constructor() {
+                this.count = 0;
+            }
+            
+            increment() {
+                this.count++;
+            }
+            
+            decrement() {
+                this.count--;
+            }
+            
+            double() {
+                this.count *= 2;
+            }
+            
+            reset() {
+                this.count = 0;
+            }
+            
+            ngOnInit() {
+                console.log('Counter component initialized');
+            }
+        }
+
+        // Register Counter Component
+        lagunlar.createComponent({
+            selector: 'app-counter',
+            template: `
+                <div>
+                    <h3>Counter Component</h3>
+                    <div class="counter-value">{{count}}</div>
+                    <div class="counter-actions">
+                        <button data-click="decrement">-</button>
+                        <button data-click="increment">+</button>
+                        <button data-click="double">x2</button>
+                        <button data-click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        }, CounterComponent);
+
+        // Todo Component
+        class TodoComponent {
+            constructor() {
+                this.todos = [];
+                this.newTodo = '';
+            }
+            
+            addTodo() {
+                if (this.newTodo.trim()) {
+                    this.todos.push(this.newTodo);
+                    this.newTodo = '';
+                }
+            }
+            
+            removeTodo(index) {
+                this.todos.splice(index, 1);
+            }
+            
+            ngOnInit() {
+                console.log('Todo component initialized');
+            }
+        }
+
+        // Register Todo Component
+        lagunlar.createComponent({
+            selector: 'app-todo',
+            template: `
+                <div>
+                    <h3>Todo Component</h3>
+                    <div class="todo-form">
+                        <input data-model="newTodo" type="text" placeholder="Add a new task...">
+                        <button data-click="addTodo">Add</button>
+                    </div>
+                    <div class="todo-list">
+                        <!-- Todo items will be rendered here -->
+                        {{todos.length}} items
+                    </div>
+                </div>
+            `
+        }, TodoComponent);
+
+        // User Component
+        class UserComponent {
+            constructor() {
+                this.users = [];
+                this.newName = '';
+                this.newEmail = '';
+            }
+            
+            addUser() {
+                if (this.newName.trim() && this.newEmail.trim()) {
+                    this.users.push({
+                        name: this.newName,
+                        email: this.newEmail
+                    });
+                    this.newName = '';
+                    this.newEmail = '';
+                }
+            }
+            
+            removeUser(index) {
+                this.users.splice(index, 1);
+            }
+            
+            ngOnInit() {
+                console.log('User component initialized');
+            }
+        }
+
+        // Register User Component
+        lagunlar.createComponent({
+            selector: 'app-user',
+            template: `
+                <div>
+                    <h3>User Component</h3>
+                    <div class="user-form">
+                        <input data-model="newName" type="text" placeholder="Name">
+                        <input data-model="newEmail" type="text" placeholder="Email">
+                        <button data-click="addUser">Add User</button>
+                    </div>
+                    <div class="user-list">
+                        <!-- User items will be rendered here -->
+                        {{users.length}} users
+                    </div>
+                </div>
+            `
+        }, UserComponent);
+
+        // App Component
+        class AppComponent {
+            constructor() {
+                this.title = 'Lagunlar Demo';
+                this.currentTime = new Date().toLocaleTimeString();
+                this.updateInterval = null;
+            }
+            
+            ngOnInit() {
+                // Update time every second
+                this.updateInterval = setInterval(() => {
+                    this.currentTime = new Date().toLocaleTimeString();
+                    // Update the time display
+                    document.querySelector('.time').textContent = `Current time: ${this.currentTime}`;
+                }, 1000);
+                
+                // Render child components
+                this.renderChildComponents();
+            }
+            
+            renderChildComponents() {
+                // Render counter component
+                const counterContainer = document.getElementById('counter-container');
+                if (counterContainer) {
+                    lagunlar.bootstrap(CounterComponent, counterContainer);
+                }
+                
+                // Render todo component
+                const todoContainer = document.getElementById('todo-container');
+                if (todoContainer) {
+                    lagunlar.bootstrap(TodoComponent, todoContainer);
+                }
+                
+                // Render user component
+                const userContainer = document.getElementById('user-container');
+                if (userContainer) {
+                    lagunlar.bootstrap(UserComponent, userContainer);
+                }
+            }
+        }
+
+        // Register App Component
+        lagunlar.createComponent({
+            selector: 'app-root',
+            template: `
+                <div class="app-container">
+                    <header>
+                        <h2>{{title}}</h2>
+                        <div class="time">Current time: {{currentTime}}</div>
+                    </header>
+                    
+                    <div class="component-container">
+                        <div class="component" id="counter-container"></div>
+                        <div class="component" id="todo-container"></div>
+                        <div class="component" id="user-container"></div>
+                    </div>
+                </div>
+            `
+        }, AppComponent);
+
+        // Bootstrap the application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = document.getElementById('app');
+            lagunlar.bootstrap(AppComponent, app);
+        });
+    </script>
+</body>
+</html>

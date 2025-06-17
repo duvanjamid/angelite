@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro Angular Framework</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .component {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .todo-item {
+            margin: 5px 0;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn {
+            background: #dc3545;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Micro Angular Framework Demo</h1>
+    <div id="app"></div>
+
+    <script>
+        // Micro Angular Framework Implementation
+        class MicroAngular {
+            constructor() {
+                this.components = new Map();
+                this.instances = new Map();
+            }
+
+            // Component factory function (replaces decorator)
+            createComponent(config, ComponentClass) {
+                ComponentClass._selector = config.selector;
+                ComponentClass._template = config.template;
+                ComponentClass._styles = config.styles || '';
+                this.components.set(config.selector, ComponentClass);
+                return ComponentClass;
+            }
+
+            // Template parser and renderer
+            parseTemplate(template, context) {
+                // Handle interpolation {{ }}
+                template = template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
+                    try {
+                        const value = this.evaluateExpression(expr.trim(), context);
+                        return value !== undefined ? value : '';
+                    } catch (e) {
+                        return match;
+                    }
+                });
+
+                return template;
+            }
+
+            // Simple expression evaluator
+            evaluateExpression(expr, context) {
+                // Handle method calls like todos.length
+                if (expr.includes('.')) {
+                    const parts = expr.split('.');
+                    let value = context;
+                    for (const part of parts) {
+                        if (value === null || value === undefined) return '';
+                        value = value[part];
+                    }
+                    return value;
+                }
+                return context[expr];
+            }
+
+            // Event binding handler
+            bindEvents(element, instance) {
+                // Handle (click) events
+                const clickElements = element.querySelectorAll('[data-click]');
+                clickElements.forEach(el => {
+                    const method = el.getAttribute('data-click');
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (typeof instance[method] === 'function') {
+                            instance[method]();
+                            this.updateComponent(instance);
+                        }
+                    });
+                });
+
+                // Handle (input) events for two-way binding
+                const inputElements = element.querySelectorAll('[data-model]');
+                inputElements.forEach(el => {
+                    const property = el.getAttribute('data-model');
+                    
+                    // Set initial value
+                    el.value = instance[property] || '';
+                    
+                    // Bind input event
+                    el.addEventListener('input', (e) => {
+                        instance[property] = e.target.value;
+                        this.updateComponent(instance);
+                    });
+                });
+
+                // Handle *ngFor-like iterations
+                const forElements = element.querySelectorAll('[data-for]');
+                forElements.forEach(el => {
+                    const forExpr = el.getAttribute('data-for');
+                    const template = el.getAttribute('data-template');
+                    this.renderForLoop(el, forExpr, template, instance);
+                });
+            }
+
+            // Handle *ngFor equivalent
+            renderForLoop(container, forExpr, template, instance) {
+                // Parse "item of items" syntax
+                const match = forExpr.match(/(\w+)\s+of\s+(\w+)/);
+                if (!match) return;
+                
+                const [, itemName, arrayName] = match;
+                const array = instance[arrayName] || [];
+                
+                container.innerHTML = array.map((item, index) => {
+                    return template
+                        .replace(new RegExp(`{{\\s*${itemName}\\s*}}`, 'g'), item)
+                        .replace(/{{\\s*index\\s*}}/g, index);
+                }).join('');
+            }
+
+            // Process template for event binding
+            preprocessTemplate(template) {
+                // Convert (click)="method()" to data-click="method"
+                template = template.replace(/\(click\)="([^"(]+)\(\)"/g, 'data-click="$1"');
+                
+                // Convert [(ngModel)]="property" to data-model="property"
+                template = template.replace(/\[\(ngModel\)\]="([^"]+)"/g, 'data-model="$1"');
+                
+                // Convert *ngFor="let item of items" to data-for and data-template
+                template = template.replace(
+                    /\*ngFor="let\s+(\w+)\s+of\s+(\w+)"[^>]*>([^<]*)</g,
+                    'data-for="$1 of $2" data-template="$3">'
+                );
+                
+                return template;
+            }
+
+            // Render component
+            renderComponent(ComponentClass, container) {
+                const instance = new ComponentClass();
+                const selector = ComponentClass._selector;
+                
+                // Store instance for updates
+                this.instances.set(container, instance);
+
+                // Process template
+                let template = this.preprocessTemplate(ComponentClass._template);
+                template = this.parseTemplate(template, instance);
+
+                // Create element
+                container.innerHTML = template;
+
+                // Add styles if any
+                if (ComponentClass._styles) {
+                    const style = document.createElement('style');
+                    style.textContent = ComponentClass._styles;
+                    document.head.appendChild(style);
+                }
+
+                // Bind events
+                this.bindEvents(container, instance);
+
+                // Call lifecycle hook if exists
+                if (typeof instance.ngOnInit === 'function') {
+                    instance.ngOnInit();
+                }
+
+                return instance;
+            }
+
+            // Update component when data changes
+            updateComponent(instance, forceUpdate = false) {
+                const container = [...this.instances.entries()]
+                    .find(([key, value]) => value === instance)?.[0];
+                
+                if (container) {
+                    const ComponentClass = instance.constructor;
+                    
+                    // For AppComponent, only update specific elements to avoid re-rendering children
+                    if (ComponentClass.name === 'AppComponent' && !forceUpdate) {
+                        this.updateAppComponentSelectively(container, instance);
+                        return;
+                    }
+                    
+                    let template = this.preprocessTemplate(ComponentClass._template);
+                    template = this.parseTemplate(template, instance);
+                    
+                    // Preserve input focus
+                    const activeElement = document.activeElement;
+                    const isInput = activeElement && activeElement.tagName === 'INPUT';
+                    const inputValue = isInput ? activeElement.value : null;
+                    const inputSelectionStart = isInput ? activeElement.selectionStart : null;
+                    
+                    container.innerHTML = template;
+                    this.bindEvents(container, instance);
+                    
+                    // Restore input focus and selection
+                    if (isInput && inputValue !== null) {
+                        const newInput = container.querySelector(`[data-model="${activeElement.getAttribute('data-model')}"]`);
+                        if (newInput) {
+                            newInput.focus();
+                            newInput.setSelectionRange(inputSelectionStart, inputSelectionStart);
+                        }
+                    }
+                }
+            }
+
+            // Selective update for AppComponent to avoid re-rendering children
+            updateAppComponentSelectively(container, instance) {
+                // Only update text nodes that contain interpolated values
+                const walker = document.createTreeWalker(
+                    container,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                
+                const textNodes = [];
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.textContent.includes('Current time:')) {
+                        textNodes.push(node);
+                    }
+                }
+                
+                // Update only the time text
+                textNodes.forEach(textNode => {
+                    if (textNode.textContent.includes('Current time:')) {
+                        textNode.textContent = `Current time: ${instance.currentTime}`;
+                    }
+                });
+            }
+
+            // Bootstrap application
+            bootstrap(ComponentClass, selector = '#app') {
+                const container = document.querySelector(selector);
+                if (container) {
+                    this.renderComponent(ComponentClass, container);
+                }
+            }
+        }
+
+        // Create global instance
+        const microAngular = new MicroAngular();
+
+        // Counter Component
+        class CounterComponent {
+            constructor() {
+                this.count = 0;
+            }
+
+            get double() {
+                return this.count * 2;
+            }
+
+            increment() {
+                this.count++;
+            }
+
+            decrement() {
+                this.count--;
+            }
+
+            reset() {
+                this.count = 0;
+            }
+
+            ngOnInit() {
+                console.log('Counter component initialized!');
+            }
+        }
+
+        // Register Counter Component
+        microAngular.createComponent({
+            selector: 'app-counter',
+            template: `
+                <div class="component">
+                    <h3>Counter Component</h3>
+                    <p>Count: {{ count }}</p>
+                    <p>Double: {{ double }}</p>
+                    <button (click)="increment()">Increment</button>
+                    <button (click)="decrement()">Decrement</button>
+                    <button (click)="reset()">Reset</button>
+                </div>
+            `,
+            styles: `
+                .counter { background: #f0f8ff; }
+            `
+        }, CounterComponent);
+
+        // Todo Component
+        class TodoComponent {
+            constructor() {
+                this.newTodo = '';
+                this.todos = ['Learn Micro Angular', 'Build something cool'];
+            }
+
+            addTodo() {
+                if (this.newTodo.trim()) {
+                    this.todos.push(this.newTodo.trim());
+                    this.newTodo = '';
+                }
+            }
+
+            removeTodo(index) {
+                this.todos.splice(index, 1);
+            }
+
+            ngOnInit() {
+                console.log('Todo component initialized with', this.todos.length, 'todos');
+            }
+        }
+
+        // Register Todo Component
+        microAngular.createComponent({
+            selector: 'app-todo',
+            template: `
+                <div class="component">
+                    <h3>Todo Component</h3>
+                    <div>
+                        <input [(ngModel)]="newTodo" placeholder="Enter new todo">
+                        <button (click)="addTodo()">Add Todo</button>
+                    </div>
+                    <p>New todo: "{{ newTodo }}"</p>
+                    <div>
+                        <h4>Todo List ({{ todos.length }} items):</h4>
+                        <div id="todo-list"></div>
+                    </div>
+                </div>
+            `
+        }, TodoComponent);
+
+        // User Component with simple list rendering
+        class UserComponent {
+            constructor() {
+                this.users = [
+                    { name: 'Alice', age: 25 },
+                    { name: 'Bob', age: 30 },
+                    { name: 'Charlie', age: 35 }
+                ];
+                this.newUserName = '';
+                this.newUserAge = '';
+            }
+
+            addUser() {
+                if (this.newUserName.trim() && this.newUserAge) {
+                    this.users.push({
+                        name: this.newUserName.trim(),
+                        age: parseInt(this.newUserAge)
+                    });
+                    this.newUserName = '';
+                    this.newUserAge = '';
+                }
+            }
+
+            removeUser(index) {
+                this.users.splice(index, 1);
+            }
+
+            ngOnInit() {
+                // Render user list manually for now
+                this.renderUsers();
+            }
+
+            renderUsers() {
+                setTimeout(() => {
+                    const container = document.getElementById('user-list');
+                    if (container) {
+                        container.innerHTML = this.users.map((user, index) => `
+                            <div class="todo-item">
+                                <span>${user.name} (${user.age} years)</span>
+                                <button class="remove-btn" onclick="userInstance.removeUser(${index})">Remove</button>
+                            </div>
+                        `).join('');
+                    }
+                }, 0);
+            }
+        }
+
+        // Register User Component
+        microAngular.createComponent({
+            selector: 'app-user',
+            template: `
+                <div class="component">
+                    <h3>User List Component</h3>
+                    <div>
+                        <input [(ngModel)]="newUserName" placeholder="Name">
+                        <input [(ngModel)]="newUserAge" placeholder="Age" type="number">
+                        <button (click)="addUser()">Add User</button>
+                    </div>
+                    <div>
+                        <h4>Users ({{ users.length }} total):</h4>
+                        <div id="user-list"></div>
+                    </div>
+                </div>
+            `
+        }, UserComponent);
+
+        // Main App Component
+        class AppComponent {
+            constructor() {
+                this.currentTime = new Date().toLocaleTimeString();
+                this.title = 'Micro Angular Framework';
+                this.childrenRendered = false;
+                this.updateTime();
+            }
+
+            updateTime() {
+                setInterval(() => {
+                    this.currentTime = new Date().toLocaleTimeString();
+                    microAngular.updateComponent(this);
+                }, 1000);
+            }
+
+            ngOnInit() {
+                if (!this.childrenRendered) {
+                    this.renderChildComponents();
+                    this.childrenRendered = true;
+                }
+            }
+
+            renderChildComponents() {
+                setTimeout(() => {
+                    const counterContainer = document.getElementById('counter-container');
+                    const todoContainer = document.getElementById('todo-container');
+                    const userContainer = document.getElementById('user-container');
+                    
+                    if (counterContainer && !counterContainer.hasChildNodes()) {
+                        microAngular.renderComponent(CounterComponent, counterContainer);
+                    }
+                    
+                    if (todoContainer && !todoContainer.hasChildNodes()) {
+                        const todoInstance = microAngular.renderComponent(TodoComponent, todoContainer);
+                        window.todoInstance = todoInstance;
+                        
+                        const renderTodos = () => {
+                            const listContainer = document.getElementById('todo-list');
+                            if (listContainer && todoInstance.todos) {
+                                listContainer.innerHTML = todoInstance.todos.map((todo, index) => `
+                                    <div class="todo-item">
+                                        <span>${todo}</span>
+                                        <button class="remove-btn" onclick="window.todoInstance.removeTodo(${index}); window.todoInstance.renderTodoList();">Remove</button>
+                                    </div>
+                                `).join('');
+                            }
+                        };
+                        
+                        todoInstance.renderTodoList = renderTodos;
+                        
+                        const originalAddTodo = todoInstance.addTodo.bind(todoInstance);
+                        const originalRemoveTodo = todoInstance.removeTodo.bind(todoInstance);
+                        
+                        todoInstance.addTodo = function() {
+                            originalAddTodo();
+                            microAngular.updateComponent(this);
+                            setTimeout(renderTodos, 10);
+                        };
+                        
+                        todoInstance.removeTodo = function(index) {
+                            originalRemoveTodo(index);
+                            microAngular.updateComponent(this);
+                            setTimeout(renderTodos, 10);
+                        };
+                        
+                        setTimeout(renderTodos, 50);
+                    }
+                    
+                    if (userContainer && !userContainer.hasChildNodes()) {
+                        const userInstance = microAngular.renderComponent(UserComponent, userContainer);
+                        window.userInstance = userInstance;
+                        
+                        const originalAddUser = userInstance.addUser.bind(userInstance);
+                        const originalRemoveUser = userInstance.removeUser.bind(userInstance);
+                        
+                        userInstance.addUser = function() {
+                            originalAddUser();
+                            this.renderUsers();
+                            microAngular.updateComponent(this);
+                        };
+                        
+                        userInstance.removeUser = function(index) {
+                            originalRemoveUser(index);
+                            this.renderUsers();
+                            microAngular.updateComponent(this);
+                        };
+                    }
+                }, 50);
+            }
+        }
+
+        // Register App Component
+        microAngular.createComponent({
+            selector: 'app-root',
+            template: `
+                <div>
+                    <h2>{{ title }}</h2>
+                    <p>Current time: {{ currentTime }}</p>
+                    <div id="counter-container"></div>
+                    <div id="todo-container"></div>
+                    <div id="user-container"></div>
+                </div>
+            `
+        }, AppComponent);
+
+        // Bootstrap the application
+        microAngular.bootstrap(AppComponent);
+    </script>
+</body>
+</html>
