@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/images/angelite-logo.svg" alt="AngeLite Logo" width="200">
+  <img src="./assets/images/angelite-logo.svg" alt="AngeLite Logo" width="400">
   <h1>AngeLite</h1>
   <p><strong>A lightweight Angular-inspired framework that runs directly in the browser</strong></p>
   <p>
