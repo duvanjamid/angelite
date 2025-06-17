@@ -1,6 +1,6 @@
 {
   "name": "angelite",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A lightweight Angular-inspired framework that runs directly in the browser",
   "main": "dist/angelite.js",
   "module": "dist/angelite.esm.js",
