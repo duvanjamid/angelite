@@ -1,23 +1,23 @@
 import { terser } from 'rollup-plugin-terser';
 
 export default {
-  input: 'src/lagunlar.js',
+  input: 'src/angelite.js',
   output: [
     {
-      file: 'dist/lagunlar.js',
+      file: 'dist/angelite.js',
       format: 'iife',
-      name: 'Lagunlar',
+      name: 'AngeLite',
       sourcemap: true
     },
     {
-      file: 'dist/lagunlar.min.js',
+      file: 'dist/angelite.min.js',
       format: 'iife',
-      name: 'Lagunlar',
+      name: 'AngeLite',
       plugins: [terser()],
       sourcemap: true
     },
     {
-      file: 'dist/lagunlar.esm.js',
+      file: 'dist/angelite.esm.js',
       format: 'esm',
       sourcemap: true
     }

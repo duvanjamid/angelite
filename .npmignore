@@ -1,0 +1,25 @@
+# Archivos de desarrollo
+.git/
+.github/
+.gitignore
+.npmignore
+.windsurf/
+
+# Archivos de pruebas
+test/
+test-app/
+*.test.js
+
+# Ejemplos y documentación de desarrollo
+examples/
+docs/
+
+# Archivos de configuración de desarrollo
+rollup.config.js
+.eslintrc
+.prettierrc
+
+# Otros archivos
+node_modules/
+*.log
+.DS_Store
