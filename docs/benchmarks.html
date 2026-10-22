@@ -141,8 +141,6 @@ ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
   const score = Object.fromEntries(FW.map(k => [k, geo(k)]));
   $('score').innerHTML = chart('Puntuación global (media geométrica del tiempo relativo al mejor; 1,00 = el más rápido en todo)', score, '×', 2);
 
-  const bestOf = (vals, low = true) => FW.reduce((a, b) => (low ? vals[b] < vals[a] : vals[b] > vals[a]) ? b : a);
-  const gz = pick(x => x.size.gzip / 1024), st = pick(x => x.startup.median);
   // data-driven reading, so the text can never drift from the numbers
   const bestOf = (vals, low = true) => FW.reduce((a, b) => (low ? vals[b] < vals[a] : vals[b] > vals[a]) ? b : a);
   const rank = (vals, k) => FW.slice().sort((a, b) => vals[a] - vals[b]).indexOf(k) + 1;

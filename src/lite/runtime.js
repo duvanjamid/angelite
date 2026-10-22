@@ -173,6 +173,7 @@ class View extends Effect {
     this.last = null;
     this.frag = null;
     this.pos = -1;
+    this.dep = null; // nested blocks / projected views that read this view's scope
   }
 }
 
@@ -269,6 +270,16 @@ function rangeOf(view) {
   return nodes;
 }
 
+/**
+ * Re-runs a view and everything nested in it. Needed when a scope variable (a @for item or index) was
+ * replaced in place: nested blocks read it through the scope chain, not through a signal.
+ */
+function refresh(view) {
+  if (view.st) view.run();
+  const dep = view.dep;
+  if (dep) for (let i = 0; i < dep.length; i++) dep[i].refresh();
+}
+
 function destroyView(view) {
   view.stop();
   const own = view.own;
@@ -295,7 +306,10 @@ class IfState {
     this.cur = -1;
     this.v = null;
     ownOf(view).push(() => { if (this.v) destroyView(this.v); });
+    (view.dep || (view.dep = [])).push(this);
   }
+
+  refresh() { if (this.v) refresh(this.v); }
 
   update(idx) {
     if (idx === this.cur) return;
@@ -341,11 +355,17 @@ class ForState {
     this.entries = new Map();
     this.empty = null;
     this.probe = Object.create(scope); // only used to compute track keys
+    (view.dep || (view.dep = [])).push(this);
     ownOf(view).push(() => {
       this.entries.forEach(destroyView);
       this.entries.clear();
       if (this.empty) destroyView(this.empty);
     });
+  }
+
+  refresh() {
+    this.entries.forEach(refresh);
+    if (this.empty) refresh(this.empty);
   }
 
   update(list) {
@@ -401,7 +421,7 @@ class ForState {
         let changed = false;
         if (sc[name] !== item) { sc[name] = item; changed = true; }
         if (ix && (sc.$index !== i || sc.$count !== n)) { setIndex(sc, i, n); changed = true; }
-        if (changed && e.st) e.run();
+        if (changed) refresh(e);
         seq.push(e.pos);
         seqAt.push(i);
       } else {
@@ -518,6 +538,7 @@ function applyComp(op, host, view, scope, ctx, st, n) {
 
   // Content between the tags is rendered in the parent scope, then projected.
   const projected = op.childBp ? instantiate(op.childBp, scope, ctx) : null;
+  if (projected) (view.dep || (view.dep = [])).push({ refresh: () => refresh(projected) });
 
   for (const inp of op.inputs) {
     const k = keys[inp.key.toLowerCase()];

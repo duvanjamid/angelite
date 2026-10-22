@@ -74,7 +74,7 @@ export function transform(src) {
   while (i < src.length) {
     const at = src.indexOf('@', i);
     if (at < 0) break;
-    const m = /^@(else\s+if|if|for|else|empty)\s*/.exec(src.slice(at));
+    const m = /^@(else\s+if|if|for|else|empty)(?![\w$])\s*/.exec(src.slice(at));
     if (!m) { out += src.slice(i, at + 1); i = at + 1; continue; }
     out += src.slice(i, at);
     const kind = m[1].replace(/\s+/, ' ');

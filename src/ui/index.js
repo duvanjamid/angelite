@@ -86,7 +86,7 @@ export class Toggle {
 }
 component(Toggle, {
   selector: 'ui-toggle',
-  template: `<label class="ui-toggle" [attr.data-on]="checked()" (click)="flip()"><span class="track"></span>@if (label()) {<span>{{ label() }}</span>}</label>`
+  template: `<label class="ui-toggle" [attr.data-on]="checked() ? 'true' : 'false'" (click)="flip()"><span class="track"></span>@if (label()) {<span>{{ label() }}</span>}</label>`
 });
 
 export class TextField {
