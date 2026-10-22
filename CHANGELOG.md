@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Security hardening (Lite)
+- URL attributes (`href`, `src`, `action`, `formaction`, `data`, `xlink:href`) only accept `http`, `https`, `mailto`, `tel`, `sms`, `ftp` and relative URLs; anything else becomes `unsafe:<url>` with a warning. `trustUrl()` allows your own scheme. **Behaviour change.**
+- `[innerHTML]` only renders markup wrapped in `trustHtml()`; any other value is inserted as text. **Behaviour change.**
+- Compile-time errors (browser compiler and AOT tool) for `[on*]`, `[attr.on*]`, `on*="{{ }}"`, `[srcdoc]`, `[outerHTML]`, and for bindings/interpolation on `<script>`, `<style>`, `<base>`, `<link>`, `<meta>`. **Behaviour change.**
+- Expression sandbox: the global object and documents are never returned to a template (by value, whichever way they were reached) and DOM methods that turn strings into markup or attributes (`insertAdjacentHTML`, `setAttribute`, `write`...) are blocked.
+- Trusted Types: templates and `trustHtml()` values go through one policy named `angelite`.
+- UI package: constructable stylesheets instead of an inline `<style>`, with a nonce-aware fallback.
+- `SECURITY.md`, CodeQL (security-extended), Dependabot and `npm audit` in CI. `tests/security.test.mjs` holds the attack matrix; it fails if a gap is reopened.
+
 ### Framework comparison
 - `docs/gap-analysis.md`: what React, Preact, Vue and Angular have that AngeLite lacks (and the reverse), a security review, an architecture critique and a prioritised roadmap. Each claim says how it was verified.
 - `docs/benchmarks.html` gains a 37-row feature comparison (security, speed, architecture, ecosystem) with the source of every datum.

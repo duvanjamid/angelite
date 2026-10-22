@@ -42,3 +42,5 @@ jobs:
         run: npm run test:coverage
       - name: Bundle size budgets
         run: npm run size
+      - name: Audit runtime dependencies (the package has none)
+        run: npm audit --omit=dev --audit-level=high

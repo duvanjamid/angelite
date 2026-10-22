@@ -59,7 +59,7 @@
     <a href="#inicio">Inicio</a><a href="#senales">Señales</a><a href="#plantillas">Plantillas</a>
     <a href="#flujo">Control de flujo</a><a href="#formularios">Formularios</a>
     <a href="#componentes">Componentes</a><a href="#pipes">Pipes</a><a href="#di">Servicios</a>
-    <a href="#router">Router</a><a href="#aot">Precompilar</a><a href="#limites">Diferencias con Angular</a>
+    <a href="#router">Router</a><a href="#aot">Precompilar</a><a href="#seguridad">Seguridad</a><a href="#limites">Diferencias con Angular</a>
   </nav>
 
   <h2 id="inicio">Inicio rápido</h2>
@@ -328,6 +328,25 @@ import { aotPlugin } from '@duvanjamid/angelite/tools/aot.mjs';
 esbuild.build({ entryPoints: ['counter.js'], bundle: true, minify: true, plugins: [aotPlugin({ components: ['ui-button'] })] });</code></pre>
   <p>También hay una CLI: <code>node tools/aot.mjs plantilla.html salida.js --components ui-button,ui-card</code>. El código generado se comprueba en los tests: una plantilla precompilada produce exactamente el mismo DOM que la compilada en el navegador. Los pipes integrados son opt-in en este modo: <code>import '@duvanjamid/angelite/lite/pipes'</code> o registra los tuyos con <code>registerPipe</code>.</p>
   <p class="note">La herramienta usa <code>jsdom</code> solo en tiempo de build. En producción no se carga nada de ella.</p>
+
+  <h2 id="seguridad">Seguridad</h2>
+  <p>El modelo es simple: <b>las plantillas son código tuyo; los datos que muestras no son de fiar.</b> Lite está hecho para que un dato no se convierta en HTML, script o URL peligrosa por accidente.</p>
+  <ul>
+    <li><code>{{ valor }}</code> siempre se inserta como texto.</li>
+    <li>Las URL en <code>href</code>, <code>src</code>, <code>action</code>… solo dejan pasar <code>http(s)</code>, <code>mailto</code>, <code>tel</code>, <code>sms</code>, <code>ftp</code> y rutas relativas; lo demás pasa a <code>unsafe:…</code> y avisa en consola.</li>
+    <li><code>[innerHTML]</code> solo pinta HTML envuelto en <code>trustHtml()</code>; cualquier otro valor se inserta como texto.</li>
+    <li><code>[onclick]</code>, <code>[srcdoc]</code> y bindings sobre <code>&lt;script&gt;</code>/<code>&lt;base&gt;</code>/<code>&lt;link&gt;</code> son un <b>error de compilación</b>.</li>
+    <li>Las expresiones nunca reciben <code>window</code> ni <code>document</code>, vengan de donde vengan.</li>
+    <li>Sin <code>eval</code> ni <code>new Function</code>: funciona con una CSP sin <code>unsafe-eval</code>, y soporta Trusted Types.</li>
+  </ul>
+  <pre><code>import { signal, trustHtml, trustUrl } from '@duvanjamid/angelite/lite';
+
+html = signal(trustHtml(DOMPurify.sanitize(comentario)));   // tú te haces responsable: sanea antes
+link = signal(trustUrl('whatsapp://send?text=hola'));       // esquema propio permitido a propósito
+
+// CSP recomendada
+// Content-Security-Policy: default-src 'self'; script-src 'self'; require-trusted-types-for 'script'; trusted-types angelite</code></pre>
+  <p class="note">El sandbox de expresiones es defensa en profundidad, no un límite de seguridad: nunca compiles plantillas que incluyan datos de usuario. En producción precompila con <code>tools/aot.mjs</code>. Más detalle en <a href="https://github.com/duvanjamid/angelite/blob/main/SECURITY.md">SECURITY.md</a>.</p>
 
   <h2 id="limites">Diferencias con Angular</h2>
   <p>Es "homólogo", no un clon. Lo que cambia a propósito para mantenerlo pequeño:</p>

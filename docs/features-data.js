@@ -70,8 +70,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       "[href] y href=\"{{ }}\" las dejan pasar"
+       "y",
+       "lista de esquemas permitidos; `trustUrl()` para esquemas propios"
       ],
       "preact": [
        "n",
@@ -97,8 +97,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       "[attr.onclick] crea el atributo"
+       "y",
+       "error de compilación (también en el AOT)"
       ],
       "preact": [
        "y",
@@ -119,29 +119,56 @@ window.FEATURES = {
      }
     },
     {
-     "name": "Sanea HTML en `innerHTML`",
-     "why": "Insertar HTML del usuario sin sanear es XSS.",
-     "ev": "D",
+     "name": "Rechaza bindings peligrosos al compilar",
+     "why": "`[onclick]`, `[srcdoc]`, o enlazar datos a `<script>`: mejor un error al construir que un agujero en producción.",
+     "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       "[innerHTML] sin sanear"
+       "y",
+       "on*, srcdoc, outerHTML y bindings en script/style/base/link/meta: error de compilación (comprobado)"
       ],
       "preact": [
-       "n",
-       "explícito en el nombre (dangerouslySetInnerHTML)"
+       "p",
+       "no hay plantillas; onClick con texto se ignora (comprobado)"
       ],
       "vue": [
        "n",
-       "v-html sin sanear"
+       ":onclick con texto crea el atributo (comprobado)"
       ],
       "react": [
-       "n",
-       "explícito en el nombre (dangerouslySetInnerHTML)"
+       "p",
+       "onClick con texto se ignora (comprobado)"
       ],
       "angular": [
        "y",
-       "DomSanitizer sanea las cadenas"
+       "rechaza enlazar a propiedades de evento (según su documentación)"
+      ]
+     }
+    },
+    {
+     "name": "HTML solo con confianza explícita (o saneado)",
+     "why": "Insertar HTML del usuario sin vigilar es XSS: lo seguro es que no se renderice salvo que lo marques.",
+     "ev": "V",
+     "cells": {
+      "lite": [
+       "y",
+       "`trustHtml()` obligatorio; sin él se inserta como texto"
+      ],
+      "preact": [
+       "p",
+       "lo renderiza si se lo pasas (dangerouslySetInnerHTML)"
+      ],
+      "vue": [
+       "p",
+       "lo renderiza si se lo pasas (v-html)"
+      ],
+      "react": [
+       "p",
+       "lo renderiza si se lo pasas (dangerouslySetInnerHTML)"
+      ],
+      "angular": [
+       "y",
+       "DomSanitizer sanea las cadenas (según su documentación)"
       ]
      }
     },
@@ -151,8 +178,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       "se llega con $el.ownerDocument.defaultView y se pueden llamar funciones"
+       "y",
+       "bloqueo por valor: window y document no llegan a la plantilla por ningún camino"
       ],
       "preact": [
        "y",
@@ -205,8 +232,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "y",
+       "política `angelite` para plantillas y `trustHtml()`"
       ],
       "preact": [
        "n",
@@ -232,8 +259,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "p",
-       "solo el paquete UI inyecta <style>, sin nonce"
+       "y",
+       "hojas de estilo construibles; si no, <style> con nonce"
       ],
       "preact": [
        "y",
@@ -286,8 +313,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       "no hay SECURITY.md"
+       "y",
+       "SECURITY.md con el modelo de confianza"
       ],
       "preact": [
        "y",

@@ -17,58 +17,62 @@ De las 37 filas de la tabla: 16 son V, 2 son D y 19 son G. Las filas de segurida
 
 ## Resumen
 
-1. **Donde ganamos es tamaño, memoria y velocidad de listas** (ver el benchmark). Somos además el único con
-   un modo «sin build» pequeño: 8,3 KB gzip frente a 63,7 KB de Vue con su compilador, y sin `eval`.
-2. **Donde perdemos es seguridad en atributos y todo lo que rodea al núcleo**: tipos, SSR, router, formularios,
-   herramientas, comunidad. La tabla nos da 12 de 37 frente a 23,5 (Preact), 26,5 (Vue), 27,5 (React) y 32 (Angular).
-   No es un ranking, pero la brecha es real.
-3. **Lo más urgente es seguridad**: tenemos tres huecos de XSS que React cierra o Angular sanea. Son pequeños de arreglar.
+1. **Estado: los seis huecos de seguridad que encontramos están cerrados** (ver la sección 1), con un test real para cada uno
+   y para su variante precompilada. Lite pasa de peor a mejor del grupo en las pruebas de ataque que ejecutamos.
+2. **Donde ganamos es tamaño, memoria y velocidad de listas** (ver el benchmark). Somos además el único con
+   un modo «sin build» pequeño: ~9 KB gzip frente a 63,7 KB de Vue con su compilador, y sin `eval`.
+3. **Donde perdemos es todo lo que rodea al núcleo**: tipos, SSR, router, formularios, herramientas, comunidad.
+   La tabla nos da 19,5 de 38 frente a 24,5 (Preact), 27 (Vue), 28,5 (React) y 33 (Angular). No es un ranking, pero la brecha es real.
 
 ## 1. Seguridad
 
 ### Lo que comprobamos que hace cada uno
 
-| Prueba | Lite | Preact | Vue | React | Angular |
-|---|---|---|---|---|---|
-| Texto escapado por defecto | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `href` con `javascript:` | **pasa** | pasa | pasa | lo neutraliza (V) | lo sanea (V + doc) |
-| `onclick` como texto | **crea el atributo** | no lo crea | **crea el atributo** | no lo crea | lo prohíbe (G) |
-| HTML en `innerHTML` | sin sanear | sin sanear (nombre explícito) | sin sanear (`v-html`) | sin sanear (nombre explícito) | **sanea** (D) |
-| Expresiones llegan a `window` | **sí, vía `$el`** | n/a (JSX) | no (V) | n/a (JSX) | no (G) |
-| Funciona sin `eval` | **sí, siempre** | sí | solo la build runtime-only | sí | solo AOT; el JIT usa `new Function` |
-| Trusted Types | no | no | una referencia | no | integrado |
+Se repite con `cd benchmarks && npm install && npm run probe:security`.
 
-Notas:
+| Prueba | Lite (antes) | **Lite (ahora)** | Preact | Vue | React | Angular |
+|---|---|---|---|---|---|---|
+| Texto escapado por defecto | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `href` con `javascript:` | pasaba | **`unsafe:` + aviso** | pasa | pasa | lo neutraliza | lo sanea |
+| `onclick` como texto | creaba el atributo | **error de compilación** | no lo crea | crea el atributo | no lo crea | lo prohíbe |
+| HTML en `innerHTML` | sin sanear | **solo con `trustHtml()`; si no, texto** | sin sanear | sin sanear | sin sanear | sanea |
+| Expresiones llegan a `window` | sí, vía `$el` | **no, por ningún camino** | n/a (JSX) | no | n/a (JSX) | no |
+| Funciona sin `eval` | sí | **sí** | sí | solo la build runtime-only | sí | solo AOT; el JIT usa `new Function` |
+| Trusted Types | no | **sí (política `angelite`)** | no | una referencia | no | integrado |
+| Estilos bajo CSP estricta | `<style>` sin nonce | **hojas construibles; fallback con nonce** | n/a | n/a | n/a | nonce |
 
-- Vue tiene los mismos dos huecos que nosotros en `href` y `onclick`. Solo React y Angular cierran las URL.
-- En Angular comprobamos en el código del paquete que existen `_sanitizeUrl`, `trustedTypes`, `ngCspNonce`,
-  `bypassSecurityTrust*` y el prefijo `unsafe:`, y que no hay `new Function` en `@angular/core`.
-  Lo que no comprobamos es la ejecución, porque necesita su build AOT.
+Vue y Preact siguen sin cerrar las URL; solo React y Angular lo hacen. Con estos cambios Lite cierra todo lo que cierran ellos,
+más lo que nadie más hace (compilación que rechaza bindings peligrosos, valor-guardia contra `window`).
 
-### Huecos de AngeLite (los 6 están como `todo` en `tests/security.test.mjs`)
+### Cómo se cerró cada hueco
 
-| # | Hueco | Gravedad | Arreglo |
+| # | Hueco | Cierre | Test |
 |---|---|---|---|
-| 1 | `[href]="x"` y `href="{{ x }}"` aceptan `javascript:` | Alta: el XSS más común | Allowlist de esquemas (`http`, `https`, `mailto`, `tel`, relativas, `#`); `data:image/*` solo en `src`; el resto se sustituye por `unsafe:` y avisa en modo debug |
-| 2 | `[attr.onclick]` crea un manejador en línea | Alta | Rechazar cualquier binding `on*` (propiedad o `attr.`) que no sea `(evento)` |
-| 3 | `[innerHTML]` sin sanear | Alta | Exigir `trustHtml(valor)` explícito (como `bypassSecurityTrust`); sin esa marca, el valor se escapa y avisa |
-| 4 | `[srcdoc]` se acepta | Media | Prohibirlo como binding |
-| 5 | Una plantilla puede llamar a `window` con `$el.ownerDocument.defaultView.fn()` | Media: solo importa si alguien compila plantillas **no confiables** | Denylist en el evaluador (`ownerDocument`, `defaultView`, `window`, `document`, `globalThis`, `self`, `top`, `parent`, `Function`, `eval`) como defensa en profundidad, y documentar que nunca se compilan plantillas de terceros |
-| 6 | El paquete UI inyecta un `<style>` sin nonce | Baja | `adoptedStyleSheets` (no necesita nonce), con `<style nonce>` como alternativa |
+| 1 | `[href]` / `href="{{ }}"` aceptaban `javascript:` | Lista de esquemas (`http`, `https`, `mailto`, `tel`, `sms`, `ftp`, relativas) en `href`, `src`, `action`, `formaction`, `data` y `xlink:href`; ignora los caracteres que los navegadores descartan dentro del esquema (`java\tscript:`); el resto pasa a `unsafe:<url>` con aviso. `trustUrl()` como salida explícita. | matriz de 12 URLs peligrosas y 13 seguras en 7 contextos |
+| 2 | `[attr.onclick]` creaba un manejador | Error de compilación para `[on*]`, `[attr.on*]` y `on*="{{ }}"`, en el compilador del navegador y en el AOT | 5 variantes, también con mayúsculas |
+| 3 | `[innerHTML]` sin sanear | Solo se renderiza si está envuelto en `trustHtml()`; cualquier otro valor se inserta como texto y avisa | 3 tests |
+| 4 | `[srcdoc]` aceptado | Error de compilación (y `[outerHTML]`) | 3 tests |
+| 5 | Una plantilla llegaba a `window` con `$el.ownerDocument.defaultView.fn()` | Filtro **por valor**: el objeto global y los documentos nunca se devuelven a una plantilla, vengan de donde vengan (`$el.ownerDocument`, `$event.view`, `getRootNode()`, `composedPath()[n]`, un campo del componente). Además, métodos del DOM que convierten texto en marcado o atributos (`insertAdjacentHTML`, `setAttribute`, `write`…) quedan bloqueados por nombre. | 8 caminos de ataque + eventos |
+| 6 | El paquete UI inyectaba `<style>` sin nonce | `adoptedStyleSheets` (no necesita nonce); si no existen, `<style>` con el nonce de `<meta name="csp-nonce">` | 3 tests |
 
-Además: no hay `SECURITY.md` (proceso de reporte) ni política de Trusted Types.
+Además: bindings e interpolación en `<script>`, `<style>`, `<base>`, `<link>` y `<meta>` son error de compilación;
+Trusted Types con una única política `angelite` para las plantillas y `trustHtml()`; `SECURITY.md` con el modelo de confianza y
+cómo reportar; CodeQL con consultas ampliadas, Dependabot y `npm audit` en el CI.
 
-Lo que ya hacemos bien y conviene conservar: texto siempre escapado, atributos interpolados que no se pueden cerrar,
-bloqueo de `constructor`, `__proto__` y `prototype` en expresiones, cero `eval` y cero dependencias de runtime.
+### Lo que queda (y es honesto)
 
-### Qué tienen ellos que nosotros no
+- **El sandbox de expresiones no es un límite de seguridad.** Una plantilla sigue pudiendo llamar métodos de su componente y de
+  los elementos que alcance. Es defensa en profundidad: **nunca se compilan plantillas con datos de usuario** (Vue dice lo mismo).
+  En producción, precompila con `tools/aot.mjs`: no se compila nada en el navegador.
+- **No incluimos un sanitizador de HTML.** Angular trae uno; nosotros exigimos `trustHtml()` y recomendamos DOMPurify
+  antes de envolver. Incluir un sanitizador propio costaría varios KB y es fácil equivocarse.
+- **Sin revisión externa ni historial.** Los demás llevan años de auditorías; nosotros, no.
+- **El framework antiguo (`src/angelite.js` y sus carpetas) no está endurecido** y está deprecado. Usa `lite`.
 
-- **Angular**: sanitización de URL y HTML por contexto, rechazo de `on*`, Trusted Types, nonce de CSP, plantillas
-  que se compilan en build (no hay superficie de plantillas en producción).
-- **React**: bloqueo de `javascript:` y propiedades de evento que solo aceptan funciones.
-- **Vue**: expresiones con una lista blanca de globales (`window` y `document` salen `undefined`) y una guía de seguridad
-  oficial que prohíbe plantillas no confiables.
-- **Todos**: política de divulgación de vulnerabilidades y años de revisión externa.
+### Qué tienen ellos que nosotros no (seguridad)
+
+- **Angular**: un sanitizador de HTML y URL por contexto integrado, años de revisión de seguridad.
+- **Todos**: procesos de divulgación consolidados y una comunidad que encuentra y corrige fallos.
 
 ## 2. Velocidad y rendimiento
 
