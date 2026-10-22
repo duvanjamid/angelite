@@ -5,7 +5,7 @@ import { setOutletBinder } from './view.js';
 
 const read = () => (location.hash.slice(1) || '/').replace(/^(?!\/)/, '/');
 
-const path = signal(read());
+const path = /* @__PURE__ */ signal(read());
 let table = [];
 
 function compile(route) {
@@ -18,7 +18,7 @@ function compile(route) {
 
 export const router = {
   path,
-  current: computed(() => {
+  current: /* @__PURE__ */ computed(() => {
     const p = path();
     for (const { route, names, re } of table) {
       const m = re.exec(p);
@@ -30,14 +30,7 @@ export const router = {
   navigate(to) { location.hash = to; }
 };
 
-export function provideRouter(routes) {
-  table = routes.map(compile);
-  path.set(read());
-  addEventListener('hashchange', () => path.set(read()));
-  return router;
-}
-
-setOutletBinder((el, own, mount) => {
+function bindOutlet(el, own, mount) {
   let view = null;
   const clear = () => { if (view) view.destroy(); view = null; el.textContent = ''; };
   own.push(clear);
@@ -48,4 +41,12 @@ setOutletBinder((el, own, mount) => {
       if (match) view = mount(match.component, el);
     });
   }, own);
-});
+}
+
+export function provideRouter(routes) {
+  setOutletBinder(bindOutlet);
+  table = routes.map(compile);
+  path.set(read());
+  addEventListener('hashchange', () => path.set(read()));
+  return router;
+}

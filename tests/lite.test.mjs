@@ -91,7 +91,7 @@ test('[(ngModel)] two-way binds a signal', async () => {
   const { $ } = run(C);
   assert.equal($('input').value, 'Ana');
   $('input').value = 'Bob';
-  $('input').dispatchEvent(new window.Event('input'));
+  $('input').dispatchEvent(new window.Event('input', { bubbles: true }));
   await tick();
   assert.equal($('p').textContent, 'Hi BOB');
 });

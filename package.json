@@ -47,8 +47,19 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/**",
-    "./dist/**"
+    "./src/angelite.js",
+    "./src/core/*",
+    "./src/decorators/*",
+    "./src/directives/*",
+    "./src/forms/*",
+    "./src/pipes/*",
+    "./src/router/*",
+    "./src/ui/*",
+    "./dist/angelite.js",
+    "./dist/angelite.esm.js",
+    "./dist/angelite.min.js",
+    "./dist/angelite-ui.esm.js",
+    "./dist/angelite-ui.min.js"
   ],
   "exports": {
     ".": {

@@ -2,46 +2,89 @@
  * Tiny signals runtime: signal / computed / effect.
  * Effects run once synchronously, then re-run in a microtask when a
  * dependency changes (updates are batched automatically).
+ *
+ * Kept deliberately lean: an Effect is one small object with a dependency
+ * array, and signals only allocate a subscriber Set once someone reads them.
  */
 
 let active = null;
-const queue = new Set();
+const queue = [];
 let pending = false;
 
 function flush() {
+  for (let i = 0; i < queue.length; i++) {
+    const e = queue[i];
+    e.queued = false;
+    if (!e.dead) {
+      try { e.run(); } catch (err) { console.error(err); }
+    }
+  }
+  queue.length = 0;
   pending = false;
-  const batch = [...queue];
-  queue.clear();
-  for (const node of batch) node.run();
 }
 
-function schedule(node) {
-  queue.add(node);
-  if (!pending) {
-    pending = true;
-    queueMicrotask(flush);
+function clean(node) {
+  const deps = node.deps;
+  for (let i = 0; i < deps.length; i++) deps[i].delete(node);
+  deps.length = 0;
+}
+
+/** Reactive computation. `fn` receives the Effect itself, so one shared function can serve many instances. */
+export class Effect {
+  constructor(fn) {
+    this.fn = fn;
+    this.deps = [];
+    this.queued = false;
+    this.dead = false;
+    this.cleanup = undefined;
+  }
+
+  run() {
+    if (this.dead) return;
+    if (this.cleanup) { this.cleanup(); this.cleanup = undefined; }
+    clean(this);
+    const prev = active;
+    active = this;
+    try {
+      const result = this.fn(this);
+      if (typeof result === 'function') this.cleanup = result;
+    } finally { active = prev; }
+  }
+
+  notify() {
+    if (this.queued) return;
+    this.queued = true;
+    queue.push(this);
+    if (!pending) {
+      pending = true;
+      queueMicrotask(flush);
+    }
+  }
+
+  stop() {
+    this.dead = true;
+    clean(this);
+    if (this.cleanup) { this.cleanup(); this.cleanup = undefined; }
   }
 }
 
 function track(subs) {
-  if (active) {
+  if (!subs.has(active)) {
     subs.add(active);
-    active.deps.add(subs);
+    active.deps.push(subs);
   }
 }
 
-function clean(node) {
-  node.deps.forEach(subs => subs.delete(node));
-  node.deps.clear();
-}
-
 export function signal(value) {
-  const subs = new Set();
-  const read = () => (track(subs), value);
+  let subs = null;
+  const read = () => {
+    if (active) track(subs || (subs = new Set()));
+    return value;
+  };
   read.set = next => {
     if (Object.is(next, value)) return;
     value = next;
-    [...subs].forEach(n => n.notify());
+    if (subs) subs.forEach(n => n.notify());
   };
   read.update = fn => read.set(fn(value));
   read.peek = () => value;
@@ -49,15 +92,15 @@ export function signal(value) {
 }
 
 export function computed(fn) {
-  const subs = new Set();
+  let subs = null;
   let value;
   let dirty = true;
   const node = {
-    deps: new Set(),
+    deps: [],
     notify() {
       if (!dirty) {
         dirty = true;
-        [...subs].forEach(n => n.notify());
+        if (subs) subs.forEach(n => n.notify());
       }
     },
     run() {
@@ -68,7 +111,7 @@ export function computed(fn) {
     }
   };
   const read = () => {
-    track(subs);
+    if (active) track(subs || (subs = new Set()));
     if (dirty) node.run();
     return value;
   };
@@ -78,29 +121,9 @@ export function computed(fn) {
 
 /** Runs `fn` now and whenever its signals change. Returns a stop function. */
 export function effect(fn, owner) {
-  let cleanup;
-  let dead = false;
-  const node = {
-    deps: new Set(),
-    notify() { schedule(node); },
-    run() {
-      if (dead) return;
-      if (cleanup) cleanup();
-      clean(node);
-      const prev = active;
-      active = node;
-      try {
-        const result = fn();
-        cleanup = typeof result === 'function' ? result : undefined;
-      } finally { active = prev; }
-    }
-  };
-  node.run();
-  const stop = () => {
-    dead = true;
-    clean(node);
-    if (cleanup) cleanup();
-  };
+  const e = new Effect(fn);
+  e.run();
+  const stop = () => e.stop();
   if (owner) owner.push(stop);
   return stop;
 }
