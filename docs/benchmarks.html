@@ -45,7 +45,7 @@
 <main>
   <h1>Benchmarks</h1>
   <p class="lead">AngeLite Lite frente a Preact, Vue, React y Angular, con la misma aplicación en los cinco: una tabla con 1.000 – 10.000 filas, estilo <i>js-framework-benchmark</i>. Números reales, medidos en Chromium; el resumen está al final de cada sección.</p>
-  <nav><a href="#peso">Peso</a><a href="#arranque">Arranque y memoria</a><a href="#velocidad">Velocidad</a><a href="#metodo">Metodología y límites</a><a href="#repro">Reproducir</a><a href="index.html">← Guía</a><a href="components.html">Componentes</a></nav>
+  <nav><a href="#peso">Peso</a><a href="#arranque">Arranque y memoria</a><a href="#velocidad">Velocidad</a><a href="#lectura">Conclusiones</a><a href="#metodo">Metodología y límites</a><a href="#repro">Reproducir</a><a href="index.html">← Guía</a><a href="components.html">Componentes</a></nav>
   <div class="legend" id="legend"></div>
   <div id="summary"></div>
 
@@ -62,6 +62,9 @@
   <p>Mediana en milisegundos de cada operación (menos es mejor): desde que se dispara hasta que el DOM refleja el cambio y se ha calculado el layout.</p>
   <div id="ops"></div>
   <div id="score"></div>
+
+  <h2 id="lectura">Lectura honesta</h2>
+  <ul id="reading"></ul>
 
   <h2 id="metodo">Metodología y límites</h2>
   <ul>
@@ -136,9 +139,24 @@ ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
   const score = Object.fromEntries(FW.map(k => [k, geo(k)]));
   $('score').innerHTML = chart('Puntuación global (media geométrica del tiempo relativo al mejor; 1,00 = el más rápido en todo)', score, '×', 2);
 
-  // summary cards
   const bestOf = (vals, low = true) => FW.reduce((a, b) => (low ? vals[b] < vals[a] : vals[b] > vals[a]) ? b : a);
   const gz = pick(x => x.size.gzip / 1024), st = pick(x => x.startup.median);
+  // data-driven reading, so the text can never drift from the numbers
+  const rank = (vals, k) => FW.slice().sort((a, b) => vals[a] - vals[b]).indexOf(k) + 1;
+  const ord = n => ['primero', 'segundo', 'tercero', 'cuarto', 'quinto'][n - 1];
+  const ratio = (id, other) => f.lite.ops[id].median / f[other].ops[id].median;
+  const fastest = id => FW.reduce((a, b) => f[b].ops[id].median < f[a].ops[id].median ? b : a);
+  const slowOps = D.benches.filter(b => ratio(b.id, fastest(b.id)) > 1.25);
+  const bullets = [
+    `<b>Peso</b>: Lite queda ${ord(rank(pick(x => x.size.gzip), 'lite'))} por tamaño (${fmt(gz.lite)} KB gzip). Es ${fmt(gz.react / gz.lite, 1)}× más ligero que React, ${fmt(gz.angular / gz.lite, 1)}× que Angular y ${fmt(gz.vue / gz.lite, 1)}× que Vue; Preact (${fmt(gz.preact)} KB) es ${fmt(gz.lite / gz.preact, 2)}× más pequeño.`,
+    `<b>Arranque</b>: ${fmt(st.lite, 0)} ms (${ord(rank(st, 'lite'))} de 5), cerca de Preact (${fmt(st.preact, 0)} ms) y muy por debajo de React (${fmt(st.react, 0)} ms).`,
+    `<b>Velocidad</b>: puntuación global ${fmt(score.lite, 2)}× frente a la del mejor (${NAME[bestOf(score)]}, ${fmt(score[bestOf(score)], 2)}×). Lite está a la par en operaciones puntuales (actualizar, intercambiar y eliminar filas, donde React es el más lento al intercambiar), ${slowOps.length ? `pero tarda más de un 25 % más que el mejor en: ${slowOps.map(b => b.label.toLowerCase()).join(', ')}.` : 'y no se queda atrás en ninguna operación.'}`,
+    `<b>Memoria</b>: con 10.000 filas Lite usa ${fmt(f.lite.memory.rows10k, 1)} MB, frente a ${fmt(f.angular.memory.rows10k, 1)} MB de Angular y ${fmt(f.preact.memory.rows10k, 1)} MB de Preact: cada fila lleva sus propios efectos y sus señales.`,
+    `<b>En resumen</b>: Lite cumple como alternativa muy ligera con sintaxis de Angular, pero no es el más rápido ni el más eficiente en memoria; ahí aún hay margen de mejora (menos efectos por fila, o un modo de listas «estáticas»).`
+  ];
+  $('reading').innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
+
+  // summary cards
   const sc = score;
   $('summary').innerHTML = `<div class="cards">
     <div class="card"><b>${fmt(gz.lite)} KB</b><span>AngeLite Lite, min+gzip (${NAME[bestOf(gz)]} es el más ligero)</span></div>
