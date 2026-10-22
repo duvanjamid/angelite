@@ -475,12 +475,14 @@ function mountChild(Comp, host, scope, env, own) {
   const projected = [...host.childNodes];
   host.textContent = '';
 
+  instance.$el = host; // the component's host element
   bindAttrs(host, scope, own2, instance);
   if (instance.ngOnInit) instance.ngOnInit();
 
   const frag = getTemplate(Comp).content.cloneNode(true);
   bindChildren(frag, instance, envFor(Comp, projected), own2);
   host.append(frag);
+  if (instance.ngAfterViewInit) instance.ngAfterViewInit();
   if (instance.ngOnDestroy) own2.push(() => instance.ngOnDestroy());
   return instance;
 }

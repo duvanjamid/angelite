@@ -158,3 +158,12 @@ test('projected content survives its container being toggled', async () => {
   open.set(true); await tick();
   assert.equal($('.b i').textContent, '1');
 });
+
+test('$el and ngAfterViewInit give access to the rendered host', async () => {
+  let seen;
+  class C { ngAfterViewInit() { seen = this.$el.querySelector('b').textContent; } }
+  component(C, { selector: 'x-c', template: `<b>{{ 1 + 1 }}</b>` });
+  const { $ } = run(C);
+  assert.equal(seen, '2');
+  assert.equal($('x-c').tagName, 'X-C');
+});
