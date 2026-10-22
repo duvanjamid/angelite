@@ -142,8 +142,12 @@ Qué tienen ellos aquí que nosotros no (la **Ola 1** cerró lo marcado con ✓;
   ✓ TypeScript (`.d.ts` comprobados con `tsc`), ✓ límites de error (`ngOnError`; no capturan constructor ni `ngOnInit`),
   ✓ portales, ✓ slots con nombre, ✓ referencias a hijos (`viewChild`), ✓ utilidades de testing, ✓ avisos de desarrollo,
   ◐ comprobación de plantillas (elementos, pipes y nombres; no tipos).
-- Siguen sin existir (Ola 2): formularios reactivos, cliente HTTP, animaciones, i18n, SSR e hidratación, DevTools,
-  servicio de lenguaje para el editor, modo `history` y `createApp()`.
+- La **Ola 2** añadió, como módulos opcionales: formularios reactivos, cliente HTTP con interceptores y `resource()`,
+  i18n, animaciones de entrada y salida, SSR con `hydrate()`, DevTools básicas, modo `history` con query y resolvers,
+  plugin de Vite y `angelite-check`. Cada uno es más pequeño y con menos funciones que el de Angular (la tabla lo dice).
+- Sigue sin existir: hidratación que adopte los nodos del servidor, servicio de lenguaje para el editor (autocompletado),
+  extensión de DevTools para el navegador, validadores asíncronos, `createApp()`, renderizado concurrente (decisión: no),
+  y madurez / comunidad (solo se arreglan con tiempo y usuarios).
 
 Dónde lo tienen los demás importa: casi nada de esto viene en el núcleo de React, Preact o Vue (router, formularios,
 HTTP, i18n, animaciones y testing son paquetes aparte, oficiales o de terceros). Lo que sí traen dentro Vue, React y
@@ -198,23 +202,23 @@ Al arreglar cada uno, quitar el `todo` de su test en `tests/security.test.mjs`.
    módulo sin importar) y ✓ gancho de errores por componente (`ngOnError`). Falta un gancho global.
 10. Router: ✓ rutas anidadas, ✓ guards, ✓ carga diferida y ✓ `redirectTo`. Faltan resolvers, parámetros de consulta y
     modo `history`.
-11. Formularios reactivos sobre señales (portar los validadores). *Ola 2*
+11. ✓ Formularios reactivos sobre señales (Ola 2).
 12. ✓ Utilidades de testing (`render`, `click`, `type`, `flush`, `cleanup`).
 13. ✓ Slots con nombre, ✓ referencias (`viewChild`) y ✓ portales.
 14. `createApp()` con registros e inyector por aplicación (arregla el estado global). *Ola 2*
 
 **P2 — plataforma y rendimiento (L):**
 
-15. SSR e hidratación sobre los blueprints.
+15. ◐ SSR con jsdom y `hydrate()` que sustituye el HTML (Ola 2). Pendiente: renderizar los blueprints sin DOM y adoptar los nodos.
 16. ✓ `@defer` (disparadores `idle`, `viewport`, `interaction`, `hover`, `timer`, `immediate`, `when`) y rutas perezosas.
     Falta la división automática del código de un componente suelto.
 17. Optimizaciones del AOT: subárboles estáticos elevados, scope plano, constantes plegadas.
-18. Gancho para DevTools y un panel mínimo.
+18. ✓ Gancho para DevTools y un panel mínimo (`enableDevtools`).
 19. Presupuesto de rendimiento en CI con métricas deterministas (número de operaciones DOM por escenario), no tiempos.
 20. Retirar el código antiguo.
 
-**P3 — según demanda:** transiciones y animaciones, i18n, virtual scroll, plugin de Vite, servicio de lenguaje
-para el editor.
+**P3 — según demanda:** ✓ transiciones y animaciones (básicas), ✓ i18n, virtual scroll, ✓ plugin de Vite, servicio de
+lenguaje para el editor.
 
-**Qué no copiar:** Zone.js; reactividad profunda por proxies (más lenta y más memoria); renderizado concurrente completo;
-un cliente HTTP al estilo Angular (basta `fetch`).
+**Qué no copiar:** Zone.js; reactividad profunda por proxies (más lenta y más memoria); renderizado concurrente completo.
+(El cliente HTTP se hizo finalmente, pero como un módulo de ~1,3 KB sobre `fetch`, no como el de Angular.)

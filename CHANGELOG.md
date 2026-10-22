@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Framework completeness, wave 2 (Lite)
+All of it is optional: separate modules built against the lite bundle (`dist/angelite-<name>.esm.js`, or `angelite-addons.min.js` with the global `AngeLiteAddons` for a plain `<script>`), so there is one reactive core and an app pays only for what it imports.
+- **Reactive forms** (`lite/forms`): `FormControl`, `FormGroup` (nested, `get('a.b')`, group validators), `FormArray`; `value`, `errors`, `valid`, `touched`, `dirty` are signals, and `value` binds with `[(ngModel)]`. Validators: `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `email`, `matches`. No async validators yet.
+- **HTTP** (`lite/http`): `createHttp({ baseUrl, headers, interceptors })` over `fetch` (JSON in and out, query params, `timeout`, `AbortSignal`, `HttpError`), `retry()` interceptor, and `resource(() => ...)`: `data`/`loading`/`error` signals that reload when the signals the loader reads change and ignore stale answers.
+- **i18n** (`lite/i18n`): `createI18n()` with a locale signal, `{param}` interpolation, plurals through `Intl.PluralRules`, regional fallback, lazy `load()`, number/date/relative formatting, and the pipes `t`, `num`, `date`. Messages are always text.
+- **Animations** (`animate.js`, in the full bundle): `animate.enter="cls"` and `animate.leave="cls"`; a leaving element stays in the DOM until its animation or transition ends (with a safety timeout) and `prefers-reduced-motion` is honoured.
+- **Router:** `history` mode (`provideRouter(routes, { mode: 'history', base })`), `router.query()`, `resolve` functions with `router.data()`, `navigate(to, { replace })`. In history mode `//host` paths cannot leave the origin.
+- **SSR** (`tools/ssr.mjs`): `renderToString`, `renderPage` (shell with `<!--app-->` and `<!--state-->`), `serializeState` (safe inside `<script>`); renders run in jsdom and are queued. **`hydrate()`** (`lite/hydrate`) replaces the server markup with the live app; it does not adopt the existing nodes.
+- **DevTools** (`lite/devtools`): `enableDevtools({ panel })` exposes `window.__ANGELITE__` (`tree`, `inspect`, `state`, `set`) and an optional floating panel; component hosts now remember their instance (`$c`).
+- **Tooling:** Vite plugin (`tools/vite.mjs`, reloads on template edits) and `angelite-check` (`tools/check.mjs`, `file:1: message` output) that reuse the AOT template checks.
+- Core: element removal goes through a `detach` hook so animated elements can finish leaving (+28 B on the precompiled benchmark app).
+- Size budgets now cover the add-ons (measured minified): forms 0.9 KB, http 1.3 KB, i18n 0.7 KB, devtools 0.9 KB, hydrate 0.1 KB, testing 0.7 KB gzip.
+
 ### Framework completeness, wave 1 (Lite)
 Every optional piece lives in its own module, so an app that does not import it does not ship it (`@duvanjamid/angelite/lite` and `/lite/runtime-plus` include them; with a bundler import them from `src/lite/`).
 - **Named slots:** `<ng-content select="x">` receives the children that carry `slot="x"`; the rest still goes to the default `<ng-content>`.
