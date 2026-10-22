@@ -391,7 +391,7 @@ window.DOCS = [
             "desc": ""
           }
         ],
-        "code": "class Demo {}\ncomponent(Demo, {\n  imports: [ui.AccordionItem],\n  template: `\n    <ui-accordion-item title=\"¿Qué es AngeLite?\">Un núcleo Angular-style de ~8 KB basado en señales.</ui-accordion-item>\n    <ui-accordion-item title=\"¿Necesita compilar?\">No: plantillas en strings y un solo script.</ui-accordion-item>`\n});\nmount(Demo, root);"
+        "code": "class Demo {}\ncomponent(Demo, {\n  imports: [ui.AccordionItem],\n  template: `\n    <ui-accordion-item title=\"¿Qué es AngeLite?\">Un núcleo Angular-style de ~9 KB basado en señales.</ui-accordion-item>\n    <ui-accordion-item title=\"¿Necesita compilar?\">No: plantillas en strings y un solo script.</ui-accordion-item>`\n});\nmount(Demo, root);"
       },
       {
         "id": "dropdown",

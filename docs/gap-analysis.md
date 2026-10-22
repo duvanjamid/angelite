@@ -76,7 +76,20 @@ cómo reportar; CodeQL con consultas ampliadas, Dependabot y `npm audit` en el C
 
 ## 2. Velocidad y rendimiento
 
-Medido: somos primeros o empatados en la mayoría de operaciones de filas y los más ligeros en memoria.
+Medido (3 rondas × 9 iteraciones por operación, arranque con 41 cargas intercaladas; contenedor compartido, sin pintado).
+Con la regla «a menos del 10 % es un empate»:
+
+| | Lite precompilado | Mejor de los demás |
+|---|---|---|
+| Tamaño de la app (gzip) | **5,8 KB** (el más pequeño) | Preact 6,2 KB |
+| Arranque | **17,5 ms** (rangos intercuartílicos solapados: empate técnico) | Preact 18,1 ms |
+| Memoria con 10.000 filas | **6,5 MB** | Angular 11,8 MB |
+| 12 mediciones en total | **mediana más baja en 10**; en las otras 2 está a menos del 5 % (`update10th`: React +3 %, `append1k`: +5 %) | — |
+
+La puntuación global (media geométrica del tiempo relativo al mejor) es 1,01× para Lite precompilado; React queda en 1,58×.
+Mejoras de esta ronda que se midieron: el anfitrión raíz con `display: contents` (−1,5 ms tras el montaje) y una vía rápida en `@for`
+cuando la lista mantiene las mismas claves en el mismo orden (`update10th` pasó de ~9,8 a ~7,9 ms).
+
 Lo que **no** tenemos:
 
 | Falta | Quién lo tiene | Qué aportaría |
@@ -139,7 +152,7 @@ tienen esa base; hay que aprovecharla antes de añadir más funciones.
 
 Todo verificado:
 
-- **Modo «sin build» pequeño**: 8,3 KB gzip con compilador incluido, frente a 63,7 KB de la build con compilador de Vue.
+- **Modo «sin build» pequeño**: 9,1 KB gzip con compilador incluido, frente a 63,7 KB de la build con compilador de Vue.
   Angular no tiene equivalente utilizable (su compilador JIT es grande y usa `new Function`).
 - **Sin `eval` ni `new Function` en ningún bundle**, también en el modo sin build. La build con compilador de Vue y el
   JIT de Angular sí los usan, y requieren `unsafe-eval` en CSP.

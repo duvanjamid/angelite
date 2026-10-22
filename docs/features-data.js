@@ -562,7 +562,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "y",
-       "8,3 KB gzip con el compilador incluido"
+       "9,1 KB gzip con el compilador incluido"
       ],
       "preact": [
        "p",

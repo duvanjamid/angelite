@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Performance (Lite)
+- First paint: the root host created by `mount()` now has `display: contents` (an inline host around block content made the browser split boxes: ~1.5 ms after mount). **Behaviour change:** style the element you mount into, or the component's own root, not the host.
+- `@for` skips node placement entirely when a list update keeps the same keys in the same order; precompiled templates parse their HTML lazily.
+- Benchmark runner: startup is measured with interleaved, shuffled loads and 41 samples (p25/p75 reported); `STARTUP_ONLY=1` and `ONLY=op1,op2` re-run part of the suite.
+
 ### Security hardening (Lite)
 - URL attributes (`href`, `src`, `action`, `formaction`, `data`, `xlink:href`) only accept `http`, `https`, `mailto`, `tel`, `sms`, `ftp` and relative URLs; anything else becomes `unsafe:<url>` with a warning. `trustUrl()` allows your own scheme. **Behaviour change.**
 - `[innerHTML]` only renders markup wrapped in `trustHtml()`; any other value is inserted as text. **Behaviour change.**
@@ -25,7 +30,7 @@
 - `benchmarks/` gains the `lite-aot` app: the same table app with a precompiled template.
 
 ### AngeLite Lite (new, `@duvanjamid/angelite/lite`)
-- New minimal core in `src/lite/` (~8 KB min+gzip vs ~16 KB for the full bundle): signals (`signal`, `computed`, `effect`), templates with `@if`/`@else`/`@for`/`@empty`, `[prop]`/`(event)`/`[(ngModel)]` bindings, components with `input()`/`output()`/`<ng-content>`, pipes, `inject()` and a hash router.
+- New minimal core in `src/lite/` (~9 KB min+gzip vs ~16 KB for the full bundle): signals (`signal`, `computed`, `effect`), templates with `@if`/`@else`/`@for`/`@empty`, `[prop]`/`(event)`/`[(ngModel)]` bindings, components with `input()`/`output()`/`<ng-content>`, pipes, `inject()` and a hash router.
 - Updates are batched per view and only write to the DOM when a value actually changed.
 - Performance: templates compile once into a blueprint (flat op list), one lean effect per view, delegated events, plain-object `@for` rows. In `benchmarks/` Lite matches or beats Preact/Vue/React/Angular on most operations and uses the least memory at 10k rows.
 - Interactive documentation with live examples in `docs/index.html` (`npm run build:docs` refreshes `docs/angelite-lite.min.js`).
