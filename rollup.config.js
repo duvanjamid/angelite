@@ -52,4 +52,11 @@ const runtime = {
   ]
 };
 
-export default [full, lite, runtime, ui];
+// built-in pipes for the runtime-only build: shares the runtime's pipe registry
+const pipesBuild = {
+  input: 'src/lite/pipes.js',
+  external: id => /lite\/runtime\.js$/.test(id),
+  output: { file: 'dist/angelite-pipes.esm.js', format: 'esm', paths: () => './angelite-runtime.esm.js' }
+};
+
+export default [full, lite, runtime, pipesBuild, ui];

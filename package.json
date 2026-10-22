@@ -7,6 +7,9 @@
   "unpkg": "dist/angelite.min.js",
   "files": [
     "dist",
+    "tools",
+    "src/lite",
+    "src/utils",
     "LICENSE",
     "README.md"
   ],
@@ -65,7 +68,8 @@
     "./src/lite/full.js",
     "./src/lite/index.js",
     "./dist/angelite-lite.esm.js",
-    "./dist/angelite-lite.min.js"
+    "./dist/angelite-lite.min.js",
+    "./dist/angelite-pipes.esm.js"
   ],
   "exports": {
     ".": {
@@ -83,9 +87,21 @@
     "./lite/runtime": {
       "import": "./dist/angelite-runtime.esm.js",
       "default": "./dist/angelite-runtime.min.js"
-    }
+    },
+    "./lite/pipes": {
+      "import": "./dist/angelite-pipes.esm.js"
+    },
+    "./tools/aot.mjs": "./tools/aot.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "peerDependencies": {
+    "jsdom": ">=22"
+  },
+  "peerDependenciesMeta": {
+    "jsdom": {
+      "optional": true
+    }
   }
 }
