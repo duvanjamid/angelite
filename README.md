@@ -312,7 +312,7 @@ AngeLite is [MIT licensed](./LICENSE).
 
 ## AngeLite Lite
 
-A ~8 KB (min+gzip) signals-based core, as fast as Preact/Vue and the lightest on memory in our benchmark, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the ~4.5 KB runtime. Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html).
+A ~8 KB (min+gzip) signals-based core, as fast as Preact/Vue and the lightest on memory in our benchmark, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the ~4.5 KB runtime. Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks and feature comparison vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html), gap analysis and roadmap: [`docs/gap-analysis.md`](docs/gap-analysis.md).
 
 ## Development
 

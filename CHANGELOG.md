@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Framework comparison
+- `docs/gap-analysis.md`: what React, Preact, Vue and Angular have that AngeLite lacks (and the reverse), a security review, an architecture critique and a prioritised roadmap. Each claim says how it was verified.
+- `docs/benchmarks.html` gains a 37-row feature comparison (security, speed, architecture, ecosystem) with the source of every datum.
+- `tests/security.test.mjs`: enforced checks for what is already safe plus 6 `todo` tests for the known gaps (`javascript:` URLs, `[attr.on*]`, `[innerHTML]`, `[srcdoc]`, window reachable through `$el`); they turn into real failures once flipped.
+- `benchmarks/security-probe.mjs` (`npm run probe:security`) runs the same attack inputs against Lite, Preact, Vue and React.
+
 ### AngeLite Lite — runtime split and ahead-of-time templates
 - Lite is now split into a template-free **runtime** (`@duvanjamid/angelite/lite/runtime`, ~4.5 KB gzip), a backend-agnostic **compiler** and an **in-browser backend** (`jit.js`). `@duvanjamid/angelite/lite` still compiles templates in the browser, with no build step.
 - `tools/aot.mjs` (CLI + esbuild plugin) compiles templates to JS at build time so apps ship only the runtime. A test asserts precompiled templates render exactly like in-browser ones.

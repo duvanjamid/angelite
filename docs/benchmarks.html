@@ -11,7 +11,7 @@
     --c-lite:#ff6b9a; --c-lite-aot:#ffa8c5; --c-preact:#a08cff; --c-vue:#4cc88a; --c-react:#6aa0ff; --c-angular:#f0b23c; } }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
-  main { max-width:900px; margin:0 auto; padding:44px 20px 96px; }
+  main { max-width:1040px; margin:0 auto; padding:44px 20px 96px; }
   h1 { font-size:2.1rem; line-height:1.15; margin:0 0 8px; }
   h2 { margin:52px 0 6px; font-size:1.35rem; padding-top:16px; border-top:1px solid var(--line); }
   p { margin:8px 0 14px; } .lead { color:var(--muted); font-size:1.12rem; }
@@ -39,13 +39,29 @@
   .note { border-left:3px solid var(--accent); padding:2px 14px; color:var(--muted); margin:14px 0; }
   ul { padding-left:20px; } li { margin:4px 0; }
   .small { font-size:.85rem; color:var(--muted); }
+  .feat { overflow-x:auto; border:1px solid var(--line); border-radius:10px; margin:12px 0; background:var(--card); }
+  .feat table { min-width:760px; table-layout:fixed; width:100%; }
+  .legend b { font-size:1.1rem; }
+  .feat th, .feat td { vertical-align:top; padding:8px 10px; }
+  .feat thead th { position:sticky; top:0; background:var(--card); }
+  .feat td.name { width:25%; font-weight:600; overflow-wrap:anywhere; }
+  .feat td.name small { display:block; font-weight:400; color:var(--muted); }
+  .feat td.c { text-align:center; width:13%; overflow-wrap:anywhere; }
+  .feat td.c b { font-size:1.15rem; display:block; }
+  .feat td.c small { display:block; color:var(--muted); font-size:.74rem; line-height:1.25; }
+  .feat .y b { color:#2f9e5b; } .feat .n b { color:#d63a3a; }
+  .half { display:inline-block; width:.85em; height:.85em; border-radius:50%; border:2px solid #d98a00; background:linear-gradient(90deg,#d98a00 50%,transparent 50%); vertical-align:-.1em; }
+  .feat td.ev { text-align:center; font-size:.78rem; color:var(--muted); width:6%; }
+  .feat tr.grp td { background:var(--code-bg); font-weight:700; text-align:left; }
+  .feat tfoot td { font-weight:600; border-bottom:0; }
+
 </style>
 </head>
 <body>
 <main>
   <h1>Benchmarks</h1>
   <p class="lead">AngeLite Lite —con plantillas compiladas en el navegador o precompiladas— frente a Preact, Vue, React y Angular, con la misma aplicación en todos: una tabla con 1.000 – 10.000 filas, estilo <i>js-framework-benchmark</i>. Números reales, medidos en Chromium; el resumen está al final de cada sección.</p>
-  <nav><a href="#peso">Peso</a><a href="#arranque">Arranque y memoria</a><a href="#velocidad">Velocidad</a><a href="#lectura">Conclusiones</a><a href="#metodo">Metodología y límites</a><a href="#repro">Reproducir</a><a href="index.html">← Guía</a><a href="components.html">Componentes</a></nav>
+  <nav><a href="#peso">Peso</a><a href="#arranque">Arranque y memoria</a><a href="#velocidad">Velocidad</a><a href="#lectura">Conclusiones</a><a href="#features">Características</a><a href="#metodo">Metodología y límites</a><a href="#repro">Reproducir</a><a href="index.html">← Guía</a><a href="components.html">Componentes</a></nav>
   <div class="legend" id="legend"></div>
   <div id="summary"></div>
 
@@ -65,6 +81,12 @@
 
   <h2 id="lectura">Lectura honesta</h2>
   <ul id="reading"></ul>
+
+  <h2 id="features">Comparativa de características</h2>
+  <p>Qué debería tener un framework moderno y quién lo tiene hoy. <b>No es un ranking</b>: un framework más pequeño necesita menos cosas, y las filas no pesan lo mismo. Sirve para ver dónde estamos fuertes y dónde nos falta. Versiones: <span id="fver"></span>.</p>
+  <div class="legend" id="flegend"></div>
+  <div id="features-table"></div>
+  <p class="small">Columna «Fuente»: <b>V</b> comprobado en esta sesión (ejecutando el código o leyendo el paquete instalado), <b>D</b> documentación oficial, <b>G</b> conocimiento general sin comprobar aquí: revisa las filas G antes de citarlas. El análisis completo, con prioridades, está en <code>docs/gap-analysis.md</code>.</p>
 
   <h2 id="metodo">Metodología y límites</h2>
   <ul>
@@ -167,6 +189,33 @@ ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
     <div class="card"><b>${fmt(gz.angular / gz['lite-aot'], 1)}×</b><span>Angular pesa más que Lite precompilado</span></div>
     <div class="card"><b>${fmt(score['lite-aot'], 2)}×</b><span>velocidad global vs el mejor (${NAME[bestOf(score)]}: ${fmt(score[bestOf(score)], 2)}×)</span></div>
   </div>`;
+})();
+</script>
+<script src="features-data.js"></script>
+<script>
+(() => {
+  const F = window.FEATURES;
+  const el = id => document.getElementById(id);
+  const SYM = { y: '✓', p: '<span class="half"></span>', n: '✕' };
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/`([^`]+)`/g, '<code>$1</code>');
+  el('fver').textContent = F.versions;
+  el('flegend').innerHTML = Object.entries(F.legend).map(([k, v]) => `<span><b style="color:${k === 'y' ? '#2f9e5b' : '#d63a3a'}">${SYM[k]}</b> ${v}</span>`).join('');
+  const fw = F.frameworks;
+  const totals = Object.fromEntries(fw.map(([k]) => [k, { score: 0, n: 0 }]));
+  let html = '<div class="feat"><table><thead><tr><th>Característica</th>' + fw.map(([k, n]) => `<th style="color:var(--c-${k === 'lite' ? 'lite' : k})">${n}</th>`).join('') + '<th>Fuente</th></tr></thead><tbody>';
+  for (const g of F.groups) {
+    html += `<tr class="grp"><td colspan="${fw.length + 2}">${esc(g.title)}</td></tr>`;
+    for (const r of g.rows) {
+      html += `<tr><td class="name">${esc(r.name)}<small>${esc(r.why)}</small></td>` + fw.map(([k]) => {
+        const [v, note] = r.cells[k];
+        totals[k].score += v === 'y' ? 1 : v === 'p' ? 0.5 : 0;
+        totals[k].n++;
+        return `<td class="c ${v}"><b aria-label="${F.legend[v]}">${SYM[v]}</b>${note ? `<small>${esc(note)}</small>` : ''}</td>`;
+      }).join('') + `<td class="ev" title="${esc(F.evidence[r.ev])}">${r.ev}</td></tr>`;
+    }
+  }
+  html += '</tbody><tfoot><tr><td>Cubre (sí = 1, parcial = ½)</td>' + fw.map(([k]) => `<td class="c">${totals[k].score.toLocaleString('es-ES')} de ${totals[k].n}</td>`).join('') + '<td></td></tr></tfoot></table></div>';
+  el('features-table').innerHTML = html;
 })();
 </script>
 </body>
