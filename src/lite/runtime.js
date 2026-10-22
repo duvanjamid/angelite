@@ -221,6 +221,7 @@ class View extends Effect {
     this.last = null;
     this.frag = null;
     this.pos = -1;
+    this.key = null;
     this.dep = null; // nested blocks / projected views that read this view's scope
   }
 }
@@ -401,6 +402,7 @@ class ForState {
     this.scope = scope;
     this.ctx = ctx;
     this.entries = new Map();
+    this.list = null; // entries in DOM order, for the "nothing moved" fast path
     this.empty = null;
     this.probe = Object.create(scope); // only used to compute track keys
     (view.dep || (view.dep = [])).push(this);
@@ -426,15 +428,31 @@ class ForState {
     const n = items.length;
 
     // 1. keys
-    const next = new Map();
     const keys = new Array(n);
-    let reused = 0;
+    const prev = this.list;
+    let same = !!prev && prev.length === n && n > 0;
     for (let i = 0; i < n; i++) {
       let key = items[i];
       if (track) { probe[name] = key; probe.$index = i; key = track(probe); }
-      if (next.has(key)) key = Symbol('dup');
-      next.set(key, null);
       keys[i] = key;
+      if (same && prev[i].key !== key) same = false;
+    }
+
+    // Fast path: same keys in the same order (the common "update some rows" case): refresh the changed rows only.
+    if (same) {
+      for (let i = 0; i < n; i++) {
+        const e = prev[i], item = items[i];
+        if (e.scope[name] !== item) { e.scope[name] = item; refresh(e); }
+      }
+      return;
+    }
+
+    const next = new Map();
+    let reused = 0;
+    for (let i = 0; i < n; i++) {
+      let key = keys[i];
+      if (next.has(key)) keys[i] = key = Symbol('dup');
+      next.set(key, null);
       if (entries.has(key)) reused++;
     }
 
@@ -478,9 +496,11 @@ class ForState {
         if (ix) setIndex(sc, i, n);
         e = instantiate(op.bp, sc, this.ctx);
       }
+      e.key = keys[i];
       order[i] = e;
       next.set(keys[i], e);
     }
+    this.list = order;
 
     // 4. drop stale entries
     if (!fresh) entries.forEach((e, key) => { if (!next.has(key) || next.get(key) !== e) removeView(e); });

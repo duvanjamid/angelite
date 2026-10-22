@@ -10,7 +10,8 @@ const dist = join(root, 'dist');
 const FW = ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
 const ROUNDS = Number(process.env.ROUNDS || 3);
 const ITER = Number(process.env.ITER || 7);
-const STARTUP_RUNS = 15;
+const STARTUP_RUNS = process.env.ONLY ? 0 : Number(process.env.STARTUP_RUNS || 41);
+const STARTUP_ONLY = process.env.STARTUP_ONLY === '1'; // re-measure startup only and merge into results.json
 const sizes = JSON.parse(readFileSync(join(dist, 'sizes.json'), 'utf8'));
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
@@ -44,7 +45,7 @@ const helpers = () => {
 };
 
 // setup: untimed; fn/cond: timed. `cond` runs in the page.
-const BENCHES = [
+const ALL_BENCHES = [
   { id: 'create1k', label: 'Crear 1.000 filas', iters: ITER,
     setup: 'bench.clear()', ready: '__count()===0', fn: 'bench.run(1000)', cond: '__count()===1000' },
   { id: 'replace1k', label: 'Reemplazar 1.000 filas', iters: ITER,
@@ -71,6 +72,9 @@ const BENCHES = [
   { id: 'create10k', label: 'Crear 10.000 filas', iters: Math.max(4, ITER - 2),
     setup: 'bench.clear()', ready: '__count()===0', fn: 'bench.run(10000)', cond: '__count()===10000' }
 ];
+// ONLY=update10th,select runs just those operations and prints them (results.json is not touched)
+const ONLY = process.env.ONLY ? process.env.ONLY.split(',') : null;
+const BENCHES = ONLY ? ALL_BENCHES.filter(b => ONLY.includes(b.id)) : ALL_BENCHES;
 
 const median = a => { const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
@@ -127,7 +131,7 @@ async function runSuite(fw, round) {
   console.log(`round ${round + 1}/${ROUNDS} ${fw} done`);
 }
 
-for (let r = 0; r < ROUNDS; r++) {
+for (let r = 0; r < (STARTUP_ONLY ? 0 : ROUNDS); r++) {
   const order = r % 2 ? [...FW].reverse() : FW;
   for (const fw of order) await runSuite(fw, r);
 }
@@ -149,6 +153,28 @@ for (let i = 0; i < STARTUP_RUNS; i++) {
 }
 console.log('startup done');
 
+if (ONLY) {
+  console.table(Object.fromEntries(FW.map(f => [f, Object.fromEntries(BENCHES.map(b => [b.id, median(samples[f].ops[b.id]).toFixed(2)]))])));
+  await browser.close();
+  server.close();
+  process.exit(0);
+}
+
+if (STARTUP_ONLY) {
+  const prev = JSON.parse(readFileSync(join(root, 'results.json'), 'utf8'));
+  for (const fw of FW) {
+    const st = samples[fw].startup;
+    prev.frameworks[fw].startup = { median: median(st), p25: pct(st, 0.25), p75: pct(st, 0.75), p90: pct(st, 0.9), n: st.length };
+    prev.frameworks[fw].size = sizes[fw];
+  }
+  prev.env.startupRuns = STARTUP_RUNS;
+  writeFileSync(join(root, 'results.json'), JSON.stringify(prev, null, 2));
+  console.table(Object.fromEntries(FW.map(f => [f, { median: prev.frameworks[f].startup.median.toFixed(1), p25: prev.frameworks[f].startup.p25.toFixed(1), p75: prev.frameworks[f].startup.p75.toFixed(1), n: prev.frameworks[f].startup.n }])));
+  await browser.close();
+  server.close();
+  process.exit(0);
+}
+
 const results = {
   generatedAt: new Date().toISOString(),
   env: { chromium: browser.version(), cpus: os.cpus().length, cpu: os.cpus()[0].model, node: process.version, rounds: ROUNDS, iterations: ITER },
@@ -160,7 +186,7 @@ for (const fw of FW) {
   const s = samples[fw];
   results.frameworks[fw] = {
     size: sizes[fw],
-    startup: { median: median(s.startup), p90: pct(s.startup, 0.9), n: s.startup.length },
+    startup: { median: median(s.startup), p25: pct(s.startup, 0.25), p75: pct(s.startup, 0.75), p90: pct(s.startup, 0.9), n: s.startup.length },
     memory: { idle: median(s.mem.idle), rows1k: median(s.mem.k1), rows10k: median(s.mem.k10) },
     ops: Object.fromEntries(BENCHES.map(b => [b.id, { median: median(s.ops[b.id]), p10: pct(s.ops[b.id], 0.1), p90: pct(s.ops[b.id], 0.9), n: s.ops[b.id].length }]))
   };
