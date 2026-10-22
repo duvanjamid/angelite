@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { window, document } from './setup.mjs';
 
 const full = await import('../src/lite/full.js');
@@ -9,11 +12,12 @@ const { signal, computed, component, mount, input, output } = full;
 
 const tick = () => new Promise(r => setTimeout(r, 0));
 let n = 0;
+const dir = mkdtempSync(join(tmpdir(), 'angelite-aot-'));
 
 async function aotOf(source, components = []) {
-  const file = new URL(`./.tmp/t${n++}.mjs`, import.meta.url);
+  const file = join(dir, `t${n++}.mjs`);
   writeFileSync(file, compileTemplate(source, { components }));
-  return (await import(file.href)).default;
+  return (await import(pathToFileURL(file).href)).default;
 }
 
 const TEMPLATE = `
