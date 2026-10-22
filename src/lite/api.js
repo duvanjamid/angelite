@@ -4,7 +4,7 @@
  */
 
 export { signal, computed, effect, untracked } from './signals.js';
-export { component, Component, mount, registerPipe } from './runtime.js';
+export { component, Component, mount, registerPipe, trustHtml, trustUrl, sanitizeUrl } from './runtime.js';
 export { provideRouter, router } from './router.js';
 
 import { signal } from './signals.js';

@@ -5,13 +5,9 @@
 
 import { signal, computed, component, input, output, inject } from '../lite/index.js';
 import { css } from './styles.js';
+import { installStyles } from './install.js';
 
-if (typeof document !== 'undefined' && !document.getElementById('angelite-ui-css')) {
-  const style = document.createElement('style');
-  style.id = 'angelite-ui-css';
-  style.textContent = css;
-  document.head.appendChild(style);
-}
+installStyles(css);
 
 export class Button {
   variant = input('default');

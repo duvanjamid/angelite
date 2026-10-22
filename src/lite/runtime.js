@@ -9,7 +9,8 @@
  */
 
 import { Effect, untracked } from './signals.js';
-import { prop as p } from '../utils/expression.js';
+import { prop as p, guard } from '../utils/expression.js';
+import { trusted } from './tt.js';
 
 const hooks = { outlet: null };
 export const setOutletBinder = fn => { hooks.outlet = fn; };
@@ -47,6 +48,40 @@ function resolveProp(el, lower) {
   return map[lower] || lower;
 }
 
+/* ---------- security: URLs and HTML ---------- */
+
+/** Opt out of sanitizing on purpose: trustHtml(markup) for [innerHTML], trustUrl(url) for URL attributes. */
+class Trusted {
+  constructor(kind, value) { this.kind = kind; this.value = value; }
+}
+export const trustHtml = html => new Trusted('html', html);
+export const trustUrl = url => new Trusted('url', url);
+
+// attributes where a "javascript:" URL can run code
+const URL_ATTRS = new Set(['href', 'src', 'action', 'formaction', 'data', 'xlink:href']);
+const SAFE_URL = /^(?:(?:https?|mailto|tel|sms|ftp):|[^&:/?#]*(?:[/?#]|$))/i;
+const SAFE_IMAGE = /^data:image\/(?:png|gif|jpe?g|webp|avif);base64,[a-z0-9+/=]+$/i;
+// characters browsers ignore inside a URL scheme ("java\tscript:", " javascript:")
+const URL_NOISE = /[\u0000-\u0020\u00a0\u1680\u2000-\u200b\u2028\u2029\u202f\u205f\u3000\ufeff]/g;
+
+/** Returns the URL if it is safe for `attr`, otherwise "unsafe:<url>" (inert, and easy to spot). */
+export function sanitizeUrl(value, attr) {
+  if (value instanceof Trusted && value.kind === 'url') return value.value;
+  const url = value == null ? '' : String(value);
+  const flat = url.replace(URL_NOISE, '');
+  if (SAFE_URL.test(flat) || (attr === 'src' && SAFE_IMAGE.test(flat))) return url;
+  console.warn(`[AngeLite] unsafe URL blocked in "${attr}": ${url.slice(0, 50)} (use trustUrl() to allow it)`);
+  return 'unsafe:' + url;
+}
+
+function setHtml(el, v) {
+  if (v instanceof Trusted && v.kind === 'html') el.innerHTML = trusted(v.value);
+  else {
+    if (v) console.warn('[AngeLite] [innerHTML] needs trustHtml(); inserted as text');
+    el.textContent = v == null ? '' : String(v);
+  }
+}
+
 /** Returns `(element, value) => void` for a binding name like `value`, `class.x`, `style.width.px`, `attr.x`. */
 function makeApply(name) {
   if (name.startsWith('class.')) {
@@ -58,23 +93,32 @@ function makeApply(name) {
     return (el, v) => (v == null || v === false ? el.style.removeProperty(prop) : el.style.setProperty(prop, v + unit));
   }
   if (name.startsWith('attr.')) {
-    const attr = name.slice(5);
+    const attr = name.slice(5), lower = attr.toLowerCase();
+    if (URL_ATTRS.has(lower)) return (el, v) => (v == null || v === false ? el.removeAttribute(attr) : el.setAttribute(attr, sanitizeUrl(v, lower)));
     return (el, v) => (v == null || v === false ? el.removeAttribute(attr) : el.setAttribute(attr, v === true ? '' : v));
   }
+  const lower = name.toLowerCase();
+  if (lower === 'innerhtml') return setHtml;
+  if (URL_ATTRS.has(lower)) return (el, v) => { el[resolveProp(el, name)] = sanitizeUrl(v, lower); };
   return (el, v) => { el[resolveProp(el, name)] = v; };
 }
-
 
 /** Apply-function factories shared by the in-browser compiler and precompiled templates. */
 export const A = {
   text: (node, v) => { node.data = v; },
   prop: makeApply,
-  attr: name => (el, v) => el.setAttribute(name, v),
+  attr: name => {
+    const lower = name.toLowerCase();
+    return URL_ATTRS.has(lower) ? (el, v) => el.setAttribute(name, sanitizeUrl(v, lower)) : (el, v) => el.setAttribute(name, v);
+  },
   input: name => {
     const dom = makeApply(name);
     return (ref, v) => (ref.set ? ref.set(v) : dom(ref, v));
   },
-  inputAttr: name => (ref, v) => (ref.set ? ref.set(v) : ref.setAttribute(name, v)),
+  inputAttr: name => {
+    const set = A.attr(name);
+    return (ref, v) => (ref.set ? ref.set(v) : set(ref, v));
+  },
   model: (node, v) => {
     if (node.type === 'checkbox') node.checked = !!v;
     else node.value = v == null ? '' : v;
@@ -106,12 +150,12 @@ export const A = {
 /** Builds a blueprint from serialized HTML (used by precompiled templates). */
 const mk = (html, ops, upd, dynamic) => {
   const t = document.createElement('template');
-  t.innerHTML = html;
+  t.innerHTML = trusted(html);
   return { tpl: t.content, ops, upd, dynamic };
 };
 
 const callFn = (fn, recv, args) => {
-  if (typeof fn === 'function') return fn.apply(recv, args);
+  if (typeof fn === 'function') return guard(fn.apply(recv, args));
   if (fn != null) throw new TypeError('Expression is not a function');
 };
 

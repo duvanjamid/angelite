@@ -12,6 +12,8 @@
  * The in-browser backend lives in jit.js; tools/aot.mjs plugs in one that emits source code.
  */
 
+import { trusted } from './tt.js';
+
 /* ---------- expressions ---------- */
 
 export function splitTop(src, ch) {
@@ -133,6 +135,13 @@ function eat(from, to) {
   }
 }
 
+/* ---------- security rules enforced at compile time ---------- */
+
+const DANGEROUS_TAGS = /^(?:script|style|base|link|meta)$/;
+const BLOCKED_BINDING = /^(?:on.+|srcdoc|outerhtml)$/;
+
+const refuse = (what, hint) => { throw new SyntaxError(`AngeLite: ${what} is not allowed${hint ? ` (${hint})` : ''}.`); };
+
 /* ---------- blueprint compiler ---------- */
 
 export function compile(content, components, B, forceMarker) {
@@ -140,9 +149,16 @@ export function compile(content, components, B, forceMarker) {
   const bp = { tpl: content, ops: [], upd: [], dynamic: !!forceMarker, n: 0 };
   const slot = (fn, apply) => bp.upd.push({ fn, apply }) - 1;
 
-  function walkAttrs(el, ord, spec) {
+  function walkAttrs(el, ord, spec, tag) {
     for (const attr of [...el.attributes]) {
       const { name, value } = attr;
+      const binding = name.startsWith('[') && name.endsWith(']') && name !== '[(ngmodel)]';
+      if (DANGEROUS_TAGS.test(tag) && (binding || value.includes('{{'))) refuse(`binding to <${tag}>`);
+      if (binding) {
+        const inner = name.slice(1, -1);
+        const base = inner.replace(/^attr\./, '').toLowerCase();
+        if (!/^(?:class|style)\./.test(inner) && BLOCKED_BINDING.test(base)) refuse(`binding to "${inner}"`, base.startsWith('on') ? 'use (event) instead' : '');
+      } else if (value.includes('{{') && BLOCKED_BINDING.test(name.toLowerCase())) refuse(`interpolating into "${name}"`);
       if (name.startsWith('(') && name.endsWith(')')) {
         el.removeAttribute(name);
         const evt = name.slice(1, -1), run = B.stmts(splitTop(value, ';').filter(Boolean).map(s => B.parse(s)));
@@ -176,6 +192,7 @@ export function compile(content, components, B, forceMarker) {
 
       if (node.nodeType === 3) {
         if (node.data.includes('{{')) {
+          if (DANGEROUS_TAGS.test(parent.localName || '')) refuse(`interpolation inside <${parent.localName}>`);
           bp.ops.push({ ord, type: 'ref', slot: slot(interpolation(B, node.data), A.text) });
           node.data = ' '; // placeholder: keeps the node when the template is serialized
         }
@@ -242,10 +259,10 @@ export function compile(content, components, B, forceMarker) {
             while (node.firstChild) ct.append(node.firstChild);
             childBp = compile(ct, components, B, true);
           }
-          walkAttrs(node, ord, spec);
+          walkAttrs(node, ord, spec, tag);
           bp.ops.push({ ord, type: 'comp', Comp: B.comp(tag), childBp, ...spec });
         } else {
-          walkAttrs(node, ord, null);
+          walkAttrs(node, ord, null, tag);
           walk(node, false);
         }
       }
@@ -260,7 +277,7 @@ export function compile(content, components, B, forceMarker) {
 /** Parses template source into a blueprint using backend `B`. */
 export function templateToBlueprint(source, components, B) {
   const t = document.createElement('template');
-  t.innerHTML = transform(source || '');
+  t.innerHTML = trusted(transform(source || ''));
   trimWhitespace(t.content);
   return compile(t.content, components, B);
 }

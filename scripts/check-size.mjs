@@ -4,8 +4,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 const BUDGETS = {
-  'dist/angelite-lite.min.js': 9000,
-  'dist/angelite-runtime.min.js': 5000,
+  'dist/angelite-lite.min.js': 9400,
+  'dist/angelite-runtime.min.js': 5600,
   'dist/angelite-ui.min.js': 5500,
   'dist/angelite.min.js': 17500
 };

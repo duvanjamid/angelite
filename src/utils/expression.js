@@ -6,15 +6,25 @@
  * binary operators, ternary, array literals and parentheses.
  */
 
-const BLOCKED = ['__proto__', 'constructor', 'prototype'];
+// Names a template can never read or call: prototype access, legacy accessor helpers, and DOM methods that
+// turn strings into markup or attributes. (Defense in depth: templates are still trusted code, see SECURITY.md.)
+const BLOCKED = new Set(['__proto__', 'constructor', 'prototype', '__defineGetter__', '__defineSetter__',
+  '__lookupGetter__', '__lookupSetter__', 'insertAdjacentHTML', 'insertAdjacentElement', 'setHTMLUnsafe',
+  'setAttribute', 'setAttributeNS', 'setAttributeNode', 'createContextualFragment', 'execCommand', 'write', 'writeln']);
 const cache = new Map();
 const LIT = new Map([['true', true], ['false', false], ['null', null], ['undefined', undefined]]);
 
-export const prop = (o, k) => (o == null || BLOCKED.includes(k) ? undefined : o[k]);
+/**
+ * Values that must never reach a template, however they were reached ($el.ownerDocument, $event.view,
+ * node.getRootNode(), event.composedPath()[n] ...): the global object and documents.
+ */
+export const guard = v => (v !== null && typeof v === 'object' && (v.window === v || v.nodeType === 9 || v === globalThis) ? undefined : v);
+
+export const prop = (o, k) => (o == null || BLOCKED.has(k) ? undefined : guard(o[k]));
 
 /** Default backend: turns expressions into closures `(context) => value`. */
 const call = (fn, recv, args, c) => {
-  if (typeof fn === 'function') return fn.apply(recv, args.map(a => a(c)));
+  if (typeof fn === 'function') return guard(fn.apply(recv, args.map(a => a(c))));
   if (fn != null) throw new TypeError('Expression is not a function');
 };
 export const closures = {
