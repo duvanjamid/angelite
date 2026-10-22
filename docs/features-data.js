@@ -445,6 +445,12 @@ window.FEATURES = {
        "y",
        "AOT estricto"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "vue": "off",
+      "react": "off",
+      "angular": "off"
      }
     },
     {
@@ -472,6 +478,9 @@ window.FEATURES = {
        "n",
        ""
       ]
+     },
+     "where": {
+      "react": "core"
      }
     },
     {
@@ -480,8 +489,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "y",
+       "`@defer` (idle, viewport, interaction, hover, timer, when) y rutas con `load()`"
       ],
       "preact": [
        "y",
@@ -499,6 +508,13 @@ window.FEATURES = {
        "y",
        "@defer con triggers"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "mod",
+      "vue": "core",
+      "react": "core",
+      "angular": "core"
      }
     },
     {
@@ -526,6 +542,12 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "preact": "off",
+      "vue": "mod",
+      "react": "mod",
+      "angular": "off"
      }
     },
     {
@@ -553,6 +575,12 @@ window.FEATURES = {
        "y",
        "incluida la incremental"
       ]
+     },
+     "where": {
+      "preact": "core",
+      "vue": "core",
+      "react": "mod",
+      "angular": "core"
      }
     },
     {
@@ -593,8 +621,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "p",
-       "inject() global, sin ámbitos"
+       "y",
+       "`providers` por componente (ámbito: ese componente y sus descendientes); sin árbol de módulos"
       ],
       "preact": [
        "y",
@@ -612,6 +640,13 @@ window.FEATURES = {
        "y",
        "inyectores jerárquicos"
       ]
+     },
+     "where": {
+      "lite": "core",
+      "preact": "core",
+      "vue": "core",
+      "react": "core",
+      "angular": "core"
      }
     },
     {
@@ -620,8 +655,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "p",
-       "hash, parámetros y comodín"
+       "y",
+       "anidadas, `canActivate`, `load()` y `redirectTo`; solo modo hash"
       ],
       "preact": [
        "p",
@@ -639,6 +674,13 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "off",
+      "vue": "off",
+      "react": "ext",
+      "angular": "off"
      }
     },
     {
@@ -666,6 +708,11 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "vue": "ext",
+      "react": "ext",
+      "angular": "off"
      }
     },
     {
@@ -693,6 +740,9 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "angular": "off"
      }
     },
     {
@@ -701,8 +751,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       "sin .d.ts"
+       "y",
+       "`.d.ts` incluidos, comprobados con `tsc` en CI"
       ],
       "preact": [
        "y",
@@ -720,6 +770,13 @@ window.FEATURES = {
        "y",
        "escrito en TS"
       ]
+     },
+     "where": {
+      "lite": "core",
+      "preact": "core",
+      "vue": "core",
+      "react": "ext",
+      "angular": "core"
      }
     },
     {
@@ -728,8 +785,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "elementos, pipes y nombres que el componente no tiene; no comprueba tipos"
       ],
       "preact": [
        "y",
@@ -747,6 +804,13 @@ window.FEATURES = {
        "y",
        "strictTemplates"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "ext",
+      "vue": "off",
+      "react": "ext",
+      "angular": "off"
      }
     },
     {
@@ -756,7 +820,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "p",
-       "aísla cada binding y lo registra; sin boundary"
+       "`ngOnError` captura bindings, handlers y contenido proyectado; no el constructor ni `ngOnInit`"
       ],
       "preact": [
        "y",
@@ -774,6 +838,13 @@ window.FEATURES = {
        "p",
        "ErrorHandler global"
       ]
+     },
+     "where": {
+      "lite": "core",
+      "preact": "core",
+      "vue": "core",
+      "react": "core",
+      "angular": "core"
      }
     },
     {
@@ -782,8 +853,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "y",
+       "`<ng-portal to=\"#id\">`"
       ],
       "preact": [
        "y",
@@ -801,6 +872,13 @@ window.FEATURES = {
        "p",
        "CDK overlay"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "mod",
+      "vue": "core",
+      "react": "mod",
+      "angular": "off"
      }
     },
     {
@@ -828,6 +906,10 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "vue": "core",
+      "angular": "off"
      }
     },
     {
@@ -836,8 +918,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "p",
-       "un único <ng-content>"
+       "y",
+       "`<ng-content select=\"x\">` + `slot=\"x\"`"
       ],
       "preact": [
        "y",
@@ -855,6 +937,13 @@ window.FEATURES = {
        "y",
        "select"
       ]
+     },
+     "where": {
+      "lite": "core",
+      "preact": "core",
+      "vue": "core",
+      "react": "core",
+      "angular": "core"
      }
     },
     {
@@ -863,8 +952,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "p",
-       "$el y ngAfterViewInit"
+       "y",
+       "`#ref` + `viewChild()` (elemento o instancia), `$el`"
       ],
       "preact": [
        "y",
@@ -882,6 +971,13 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "core",
+      "vue": "core",
+      "react": "core",
+      "angular": "core"
      }
     },
     {
@@ -909,6 +1005,9 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "angular": "off"
      }
     }
    ]
@@ -941,6 +1040,12 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "preact": "off",
+      "vue": "off",
+      "react": "off",
+      "angular": "off"
      }
     },
     {
@@ -949,8 +1054,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       "no exporta utilidades"
+       "y",
+       "`render`, `click`, `type`, `flush`, `provide`, `cleanup`"
       ],
       "preact": [
        "y",
@@ -968,6 +1073,13 @@ window.FEATURES = {
        "y",
        "TestBed"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "mod",
+      "vue": "off",
+      "react": "mod",
+      "angular": "mod"
      }
     },
     {
@@ -977,7 +1089,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "p",
-       "setDebug y errores en consola"
+       "`enableDevWarnings()`: inputs inexistentes, claves repetidas, módulos y elementos desconocidos"
       ],
       "preact": [
        "p",
@@ -995,6 +1107,12 @@ window.FEATURES = {
        "y",
        "errores NG0xxx"
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "mod",
+      "vue": "core",
+      "react": "core"
      }
     },
     {
@@ -1022,6 +1140,13 @@ window.FEATURES = {
        "y",
        ""
       ]
+     },
+     "where": {
+      "lite": "mod",
+      "preact": "off",
+      "vue": "off",
+      "react": "ext",
+      "angular": "off"
      }
     },
     {
@@ -1049,6 +1174,12 @@ window.FEATURES = {
        "y",
        "language service"
       ]
+     },
+     "where": {
+      "preact": "ext",
+      "vue": "off",
+      "react": "ext",
+      "angular": "off"
      }
     },
     {
@@ -1080,5 +1211,12 @@ window.FEATURES = {
     }
    ]
   }
- ]
+ ],
+ "where": {
+  "core": "Integrado en el paquete principal",
+  "mod": "Módulo opcional del mismo paquete (import aparte, no pesa si no lo usas)",
+  "off": "Paquete oficial aparte (mismo equipo)",
+  "ext": "Terceros / ecosistema"
+ },
+ "evidenceWhere": "La ubicación (columna de etiquetas) es conocimiento general (G): verifícala en la documentación antes de citarla."
 };

@@ -8,7 +8,9 @@
   "files": [
     "dist",
     "tools",
+    "types",
     "src/lite",
+    "src/ui",
     "src/utils",
     "LICENSE",
     "README.md"
@@ -21,7 +23,8 @@
     "prepare": "npm run build",
     "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js docs/",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
-    "size": "node scripts/check-size.mjs"
+    "size": "node scripts/check-size.mjs",
+    "typecheck": "tsc -p types/tsconfig.json"
   },
   "keywords": [
     "framework",
@@ -48,7 +51,8 @@
     "http-server": "^14.1.1",
     "jsdom": "^29.1.1",
     "rollup": "^2.79.1",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "5.9"
   },
   "type": "module",
   "sideEffects": [
@@ -71,29 +75,51 @@
     "./src/lite/index.js",
     "./dist/angelite-lite.esm.js",
     "./dist/angelite-lite.min.js",
-    "./dist/angelite-pipes.esm.js"
+    "./dist/angelite-pipes.esm.js",
+    "./src/lite/portal.js",
+    "./src/lite/defer.js",
+    "./src/lite/refs.js",
+    "./dist/angelite-runtime-plus.esm.js",
+    "./dist/angelite-runtime-plus.min.js",
+    "./dist/angelite-testing.esm.js"
   ],
   "exports": {
     ".": {
+      "types": "./types/legacy.d.ts",
       "import": "./dist/angelite.esm.js",
       "default": "./dist/angelite.js"
     },
     "./lite": {
+      "types": "./types/lite.d.ts",
       "import": "./dist/angelite-lite.esm.js",
       "default": "./dist/angelite-lite.min.js"
     },
     "./ui": {
+      "types": "./types/ui.d.ts",
       "import": "./dist/angelite-ui.esm.js",
       "default": "./dist/angelite-ui.min.js"
     },
     "./lite/runtime": {
+      "types": "./types/lite.d.ts",
       "import": "./dist/angelite-runtime.esm.js",
       "default": "./dist/angelite-runtime.min.js"
+    },
+    "./lite/runtime-plus": {
+      "types": "./types/lite.d.ts",
+      "import": "./dist/angelite-runtime-plus.esm.js",
+      "default": "./dist/angelite-runtime-plus.min.js"
     },
     "./lite/pipes": {
       "import": "./dist/angelite-pipes.esm.js"
     },
-    "./tools/aot.mjs": "./tools/aot.mjs"
+    "./lite/testing": {
+      "types": "./types/testing.d.ts",
+      "import": "./dist/angelite-testing.esm.js"
+    },
+    "./tools/aot.mjs": {
+      "types": "./types/aot.d.mts",
+      "default": "./tools/aot.mjs"
+    }
   },
   "engines": {
     "node": ">=18"
@@ -105,5 +131,6 @@
     "jsdom": {
       "optional": true
     }
-  }
+  },
+  "types": "types/lite.d.ts"
 }

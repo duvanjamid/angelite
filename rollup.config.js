@@ -59,4 +59,20 @@ const pipesBuild = {
   output: { file: 'dist/angelite-pipes.esm.js', format: 'esm', paths: () => './angelite-runtime.esm.js' }
 };
 
-export default [full, lite, runtime, pipesBuild, ui];
+// runtime-only plus portals, @defer, template refs and dev warnings
+const runtimePlus = {
+  input: 'src/lite/runtime-plus.js',
+  output: [
+    { file: 'dist/angelite-runtime-plus.esm.js', format: 'esm' },
+    { file: 'dist/angelite-runtime-plus.min.js', format: 'iife', name: 'AngeLite', plugins: [terser()] }
+  ]
+};
+
+// test helpers: share the lite bundle's runtime
+const testing = {
+  input: 'src/lite/testing.js',
+  external: id => /lite\/runtime\.js$/.test(id),
+  output: { file: 'dist/angelite-testing.esm.js', format: 'esm', paths: () => './angelite-lite.esm.js' }
+};
+
+export default [full, lite, runtime, runtimePlus, pipesBuild, testing, ui];

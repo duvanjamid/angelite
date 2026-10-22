@@ -5,6 +5,7 @@
 
 import { compileExpression } from '../utils/expression.js';
 import { A, P, setCompiler } from './runtime.js';
+import { warn } from './warn.js';
 import { templateToBlueprint } from './compiler.js';
 
 const backend = components => ({
@@ -17,6 +18,8 @@ const backend = components => ({
   modelGet: A.modelGet,
   modelRun: A.modelRun,
   comp: tag => components[tag],
+  // dev.js turns these into console warnings: <app-typo> is rendered as an unknown element
+  check: tag => { if (!components[tag] && !(typeof customElements !== 'undefined' && customElements.get(tag))) warn(`unknown element <${tag}> (not imported in "imports" and not a registered custom element)`); },
   A
 });
 

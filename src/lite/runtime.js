@@ -15,13 +15,35 @@ import { trusted } from './tt.js';
 const hooks = { outlet: null };
 export const setOutletBinder = fn => { hooks.outlet = fn; };
 
+/**
+ * Registry for optional template instructions (portals, @defer, template refs...). A module adds its handler with
+ * `ops.portal = (op, node, view, scope, ctx) => {...}` when imported, so apps that never use it do not ship it.
+ */
+export const ops = {};
+
 let compiler = null;
 /** Installs the in-browser template compiler: (templateSource, componentsByTag) => blueprint. */
 export const setCompiler = fn => { compiler = fn; };
 
 const NONE = Symbol('none');
 const logError = (e, what) => console.error(`[AngeLite] ${what}:`, e);
-const ownOf = view => view.own || (view.own = []);
+
+/**
+ * Component context: { up: parent context, self: the component instance, projected, slots, prov }.
+ * Errors go to the nearest component (or the one wrapping the projected content) that defines `ngOnError(error, where)`.
+ */
+const CTX = Symbol('ctx');
+export function reportError(e, what, ctx) {
+  for (; ctx; ctx = ctx.up) {
+    const target = ctx.guard || ctx.self;
+    if (target && target.ngOnError) {
+      try { target.ngOnError(e, what); } catch (err) { logError(err, 'ngOnError'); }
+      return;
+    }
+  }
+  logError(e, what);
+}
+export const ownOf = view => view.own || (view.own = []);
 const textOf = v => (v == null ? '' : String(v));
 
 /* ---------- pipes ---------- */
@@ -70,14 +92,14 @@ export function sanitizeUrl(value, attr) {
   const url = value == null ? '' : String(value);
   const flat = url.replace(URL_NOISE, '');
   if (SAFE_URL.test(flat) || (attr === 'src' && SAFE_IMAGE.test(flat))) return url;
-  console.warn(`[AngeLite] unsafe URL blocked in "${attr}": ${url.slice(0, 50)} (use trustUrl() to allow it)`);
+  console.warn(`[AngeLite] unsafe URL in "${attr}": ${url.slice(0, 50)} (see trustUrl())`);
   return 'unsafe:' + url;
 }
 
 function setHtml(el, v) {
   if (v instanceof Trusted && v.kind === 'html') el.innerHTML = trusted(v.value);
   else {
-    if (v) console.warn('[AngeLite] [innerHTML] needs trustHtml(); inserted as text');
+    if (v) console.warn('[AngeLite] [innerHTML] needs trustHtml()');
     el.textContent = v == null ? '' : String(v);
   }
 }
@@ -186,7 +208,7 @@ function delegate(type) {
       if (run) {
         const scope = Object.create(n.$s);
         scope.$event = e;
-        try { run(scope, e, n); } catch (err) { logError(err, `(${type})`); }
+        try { run(scope, e, n); } catch (err) { reportError(err, `(${type})`, scope[CTX]); }
         if (e.cancelBubble) break;
       }
     }
@@ -202,7 +224,7 @@ function onEvent(el, type, run, scope) {
     el.addEventListener(type, e => {
       const s = Object.create(scope);
       s.$event = e;
-      try { run(s, e, el); } catch (err) { logError(err, `(${type})`); }
+      try { run(s, e, el); } catch (err) { reportError(err, `(${type})`, s[CTX]); }
     });
   }
 }
@@ -231,10 +253,10 @@ function runView(view) {
   for (let i = 0; i < n; i++) {
     const d = upd[i];
     let v;
-    try { v = d.fn(scope); } catch (e) { logError(e, 'template expression'); continue; }
+    try { v = d.fn(scope); } catch (e) { reportError(e, 'template expression', view.ctx); continue; }
     if (v !== st[n + i]) {
       st[n + i] = v;
-      try { d.apply(st[i], v); } catch (e) { logError(e, 'template binding'); }
+      try { d.apply(st[i], v); } catch (e) { reportError(e, 'template binding', view.ctx); }
     }
   }
 }
@@ -249,7 +271,7 @@ function nextPre(n, root) {
   return null;
 }
 
-function instantiate(bp, scope, ctx) {
+export function instantiate(bp, scope, ctx) {
   const view = new View(bp, scope, ctx);
   const frag = bp.tpl.cloneNode(true);
   const ops = bp.ops, n = bp.upd.length;
@@ -297,20 +319,22 @@ function applyOp(op, node, view, scope, ctx, st, n) {
       st[op.slot] = new ForState(node, node.nextSibling, op, scope, ctx, view);
       break;
     case 'content': {
-      const pv = ctx && ctx.projected;
+      const pv = ctx && ctx.slots && ctx.slots[op.name || ''];
       if (pv) node.replaceWith(...rangeOf(pv)); else node.remove();
       break;
     }
     case 'outlet':
-      if (hooks.outlet) hooks.outlet(node, ownOf(view), mount);
+      if (hooks.outlet) hooks.outlet(node, ownOf(view), mount, ctx);
       break;
     case 'comp':
       applyComp(op, node, view, scope, ctx, st, n);
       break;
+    default:
+      if (ops[op.type]) ops[op.type](op, node, view, scope, ctx, st);
   }
 }
 
-function rangeOf(view) {
+export function rangeOf(view) {
   const nodes = [];
   for (let n = view.first; n; n = n.nextSibling) {
     nodes.push(n);
@@ -323,13 +347,13 @@ function rangeOf(view) {
  * Re-runs a view and everything nested in it. Needed when a scope variable (a @for item or index) was
  * replaced in place: nested blocks read it through the scope chain, not through a signal.
  */
-function refresh(view) {
+export function refresh(view) {
   if (view.st) view.run();
   const dep = view.dep;
   if (dep) for (let i = 0; i < dep.length; i++) dep[i].refresh();
 }
 
-function destroyView(view) {
+export function destroyView(view) {
   view.stop();
   const own = view.own;
   if (own) {
@@ -338,7 +362,7 @@ function destroyView(view) {
   }
 }
 
-function removeView(view) {
+export function removeView(view) {
   destroyView(view);
   if (view.first === view.last) view.first.remove();
   else rangeOf(view).forEach(n => n.remove());
@@ -563,8 +587,50 @@ function getBlueprint(Comp) {
   return Comp.$bp;
 }
 
-function createInstance(Comp) {
-  const instance = new Comp();
+/* ---------- dependency injection ---------- */
+
+const services = new Map();
+let current = null; // context whose providers `inject()` may use (set while a component is being created)
+
+/**
+ * Returns the instance of `Token`: from the `providers` of the nearest component that declares it (scoped to
+ * that component and its descendants), otherwise a shared instance created on first use.
+ */
+export function inject(Token) {
+  for (let c = current; c; c = c.up) {
+    if (!c.made) {
+      c.prov = new Map(((c.comp && c.comp.$meta.providers) || []).map(p => (p.provide ? [p.provide, p] : [p, {}])));
+      c.made = new Map();
+    }
+    const spec = c.prov.get(Token);
+    if (spec) {
+      if (!c.made.has(Token)) {
+        const prev = current;
+        current = c;
+        try { c.made.set(Token, 'useValue' in spec ? spec.useValue : spec.useFactory ? spec.useFactory() : new (spec.useClass || Token)()); } finally { current = prev; }
+      }
+      return c.made.get(Token);
+    }
+  }
+  if (!services.has(Token)) services.set(Token, new Token());
+  return services.get(Token);
+}
+
+/** Overrides the shared instance returned by inject(Token) — handy for tests. */
+export function provide(Token, value) {
+  services.set(Token, value);
+}
+
+/** Context of a component instance: parent context, class, instance, projected slots and (lazily) its providers. */
+const newContext = (Comp, up) => ({ up, comp: Comp, self: null, slots: null });
+
+function createInstance(Comp, ctx) {
+  const prev = current;
+  current = ctx;
+  let instance;
+  try { instance = new Comp(); } finally { current = prev; }
+  ctx.self = instance;
+  instance[CTX] = ctx;
   let proto = Comp.prototype;
   while (proto && proto !== Object.prototype) {
     for (const key of Object.getOwnPropertyNames(proto)) {
@@ -585,35 +651,44 @@ function keyMap(Comp, instance) {
   return Comp.$keys;
 }
 
-function attach(Comp, instance, host, projected, owner) {
+function attach(Comp, instance, host, ctx, owner) {
   if (instance.ngOnInit) instance.ngOnInit();
-  const cv = instantiate(getBlueprint(Comp), instance, { projected });
+  const cv = instantiate(getBlueprint(Comp), instance, ctx);
   host.append(cv.frag);
   cv.frag = null;
   if (instance.ngAfterViewInit) instance.ngAfterViewInit();
   owner.push(() => {
     destroyView(cv);
     if (instance.ngOnDestroy) instance.ngOnDestroy();
-    if (projected) destroyView(projected);
+    for (const name in ctx.slots) destroyView(ctx.slots[name]);
   });
 }
 
 function applyComp(op, host, view, scope, ctx, st, n) {
-  const instance = createInstance(op.Comp);
+  const cctx = newContext(op.Comp, ctx);
+  const instance = createInstance(op.Comp, cctx);
   instance.$el = host;
   const keys = keyMap(op.Comp, instance);
   const own = ownOf(view);
+  if (op.ref && ops.tref) ops.tref({ name: op.ref, value: instance }, host, view, scope, ctx);
 
   // Content between the tags is rendered in the parent scope, then projected.
-  const projected = op.childBp ? instantiate(op.childBp, scope, ctx) : null;
-  if (projected) (view.dep || (view.dep = [])).push({ refresh: () => refresh(projected) });
+  if (op.slots) {
+    let inner = ctx;
+    if (instance.ngOnError) { inner = Object.create(ctx); inner.guard = instance; }
+    const dep = view.dep || (view.dep = []);
+    for (const name in op.slots) {
+      const pv = (cctx.slots || (cctx.slots = {}))[name] = instantiate(op.slots[name], scope, inner);
+      dep.push({ refresh: () => refresh(pv) });
+    }
+  }
 
   for (const inp of op.inputs) {
     const k = keys[inp.key.toLowerCase()];
     const target = k && instance[k] && instance[k].set ? instance[k] : host;
     st[inp.slot] = target;
     let v;
-    try { v = untracked(() => inp.fn(scope)); } catch (e) { logError(e, `[${inp.key}]`); continue; }
+    try { v = untracked(() => inp.fn(scope)); } catch (e) { reportError(e, `[${inp.key}]`, ctx); continue; }
     st[n + inp.slot] = v;
     if (target === host) A.prop(inp.key)(host, v); else target.set(v);
   }
@@ -628,12 +703,12 @@ function applyComp(op, host, view, scope, ctx, st, n) {
       own.push(out.subscribe(payload => {
         const sc = Object.create(scope);
         sc.$event = payload;
-        try { o.run(sc); } catch (e) { logError(e, `(${o.evt})`); }
+        try { o.run(sc); } catch (e) { reportError(e, `(${o.evt})`, ctx); }
       }));
     } else onEvent(host, o.evt, o.run, scope);
   }
 
-  attach(op.Comp, instance, host, projected, own);
+  attach(op.Comp, instance, host, cctx, own);
 }
 
 /** Defines a component: `component(MyClass, { selector, template, imports })`. */
@@ -646,18 +721,20 @@ export function component(Class, meta) {
 /** Decorator form for toolchains that support it: `@Component({...}) class X {}` */
 export const Component = meta => Class => component(Class, meta);
 
-/** Mounts a component into an element. Returns { destroy() }. */
-export function mount(Comp, el) {
+/** Mounts a component into an element. Returns { destroy() }. `up` is an optional parent context (used by the router). */
+export function mount(Comp, el, up) {
   const host = document.createElement(Comp.$meta.selector);
   // The root host makes no layout box of its own. An inline host around block content forces the browser to split
   // boxes, which measurably slows the first paint. Style the element you mount into, or the component's own root.
   host.style.display = 'contents';
   el.appendChild(host);
-  const instance = createInstance(Comp);
+  const ctx = newContext(Comp, up || null);
+  const instance = createInstance(Comp, ctx);
   instance.$el = host;
   const owner = [];
-  attach(Comp, instance, host, null, owner);
+  attach(Comp, instance, host, ctx, owner);
   return {
+    instance,
     destroy() {
       for (let i = owner.length - 1; i >= 0; i--) owner[i]();
       owner.length = 0;

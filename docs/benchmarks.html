@@ -52,6 +52,8 @@
   .feat .y b { color:#2f9e5b; } .feat .n b { color:#d63a3a; }
   .half { display:inline-block; width:.85em; height:.85em; border-radius:50%; border:2px solid #d98a00; background:linear-gradient(90deg,#d98a00 50%,transparent 50%); vertical-align:-.1em; }
   .feat td.ev { text-align:center; font-size:.78rem; color:var(--muted); width:6%; }
+  .feat td.c i.w { display:inline-block; font-style:normal; font-size:.68rem; border-radius:99px; padding:1px 7px; margin-top:3px; background:var(--code-bg); color:var(--muted); border:1px solid var(--line); }
+  .feat td.c i.w-core, .feat td.c i.w-mod { color:#2f9e5b; border-color:#2f9e5b66; }
   .feat tr.grp td { background:var(--code-bg); font-weight:700; text-align:left; }
   .feat tfoot td { font-weight:600; border-bottom:0; }
 
@@ -85,6 +87,8 @@
   <h2 id="features">Comparativa de características</h2>
   <p>Qué debería tener un framework moderno y quién lo tiene hoy. <b>No es un ranking</b>: un framework más pequeño necesita menos cosas, y las filas no pesan lo mismo. Sirve para ver dónde estamos fuertes y dónde nos falta. Versiones: <span id="fver"></span>.</p>
   <div class="legend" id="flegend"></div>
+  <div class="legend" id="wlegend"></div>
+  <p id="wnote" class="muted" style="font-size:.82rem;margin:6px 0 0"></p>
   <div id="features-table"></div>
   <p class="small">Columna «Fuente»: <b>V</b> comprobado en esta sesión (ejecutando el código o leyendo el paquete instalado), <b>D</b> documentación oficial, <b>G</b> conocimiento general sin comprobar aquí: revisa las filas G antes de citarlas. El análisis completo, con prioridades, está en <code>docs/gap-analysis.md</code>.</p>
 
@@ -209,11 +213,15 @@ ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
   const F = window.FEATURES;
   const el = id => document.getElementById(id);
   const SYM = { y: '✓', p: '<span class="half"></span>', n: '✕' };
+  const WHERE = { core: 'integrado', mod: 'módulo', off: 'oficial', ext: 'terceros' };
   const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/`([^`]+)`/g, '<code>$1</code>');
   el('fver').textContent = F.versions;
-  el('flegend').innerHTML = Object.entries(F.legend).map(([k, v]) => `<span><b style="color:${k === 'y' ? '#2f9e5b' : '#d63a3a'}">${SYM[k]}</b> ${v}</span>`).join('');
+  el('flegend').innerHTML = Object.entries(F.legend).map(([k, v]) => `<span><b style="color:${k === 'y' ? '#2f9e5b' : '#d63a3a'}">${SYM[k]}</b> ${v}</span>`).join('') +
+    '';
+  el('wlegend').innerHTML = Object.entries(F.where).map(([k, v]) => `<span><span style="font-size:.72rem;border:1px solid var(--line);border-radius:99px;padding:1px 7px">${WHERE[k]}</span> ${esc(v)}</span>`).join('');
+  el('wnote').textContent = F.evidenceWhere;
   const fw = F.frameworks;
-  const totals = Object.fromEntries(fw.map(([k]) => [k, { score: 0, n: 0 }]));
+  const totals = Object.fromEntries(fw.map(([k]) => [k, { score: 0, n: 0, bundled: 0 }]));
   let html = '<div class="feat"><table><thead><tr><th>Característica</th>' + fw.map(([k, n]) => `<th style="color:var(--c-${k === 'lite' ? 'lite' : k})">${n}</th>`).join('') + '<th>Fuente</th></tr></thead><tbody>';
   for (const g of F.groups) {
     html += `<tr class="grp"><td colspan="${fw.length + 2}">${esc(g.title)}</td></tr>`;
@@ -222,11 +230,14 @@ ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
         const [v, note] = r.cells[k];
         totals[k].score += v === 'y' ? 1 : v === 'p' ? 0.5 : 0;
         totals[k].n++;
-        return `<td class="c ${v}"><b aria-label="${F.legend[v]}">${SYM[v]}</b>${note ? `<small>${esc(note)}</small>` : ''}</td>`;
+        const loc = v !== 'n' && r.where && r.where[k];
+        if (loc === 'core' || loc === 'mod') totals[k].bundled++;
+        return `<td class="c ${v}"><b aria-label="${F.legend[v]}">${SYM[v]}</b>${loc ? `<i class="w w-${loc}" title="${esc(F.where[loc])}">${WHERE[loc]}</i>` : ''}${note ? `<small>${esc(note)}</small>` : ''}</td>`;
       }).join('') + `<td class="ev" title="${esc(F.evidence[r.ev])}">${r.ev}</td></tr>`;
     }
   }
-  html += '</tbody><tfoot><tr><td>Cubre (sí = 1, parcial = ½)</td>' + fw.map(([k]) => `<td class="c">${totals[k].score.toLocaleString('es-ES')} de ${totals[k].n}</td>`).join('') + '<td></td></tr></tfoot></table></div>';
+  html += '</tbody><tfoot><tr><td>Cubre (sí = 1, parcial = ½)</td>' + fw.map(([k]) => `<td class="c">${totals[k].score.toLocaleString('es-ES')} de ${totals[k].n}</td>`).join('') + '<td></td></tr>' +
+    '<tr><td>Filas que vienen en el propio paquete (integrado o módulo)<small>sin instalar nada aparte; solo las filas con etiqueta de ubicación</small></td>' + fw.map(([k]) => `<td class="c">${totals[k].bundled}</td>`).join('') + '<td></td></tr></tfoot></table></div>';
   el('features-table').innerHTML = html;
 })();
 </script>

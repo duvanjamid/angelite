@@ -76,12 +76,12 @@ export function transform(src) {
   while (i < src.length) {
     const at = src.indexOf('@', i);
     if (at < 0) break;
-    const m = /^@(else\s+if|if|for|else|empty)(?![\w$])\s*/.exec(src.slice(at));
+    const m = /^@(else\s+if|if|for|else|empty|defer|placeholder)(?![\w$])\s*/.exec(src.slice(at));
     if (!m) { out += src.slice(i, at + 1); i = at + 1; continue; }
     out += src.slice(i, at);
     const kind = m[1].replace(/\s+/, ' ');
     let pos = at + m[0].length, head = '';
-    if (kind !== 'else' && kind !== 'empty') {
+    if (kind !== 'else' && kind !== 'empty' && kind !== 'placeholder') {
       if (src[pos] !== '(') throw new SyntaxError(`Expected "(" after @${kind}`);
       const end = matchClose(src, pos, '(', ')', true);
       head = src.slice(pos + 1, end).trim();
@@ -96,6 +96,8 @@ export function transform(src) {
     else if (kind === 'else if') out += `<template data-elseif="${esc(head)}">${body}</template>`;
     else if (kind === 'else') out += `<template data-else>${body}</template>`;
     else if (kind === 'empty') out += `<template data-empty>${body}</template>`;
+    else if (kind === 'placeholder') out += `<template data-placeholder>${body}</template>`;
+    else if (kind === 'defer') out += `<template data-defer="${esc(head)}">${body}</template>`;
     else {
       const [each, ...opts] = splitTop(head, ';');
       const track = opts.map(o => /^track\s+([\s\S]+)$/.exec(o)).find(Boolean);
@@ -137,10 +139,41 @@ function eat(from, to) {
 
 /* ---------- security rules enforced at compile time ---------- */
 
+// hyphenated names that are not custom elements
+const SVG_NAMES = /^(?:annotation-xml|color-profile|font-face(?:-\w+)*|missing-glyph)$/;
 const DANGEROUS_TAGS = /^(?:script|style|base|link|meta)$/;
 const BLOCKED_BINDING = /^(?:on.+|srcdoc|outerhtml)$/;
 
 const refuse = (what, hint) => { throw new SyntaxError(`AngeLite: ${what} is not allowed${hint ? ` (${hint})` : ''}.`); };
+
+/** The next significant sibling of `node` if it is a <template> carrying `attr` (@empty, @placeholder). */
+function followingTemplate(node, attr) {
+  for (let probe = node.nextSibling; probe; probe = probe.nextSibling) {
+    if (probe.nodeType === 3 && !probe.data.trim()) continue;
+    return probe.nodeType === 1 && probe.hasAttribute(attr) ? probe : null;
+  }
+  return null;
+}
+
+/** `@defer (on idle; on timer(2s); when ready())` -> { triggers, when } */
+function deferTriggers(head, B) {
+  const triggers = [];
+  let when = null;
+  for (const part of splitTop(head, ';').filter(Boolean)) {
+    const w = /^when\s+([\s\S]+)$/.exec(part);
+    if (w) { when = expr(B, w[1]); continue; }
+    const o = /^on\s+([\s\S]+)$/.exec(part);
+    if (!o) throw new SyntaxError(`Invalid @defer trigger: "${part}"`);
+    for (const t of splitTop(o[1], ',')) {
+      const timer = /^timer\(\s*(\d+(?:\.\d+)?)\s*(ms|s)\s*\)$/.exec(t);
+      if (timer) triggers.push({ on: 'timer', ms: timer[2] === 's' ? timer[1] * 1000 : +timer[1] });
+      else if (/^(?:idle|immediate|viewport|interaction|hover)$/.test(t)) triggers.push({ on: t });
+      else throw new SyntaxError(`Unknown @defer trigger: "${t}"`);
+    }
+  }
+  if (!triggers.length && !when) triggers.push({ on: 'idle' });
+  return { triggers, when };
+}
 
 /* ---------- blueprint compiler ---------- */
 
@@ -152,6 +185,11 @@ export function compile(content, components, B, forceMarker) {
   function walkAttrs(el, ord, spec, tag) {
     for (const attr of [...el.attributes]) {
       const { name, value } = attr;
+      if (name[0] === '#') { // template reference: <input #box> + box = viewChild('box')
+        el.removeAttribute(name);
+        if (spec) spec.ref = name.slice(1); else bp.ops.push({ ord, type: 'tref', name: name.slice(1) });
+        continue;
+      }
       const binding = name.startsWith('[') && name.endsWith(']') && name !== '[(ngmodel)]';
       if (DANGEROUS_TAGS.test(tag) && (binding || value.includes('{{'))) refuse(`binding to <${tag}>`);
       if (binding) {
@@ -224,12 +262,7 @@ export function compile(content, components, B, forceMarker) {
         } else if (tag === 'template' && node.hasAttribute('data-for')) {
           const head = /^\s*(\w+)\s+of\s+([\s\S]+)$/.exec(node.getAttribute('data-for'));
           if (!head) throw new SyntaxError(`Invalid @for: "${node.getAttribute('data-for')}"`);
-          let empty = null;
-          for (let probe = node.nextSibling; probe;) {
-            if (probe.nodeType === 3 && !probe.data.trim()) { probe = probe.nextSibling; continue; }
-            if (probe.nodeType === 1 && probe.hasAttribute('data-empty')) empty = probe;
-            break;
-          }
+          const empty = followingTemplate(node, 'data-empty');
           const forOp = {
             ord, type: 'for', name: head[1],
             track: node.hasAttribute('data-track') ? expr(B, node.getAttribute('data-track')) : null,
@@ -246,22 +279,47 @@ export function compile(content, components, B, forceMarker) {
           forOp.slot = slot(expr(B, head[2]), A.state);
           bp.ops.push(forOp);
           if (top) bp.dynamic = true;
+        } else if (tag === 'template' && node.hasAttribute('data-defer')) {
+          const placeholder = followingTemplate(node, 'data-placeholder');
+          const { triggers, when } = deferTriggers(node.getAttribute('data-defer'), B);
+          const op = { ord, type: 'defer', triggers, bp: compile(node.content, components, B), placeholder: placeholder ? compile(placeholder.content, components, B) : undefined };
+          const anchor = document.createComment('@defer');
+          node.replaceWith(anchor);
+          if (placeholder) eat(anchor.nextSibling, placeholder);
+          next = anchor.nextSibling;
+          if (when) op.slot = slot(when, A.state);
+          bp.ops.push(op);
+          if (top) bp.dynamic = true;
+        } else if (tag === 'ng-portal') {
+          const ct = document.createDocumentFragment();
+          while (node.firstChild) ct.append(node.firstChild);
+          bp.ops.push({ ord, type: 'portal', to: node.getAttribute('to') || 'body', bp: compile(ct, components, B, true) });
+          if (top) bp.dynamic = true;
         } else if (tag === 'ng-content') {
-          bp.ops.push({ ord, type: 'content' });
+          bp.ops.push({ ord, type: 'content', name: node.getAttribute('select') || undefined });
           if (top) bp.dynamic = true;
         } else if (tag === 'router-outlet') {
           bp.ops.push({ ord, type: 'outlet' });
         } else if (components[tag]) {
           const spec = { inputs: [], outputs: [], statics: [] };
-          let childBp = null;
+          let slots;
           if (node.firstChild) {
-            const ct = document.createDocumentFragment();
-            while (node.firstChild) ct.append(node.firstChild);
-            childBp = compile(ct, components, B, true);
+            // children with slot="name" go to <ng-content select="name">; the rest is the default content
+            const ct = document.createDocumentFragment(), named = {};
+            while (node.firstChild) {
+              const child = node.firstChild, name = child.nodeType === 1 && child.getAttribute('slot');
+              if (name) {
+                child.removeAttribute('slot');
+                (named[name] || (named[name] = document.createDocumentFragment())).append(child);
+              } else ct.append(child);
+            }
+            if (ct.firstChild) named[''] = ct;
+            for (const name in named) (slots || (slots = {}))[name] = compile(named[name], components, B, true);
           }
           walkAttrs(node, ord, spec, tag);
-          bp.ops.push({ ord, type: 'comp', Comp: B.comp(tag), childBp, ...spec });
+          bp.ops.push({ ord, type: 'comp', Comp: B.comp(tag), slots, ...spec });
         } else {
+          if (B.check && tag.includes('-') && !SVG_NAMES.test(tag)) B.check(tag);
           walkAttrs(node, ord, null, tag);
           walk(node, false);
         }
