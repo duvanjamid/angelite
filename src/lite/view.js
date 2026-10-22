@@ -6,7 +6,7 @@
  * attributes and blocks that depend on a changed signal are updated.
  */
 
-import { evaluate } from '../utils/expression.js';
+import { evaluate, compileExpression } from '../utils/expression.js';
 import { effect, untracked, signal } from './signals.js';
 import { pipes } from './pipes.js';
 
@@ -39,23 +39,35 @@ function splitTop(src, ch) {
   return out.map(s => s.trim());
 }
 
-function compileExpr(src) {
+const exprCache = new Map();
+const textCache = new Map();
+const stmtCache = new Map();
+const memo = (cache, key, make) => {
+  let v = cache.get(key);
+  if (!v) cache.set(key, v = make());
+  return v;
+};
+
+const compileExpr = src => memo(exprCache, src, () => buildExpr(src));
+
+function buildExpr(src) {
   const [base, ...rest] = splitTop(src, '|');
+  const baseFn = compileExpression(base);
   const steps = rest.map(p => {
     const [name, ...args] = splitTop(p, ':');
     return { name, args };
   });
-  if (!steps.length) return scope => evaluate(base, scope);
+  if (!steps.length) return baseFn;
   return scope => steps.reduce((value, { name, args }) => {
     if (!pipes[name]) throw new Error(`Unknown pipe "${name}"`);
     return pipes[name](value, ...args.map(a => evaluate(a, scope)));
-  }, evaluate(base, scope));
+  }, baseFn(scope));
 }
 
-function compileStatements(src) {
-  const list = splitTop(src, ';').filter(Boolean);
-  return scope => list.forEach(s => evaluate(s, scope));
-}
+const compileStatements = src => memo(stmtCache, src, () => {
+  const list = splitTop(src, ';').filter(Boolean).map(compileExpression);
+  return scope => list.forEach(fn => fn(scope));
+});
 
 /* ---------- control-flow syntax: @if / @else if / @else / @for / @empty ---------- */
 
@@ -137,7 +149,9 @@ function setBinding(el, name, value) {
 
 const textOf = v => (v == null ? '' : String(v));
 
-function interpolation(text) {
+const interpolation = text => memo(textCache, text, () => buildInterpolation(text));
+
+function buildInterpolation(text) {
   const parts = text.split(/\{\{([\s\S]*?)\}\}/);
   const compiled = parts.map((p, i) => (i % 2 ? compileExpr(p) : p));
   return scope => compiled.map((p, i) => (i % 2 ? textOf(p(scope)) : p)).join('');
@@ -221,17 +235,40 @@ function bindIf(chain, scope, env, own) {
   }, own);
 }
 
-function itemScope(parent, name, item, index, count) {
-  const s = Object.create(parent);
-  const def = (key, get) => Object.defineProperty(s, key, { get, enumerable: true });
-  def(name, item);
-  def('$index', index);
-  def('$count', count);
-  def('$first', () => index() === 0);
-  def('$last', () => index() === count() - 1);
-  def('$even', () => index() % 2 === 0);
-  def('$odd', () => index() % 2 === 1);
-  return s;
+/** One prototype per @for (getters defined once); each item scope only stores its entry. */
+function makeItemProto(parent, name) {
+  const proto = Object.create(parent);
+  const key = Symbol('entry');
+  const def = (prop, get) => Object.defineProperty(proto, prop, { get, enumerable: true });
+  def(name, function () { return this[key].item(); });
+  def('$index', function () { return this[key].index(); });
+  def('$count', function () { return this[key].count(); });
+  def('$first', function () { return this[key].index() === 0; });
+  def('$last', function () { return this[key].index() === this[key].count() - 1; });
+  def('$even', function () { return this[key].index() % 2 === 0; });
+  def('$odd', function () { return this[key].index() % 2 === 1; });
+  return entry => {
+    const scope = Object.create(proto);
+    scope[key] = entry;
+    return scope;
+  };
+}
+
+/** Indexes (into `seq`) that form a longest increasing subsequence: those nodes need no DOM move. */
+function lis(seq) {
+  const tails = [], prev = new Array(seq.length);
+  for (let i = 0; i < seq.length; i++) {
+    let lo = 0, hi = tails.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (seq[tails[mid]] < seq[i]) lo = mid + 1; else hi = mid;
+    }
+    prev[i] = lo ? tails[lo - 1] : -1;
+    tails[lo] = i;
+  }
+  const out = new Set();
+  for (let i = tails.length ? tails[tails.length - 1] : -1; i >= 0; i = prev[i]) out.add(i);
+  return out;
 }
 
 function bindFor(tpl, emptyTpl, scope, env, own) {
@@ -256,35 +293,61 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
   const drop = e => { dispose(e.own); e.nodes.forEach(n => n.remove()); };
   own.push(() => { entries.forEach(drop); entries.clear(); clearEmpty(); });
 
+  const makeScope = makeItemProto(scope, name);
+  const count = signal(0);
+  const probe = Object.create(scope); // only used to compute track keys
+
   effect(() => {
     const items = Array.from(list(scope) || []);
     untracked(() => {
+      const n = items.length;
+      count.set(n);
       const next = new Map();
+      const order = new Array(n);
+      const fresh = entries.size === 0;
+      const seq = [], seqAt = [];
+      let pos = 0;
+      entries.forEach(e => { e.pos = pos++; });
+
       items.forEach((item, i) => {
-        const probe = itemScope(scope, name, () => item, () => i, () => items.length);
-        let key = track ? track(probe) : item;
+        let key = item;
+        if (track) { probe[name] = item; probe.$index = i; key = track(probe); }
         if (next.has(key)) key = Symbol('dup');
-        let entry = entries.get(key);
-        if (entry) {
-          entry.item.set(item);
-          entry.index.set(i);
-          entry.count.set(items.length);
+        let e = entries.get(key);
+        if (e) {
+          e.item.set(item);
+          e.index.set(i);
+          seq.push(e.pos);
+          seqAt.push(i);
         } else {
-          entry = { item: signal(item), index: signal(i), count: signal(items.length) };
-          const view = render(tpl.content, itemScope(scope, name, entry.item, entry.index, entry.count), env);
-          entry.own = view.own;
-          entry.nodes = view.nodes;
+          e = { item: signal(item), index: signal(i), count, pos: -1 };
+          const view = render(tpl.content, makeScope(e), env);
+          e.own = view.own;
+          e.nodes = view.nodes;
         }
-        next.set(key, entry);
+        next.set(key, e);
+        order[i] = e;
       });
+
       entries.forEach((e, key) => { if (!next.has(key)) drop(e); });
       entries = next;
-      let cursor = anchor;
-      entries.forEach(e => e.nodes.forEach(n => {
-        if (cursor.nextSibling !== n) cursor.after(n);
-        cursor = n;
-      }));
-      if (!items.length && emptyTpl) {
+
+      if (fresh) {
+        const frag = document.createDocumentFragment();
+        order.forEach(e => frag.append(...e.nodes));
+        anchor.after(frag);
+      } else {
+        // Nodes in the longest increasing run keep their place; only the rest move.
+        const stay = new Set();
+        lis(seq).forEach(k => stay.add(seqAt[k]));
+        let cursor = anchor;
+        order.forEach((e, i) => {
+          if (!stay.has(i) && e.nodes.length) cursor.after(...e.nodes);
+          if (e.nodes.length) cursor = e.nodes[e.nodes.length - 1];
+        });
+      }
+
+      if (!n && emptyTpl) {
         if (!emptyView) {
           emptyView = render(emptyTpl.content, scope, env);
           anchor.after(emptyView.frag);
@@ -361,11 +424,22 @@ function bindAttrs(el, scope, own, instance) {
 
 const templates = new WeakMap();
 
+/** Drops indentation-only text nodes (whitespace containing a newline), like Angular's default. */
+function trimWhitespace(root) {
+  for (let n = root.firstChild; n;) {
+    const next = n.nextSibling;
+    if (n.nodeType === 3) { if (!n.data.trim() && n.data.includes('\n')) n.remove(); }
+    else if (n.nodeType === 1) trimWhitespace(n.tagName === 'TEMPLATE' ? n.content : n);
+    n = next;
+  }
+}
+
 function getTemplate(Comp) {
   let t = templates.get(Comp);
   if (!t) {
     t = document.createElement('template');
     t.innerHTML = transform(Comp.$meta.template || '');
+    trimWhitespace(t.content);
     templates.set(Comp, t);
   }
   return t;

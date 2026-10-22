@@ -147,57 +147,85 @@ function member(obj, key) {
   return obj[key];
 }
 
-/** Returns { value, thisArg } so calls keep their receiver. */
-function run(node, ctx) {
+const notFn = node => {
+  if (node.opt) return undefined;
+  throw new TypeError('Expression is not a function');
+};
+
+/** Turns an AST into a closure `(context) => value` (no per-eval allocation). */
+function compile(node) {
   switch (node.k) {
-    case 'lit': return { value: node.v };
-    case 'arr': return { value: node.items.map(n => run(n, ctx).value) };
+    case 'lit': { const v = node.v; return () => v; }
+    case 'arr': { const items = node.items.map(compile); return c => items.map(f => f(c)); }
     case 'id': {
-      if (BLOCKED.has(node.name)) return { value: undefined };
-      return { value: ctx == null ? undefined : ctx[node.name], thisArg: ctx };
+      const name = node.name;
+      if (BLOCKED.has(name)) return () => undefined;
+      return c => (c == null ? undefined : c[name]);
     }
     case 'mem': {
-      const obj = run(node.obj, ctx).value;
-      if (obj == null) {
-        if (node.opt || node.obj.k === 'mem' || node.obj.k === 'call') return { value: undefined };
-        return { value: undefined };
-      }
-      return { value: member(obj, run(node.prop, ctx).value), thisArg: obj };
+      const obj = compile(node.obj);
+      const lit = node.prop.k === 'lit';
+      const key = lit ? node.prop.v : null;
+      const prop = lit ? null : compile(node.prop);
+      return c => {
+        const o = obj(c);
+        return o == null ? undefined : member(o, lit ? key : prop(c));
+      };
     }
     case 'call': {
-      const { value: fn, thisArg } = run(node.fn, ctx);
-      if (typeof fn !== 'function') {
-        if (node.opt || fn == null) return { value: undefined };
-        throw new TypeError('Expression is not a function');
+      const args = node.args.map(compile);
+      const callee = node.fn;
+      const argv = c => args.map(a => a(c));
+      if (callee.k === 'mem') {
+        const obj = compile(callee.obj);
+        const lit = callee.prop.k === 'lit';
+        const key = lit ? callee.prop.v : null;
+        const prop = lit ? null : compile(callee.prop);
+        return c => {
+          const o = obj(c);
+          if (o == null) return undefined;
+          const fn = member(o, lit ? key : prop(c));
+          if (typeof fn !== 'function') return fn == null ? undefined : notFn(node);
+          return fn.apply(o, argv(c));
+        };
       }
-      return { value: fn.apply(thisArg, node.args.map(a => run(a, ctx).value)) };
+      const f = compile(callee);
+      const self = callee.k === 'id';
+      return c => {
+        const fn = f(c);
+        if (typeof fn !== 'function') return fn == null ? undefined : notFn(node);
+        return fn.apply(self ? c : undefined, argv(c));
+      };
     }
     case 'un': {
-      const v = run(node.arg, ctx).value;
-      return { value: node.op === '!' ? !v : node.op === '-' ? -v : +v };
+      const arg = compile(node.arg);
+      if (node.op === '!') return c => !arg(c);
+      if (node.op === '-') return c => -arg(c);
+      return c => +arg(c);
     }
-    case 'cond':
-      return run(run(node.test, ctx).value ? node.a : node.b, ctx);
+    case 'cond': {
+      const t = compile(node.test), a = compile(node.a), b = compile(node.b);
+      return c => (t(c) ? a(c) : b(c));
+    }
     case 'bin': {
-      const l = run(node.l, ctx).value;
-      if (node.op === '&&') return l ? run(node.r, ctx) : { value: l };
-      if (node.op === '||') return l ? { value: l } : run(node.r, ctx);
-      if (node.op === '??') return l != null ? { value: l } : run(node.r, ctx);
-      const r = run(node.r, ctx).value;
+      const l = compile(node.l), r = compile(node.r);
       switch (node.op) {
-        case '+': return { value: l + r };
-        case '-': return { value: l - r };
-        case '*': return { value: l * r };
-        case '/': return { value: l / r };
-        case '%': return { value: l % r };
-        case '<': return { value: l < r };
-        case '>': return { value: l > r };
-        case '<=': return { value: l <= r };
-        case '>=': return { value: l >= r };
-        case '==': return { value: l == r }; // eslint-disable-line eqeqeq
-        case '!=': return { value: l != r }; // eslint-disable-line eqeqeq
-        case '===': return { value: l === r };
-        default: return { value: l !== r };
+        case '&&': return c => { const v = l(c); return v ? r(c) : v; };
+        case '||': return c => { const v = l(c); return v ? v : r(c); };
+        case '??': return c => { const v = l(c); return v != null ? v : r(c); };
+        case '+': return c => l(c) + r(c);
+        case '-': return c => l(c) - r(c);
+        case '*': return c => l(c) * r(c);
+        case '/': return c => l(c) / r(c);
+        case '%': return c => l(c) % r(c);
+        case '<': return c => l(c) < r(c);
+        case '>': return c => l(c) > r(c);
+        case '<=': return c => l(c) <= r(c);
+        case '>=': return c => l(c) >= r(c);
+        case '==': return c => l(c) == r(c); // eslint-disable-line eqeqeq
+        case '!=': return c => l(c) != r(c); // eslint-disable-line eqeqeq
+        case '===': return c => l(c) === r(c);
+        default: return c => l(c) !== r(c);
       }
     }
     default:
@@ -205,17 +233,22 @@ function run(node, ctx) {
   }
 }
 
+/** Compiles (and caches) an expression into `(context) => value`. Throws on syntax errors. */
+export function compileExpression(expr) {
+  let fn = cache.get(expr);
+  if (!fn) {
+    fn = compile(parse(expr));
+    cache.set(expr, fn);
+  }
+  return fn;
+}
+
 /**
  * Evaluate an expression against a context object.
  * Parse errors throw; use `safeEvaluate` for a fallback value.
  */
 export function evaluate(expr, context) {
-  let ast = cache.get(expr);
-  if (!ast) {
-    ast = parse(expr);
-    cache.set(expr, ast);
-  }
-  return run(ast, context).value;
+  return compileExpression(expr)(context);
 }
 
 export function safeEvaluate(expr, context, fallback) {
