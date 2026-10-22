@@ -54,3 +54,6 @@ logs/
 # Archivos temporales
 tmp/
 temp/
+
+# Angular build cache
+.angular/
