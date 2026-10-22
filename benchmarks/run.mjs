@@ -10,7 +10,7 @@ const dist = join(root, 'dist');
 const FW = ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
 const ROUNDS = Number(process.env.ROUNDS || 3);
 const ITER = Number(process.env.ITER || 7);
-const STARTUP_RUNS = 9;
+const STARTUP_RUNS = 15;
 const sizes = JSON.parse(readFileSync(join(dist, 'sizes.json'), 'utf8'));
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
@@ -132,16 +132,22 @@ for (let r = 0; r < ROUNDS; r++) {
   for (const fw of order) await runSuite(fw, r);
 }
 
-for (const fw of FW) {
-  for (let i = 0; i < STARTUP_RUNS; i++) {
-    const { ctx, page } = await newPage();
-    await page.goto(`${base}/${fw}/index.html`);
-    await page.waitForFunction(() => window.__ready);
-    samples[fw].startup.push(await page.evaluate(() => window.__ready));
-    await ctx.close();
-  }
-  console.log('startup', fw);
+// Startup: loads are interleaved and shuffled each round, after one discarded warm-up load per framework, so
+// no framework benefits from running last (or pays for browser warm-up by running first).
+const loadOnce = async fw => {
+  const { ctx, page } = await newPage();
+  await page.goto(`${base}/${fw}/index.html`);
+  await page.waitForFunction(() => window.__ready);
+  const t = await page.evaluate(() => window.__ready);
+  await ctx.close();
+  return t;
+};
+const shuffle = a => { const c = [...a]; for (let i = c.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [c[i], c[j]] = [c[j], c[i]]; } return c; };
+for (const fw of shuffle(FW)) await loadOnce(fw);
+for (let i = 0; i < STARTUP_RUNS; i++) {
+  for (const fw of shuffle(FW)) samples[fw].startup.push(await loadOnce(fw));
 }
+console.log('startup done');
 
 const results = {
   generatedAt: new Date().toISOString(),

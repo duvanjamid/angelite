@@ -147,12 +147,16 @@ export const A = {
   }
 };
 
-/** Builds a blueprint from serialized HTML (used by precompiled templates). */
-const mk = (html, ops, upd, dynamic) => {
-  const t = document.createElement('template');
-  t.innerHTML = trusted(html);
-  return { tpl: t.content, ops, upd, dynamic };
-};
+/** Builds a blueprint from serialized HTML; the template is only parsed the first time a view needs it. */
+const mk = (html, ops, upd, dynamic) => ({
+  get tpl() {
+    const t = document.createElement('template');
+    t.innerHTML = trusted(html);
+    Object.defineProperty(this, 'tpl', { value: t.content });
+    return t.content;
+  },
+  ops, upd, dynamic
+});
 
 const callFn = (fn, recv, args) => {
   if (typeof fn === 'function') return guard(fn.apply(recv, args));
@@ -625,6 +629,9 @@ export const Component = meta => Class => component(Class, meta);
 /** Mounts a component into an element. Returns { destroy() }. */
 export function mount(Comp, el) {
   const host = document.createElement(Comp.$meta.selector);
+  // The root host makes no layout box of its own. An inline host around block content forces the browser to split
+  // boxes, which measurably slows the first paint. Style the element you mount into, or the component's own root.
+  host.style.display = 'contents';
   el.appendChild(host);
   const instance = createInstance(Comp);
   instance.$el = host;

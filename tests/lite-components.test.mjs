@@ -200,3 +200,13 @@ test('two apps on one page do not interfere', async () => {
   assert.equal(one.text('#t'), 'A2');
   assert.equal(two.text('#t'), 'B');
 });
+
+test('the mounted root host makes no layout box (display: contents); child hosts are left alone', () => {
+  class Child {}
+  component(Child, { selector: 'x-child', template: '<i>x</i>' });
+  class Parent {}
+  component(Parent, { selector: 'x-parent', imports: [Child], template: '<x-child></x-child>' });
+  const { root } = mountIn(mount, Parent);
+  assert.equal(root.querySelector('x-parent').style.display, 'contents');
+  assert.equal(root.querySelector('x-child').style.display, '');
+});
