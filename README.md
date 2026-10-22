@@ -312,7 +312,11 @@ AngeLite is [MIT licensed](./LICENSE).
 
 ## AngeLite Lite
 
-A ~9 KB (min+gzip) signals-based core (~5.8 KB for an app with precompiled templates), as fast as or faster than Preact/Vue/React/Angular in our benchmark and the lightest on memory, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the ~4.5 KB runtime. Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks and feature comparison vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html), gap analysis and roadmap: [`docs/gap-analysis.md`](docs/gap-analysis.md). Security model and reporting: [`SECURITY.md`](SECURITY.md).
+A signals-based core with Angular-style templates (`@if`, `@for`, `@defer`, `[(ngModel)]`, components with named slots, pipes, scoped DI, a router with nested routes, guards and lazy loading), about **10 KB** min+gzip with the in-browser compiler and **about 6 KB for an app with precompiled templates** (you only pay for what you import; the everything-included `lite` bundle is ~11.7 KB). As fast as or faster than Preact/Vue/React/Angular in our benchmark and the lightest on memory. Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the runtime and checks templates for unknown elements, pipes and names.
+
+What is in the box (optional pieces are separate modules, so they cost nothing if you do not import them): TypeScript types, `render()` test helpers (`/lite/testing`), `enableDevWarnings()`, portals, `@defer`, `viewChild()`, `ngOnError` error boundaries, `providers` per component, and a security model with URL sanitizing, `trustHtml()`, Trusted Types and CSP support.
+
+Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks and feature comparison vs React/Preact/Vue/Angular (including where each framework provides each feature): [`docs/benchmarks.html`](docs/benchmarks.html), gap analysis and roadmap: [`docs/gap-analysis.md`](docs/gap-analysis.md). Security model and reporting: [`SECURITY.md`](SECURITY.md).
 
 ## Development
 

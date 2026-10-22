@@ -50,7 +50,7 @@
   <p class="lead">Lo que más se echa de menos de Angular —señales, plantillas con <code>@if</code>/<code>@for</code>, componentes, pipes, DI y router— en unos pocos KB y sin paso de compilación. Como Preact, pero con sabor Angular.</p>
 
   <div class="stats">
-    <div class="stat"><b>~9 KB</b><span>min + gzip (≈5,8 KB precompilado)</span></div>
+    <div class="stat"><b>~10 KB</b><span>min + gzip (≈6,0 KB precompilado)</span></div>
     <div class="stat"><b>0</b><span>dependencias</span></div>
     <div class="stat"><b>0</b><span>pasos de build</span></div>
   </div>
@@ -58,8 +58,8 @@
   <nav>
     <a href="#inicio">Inicio</a><a href="#senales">Señales</a><a href="#plantillas">Plantillas</a>
     <a href="#flujo">Control de flujo</a><a href="#formularios">Formularios</a>
-    <a href="#componentes">Componentes</a><a href="#pipes">Pipes</a><a href="#di">Servicios</a>
-    <a href="#router">Router</a><a href="#aot">Precompilar</a><a href="#seguridad">Seguridad</a><a href="#limites">Diferencias con Angular</a>
+    <a href="#componentes">Componentes</a><a href="#slots">Slots</a><a href="#portales">Portales</a><a href="#defer">@defer</a><a href="#refs">Refs</a><a href="#errores">Errores</a><a href="#pipes">Pipes</a><a href="#di">Servicios</a>
+    <a href="#router">Router</a><a href="#herramientas">Herramientas</a><a href="#aot">Precompilar</a><a href="#seguridad">Seguridad</a><a href="#limites">Diferencias con Angular</a>
   </nav>
 
   <h2 id="inicio">Inicio rápido</h2>
@@ -232,6 +232,143 @@ mount(App, root);
   </script>
   <p class="note">En HTML las etiquetas personalizadas no se pueden auto-cerrar: escribe siempre <code>&lt;ui-card&gt;&lt;/ui-card&gt;</code>.</p>
 
+  <h2 id="slots">Slots con nombre</h2>
+  <p>Además del <code>&lt;ng-content&gt;</code> por defecto, un componente puede tener zonas con nombre: <code>&lt;ng-content select="titulo"&gt;</code> recibe los hijos que lleven <code>slot="titulo"</code>. Lo que no lleva <code>slot</code> va a la zona por defecto. El contenido se evalúa en el ámbito del padre y sigue siendo reactivo.</p>
+  <script type="text/plain" class="example" data-title="Slots con nombre">
+const { signal, component, mount } = AngeLite;
+
+class Panel {}
+component(Panel, {
+  selector: 'ui-panel',
+  template: `
+    <div class="card">
+      <header><ng-content select="titulo"></ng-content></header>
+      <section><ng-content></ng-content></section>
+      <footer><small><ng-content select="pie"></ng-content></small></footer>
+    </div>`
+});
+
+class App {
+  n = signal(1);
+}
+component(App, {
+  imports: [Panel],
+  template: `
+    <ui-panel>
+      <b slot="titulo">Pedido #{{ n() }}</b>
+      Cuerpo del panel
+      <span slot="pie">{{ n() }} artículo(s)</span>
+    </ui-panel>
+    <button (click)="n.set(n() + 1)">+1 artículo</button>`
+});
+
+mount(App, root);
+  </script>
+
+  <h2 id="portales">Portales</h2>
+  <p><code>&lt;ng-portal to="#destino"&gt;</code> pinta su contenido dentro de otro elemento (por defecto <code>document.body</code>) pero lo mantiene en el ámbito del componente: sirve para modales, menús y tooltips que no deben quedar atrapados por un <code>overflow</code> o un <code>z-index</code>. Se limpia solo al destruir el bloque.</p>
+  <script type="text/plain" class="example" data-title="Portal hacia otro contenedor">
+const { signal, component, mount } = AngeLite;
+
+const target = document.createElement('div');
+target.style.cssText = 'margin-top:10px;padding:10px;border:1px dashed currentColor';
+target.id = 'portal-destino';
+target.textContent = 'Destino del portal: ';
+root.after(target);
+
+class App {
+  open = signal(false);
+}
+component(App, {
+  template: `
+    <button (click)="open.set(!open())">{{ open() ? 'Cerrar' : 'Abrir' }} aviso</button>
+    @if (open()) {
+      <ng-portal to="#portal-destino"><b>¡Hola desde otro sitio del DOM!</b></ng-portal>
+    }`
+});
+
+mount(App, root);
+  </script>
+
+  <h2 id="defer">Carga diferida con @defer</h2>
+  <p><code>@defer</code> no renderiza el bloque hasta que se cumple un disparador, y mientras tanto muestra <code>@placeholder</code>. Disparadores: <code>on idle</code> (por defecto), <code>on viewport</code>, <code>on interaction</code>, <code>on hover</code>, <code>on timer(2s)</code>, <code>on immediate</code> y <code>when expr</code>. Se pueden combinar con <code>;</code>. Para dividir el código de una página entera usa <code>load: () =&gt; import(…)</code> en el router.</p>
+  <script type="text/plain" class="example" data-title="@defer: por interacción y por tiempo">
+const { signal, component, mount } = AngeLite;
+
+class App {
+  listo = signal(false);
+}
+component(App, {
+  template: `
+    @defer (on interaction) {
+      <p>Cargado al hacer clic.</p>
+    } @placeholder {
+      <button>Haz clic para cargar</button>
+    }
+    @defer (on timer(1500ms)) {
+      <p>Apareció tras 1,5 s.</p>
+    } @placeholder {
+      <p><i>Esperando…</i></p>
+    }
+    <label><input type="checkbox" [(ngModel)]="listo"> marcar para cargar</label>
+    @defer (when listo()) {
+      <p>Cargado porque <code>listo()</code> es verdadero.</p>
+    }`
+});
+
+mount(App, root);
+  </script>
+
+  <h2 id="refs">Referencias a elementos</h2>
+  <p>Marca un elemento con <code>#nombre</code> y recíbelo con <code>viewChild('nombre')</code>: una señal con el elemento (o la instancia del componente, si lo pones en una etiqueta de componente) que vuelve a <code>null</code> cuando sale del DOM.</p>
+  <script type="text/plain" class="example" data-title="viewChild">
+const { component, mount, viewChild } = AngeLite;
+
+class App {
+  campo = viewChild('campo');
+  enfocar() { this.campo().focus(); }
+}
+component(App, {
+  template: `
+    <input #campo placeholder="Escribe aquí">
+    <button (click)="enfocar()">Enfocar el campo</button>`
+});
+
+mount(App, root);
+  </script>
+
+  <h2 id="errores">Errores controlados</h2>
+  <p>Si un componente define <code>ngOnError(error, dónde)</code>, recibe los errores de sus bindings y handlers y los del contenido que le proyectan. Con eso se hace un <b>límite de error</b>: muestra una alternativa en lugar de dejar un hueco. Sin <code>ngOnError</code> el error se registra en la consola y el resto de la vista sigue funcionando. (No captura errores del constructor ni de <code>ngOnInit</code>.)</p>
+  <script type="text/plain" class="example" data-title="Un límite de error">
+const { signal, component, mount } = AngeLite;
+
+class Limite {
+  fallo = signal(null);
+  ngOnError(error) { this.fallo.set(error.message); }
+}
+component(Limite, {
+  selector: 'error-limite',
+  template: `
+    @if (fallo()) {
+      <p class="card">Algo salió mal: <b>{{ fallo() }}</b></p>
+    } @else {
+      <ng-content></ng-content>
+    }`
+});
+
+class App {
+  roto() { throw new Error('dato inválido'); }
+}
+component(App, {
+  imports: [Limite],
+  template: `
+    <error-limite><p>{{ roto() }}</p></error-limite>
+    <p>El resto de la página sigue funcionando.</p>`
+});
+
+mount(App, root);
+  </script>
+
   <h2 id="pipes">Pipes</h2>
   <p>Incluidos: <code>uppercase</code>, <code>lowercase</code>, <code>titlecase</code>, <code>json</code>, <code>number</code>, <code>percent</code>, <code>currency</code>, <code>slice</code>, <code>date</code>. Un pipe es solo una función:</p>
   <script type="text/plain" class="example" data-title="Pipe propio">
@@ -249,7 +386,7 @@ mount(P, root);
   </script>
 
   <h2 id="di">Servicios</h2>
-  <p><code>inject(Clase)</code> devuelve una instancia compartida (se crea al primer uso). Con <code>provide(Clase, valor)</code> puedes sustituirla, por ejemplo en tests.</p>
+  <p><code>inject(Clase)</code> devuelve una instancia compartida (se crea al primer uso). Con <code>provide(Clase, valor)</code> puedes sustituirla, por ejemplo en tests. Si un componente declara <code>providers</code>, el servicio es <b>suyo y de sus descendientes</b> (cada instancia del componente tiene el suyo): <code>{ provide: Api, useClass | useValue | useFactory }</code> o simplemente la clase.</p>
   <script type="text/plain" class="example" data-title="Servicio compartido entre componentes">
 const { signal, component, mount, inject } = AngeLite;
 
@@ -283,35 +420,93 @@ component(Shop, {
 mount(Shop, root);
   </script>
 
+  <script type="text/plain" class="example" data-title="providers: un servicio por componente">
+const { signal, component, mount, inject } = AngeLite;
+
+class Contador {
+  n = signal(0);
+  sumar() { this.n.update(v => v + 1); }
+}
+
+class Boton {
+  c = inject(Contador);              // el del componente más cercano que lo declare
+}
+component(Boton, { selector: 'mi-boton', template: `<button (click)="c.sumar()">sumar ({{ c.n() }})</button>` });
+
+class Grupo {}
+component(Grupo, {
+  selector: 'mi-grupo',
+  providers: [Contador],             // cada <mi-grupo> tiene su propio Contador
+  imports: [Boton],
+  template: `<mi-boton></mi-boton> <mi-boton></mi-boton>`
+});
+
+class App {}
+component(App, { imports: [Grupo], template: `<p>Grupo A: <mi-grupo></mi-grupo></p><p>Grupo B: <mi-grupo></mi-grupo></p>` });
+
+mount(App, root);
+  </script>
+
   <h2 id="router">Router</h2>
-  <p>Router por hash, mínimo pero funcional: parámetros (<code>:id</code>), comodín <code>**</code>, <code>&lt;router-outlet&gt;</code> y <code>routerLink</code>. (No lo activo en esta página para no pisar sus anclas.)</p>
-  <pre><code>const { component, mount, provideRouter, router } = AngeLite;
+  <p>Router por hash: parámetros (<code>:id</code>), comodín <code>**</code>, <b>rutas anidadas</b> (<code>children</code> + un <code>&lt;router-outlet&gt;</code> dentro del componente padre), <b>guards</b> (<code>canActivate</code>), <b>carga diferida</b> (<code>load</code>) y <code>redirectTo</code>. Un guard recibe <code>{ path, params, route }</code> y devuelve <code>true</code> (pasar), <code>false</code> (quedarse donde estabas) o una ruta (redirigir); puede ser asíncrono. Una navegación nueva cancela la anterior si sigue esperando. (No lo activo en esta página para no pisar sus anclas.)</p>
+  <pre><code>const { component, mount, provideRouter, router, inject } = AngeLite;
 
 class Home {}
 component(Home, { template: `&lt;h2&gt;Inicio&lt;/h2&gt;` });
 
-class User { id = () =&gt; router.params().id; }
-component(User, { template: `&lt;h2&gt;Usuario {{ id() }}&lt;/h2&gt;` });
+// padre con su propio outlet
+class Admin {}
+component(Admin, { template: `&lt;nav&gt;Administración&lt;/nav&gt;&lt;router-outlet&gt;&lt;/router-outlet&gt;` });
+class AdminHome {} component(AdminHome, { template: `&lt;h3&gt;Resumen&lt;/h3&gt;` });
+class AdminUser { id = () =&gt; router.params().id; }
+component(AdminUser, { template: `&lt;h3&gt;Usuario {{ id() }}&lt;/h3&gt;` });
 
-class NotFound {}
-component(NotFound, { template: `&lt;h2&gt;404&lt;/h2&gt;` });
+class NotFound {} component(NotFound, { template: `&lt;h2&gt;404&lt;/h2&gt;` });
+
+const soloAdmin = async ({ path }) =&gt; (await sesion.esAdmin()) || '/login';   // true | false | ruta
 
 provideRouter([
-  { path: '/',          component: Home },
-  { path: 'users/:id',  component: User },
-  { path: '**',         component: NotFound }
+  { path: '/', component: Home },
+  { path: 'admin', component: Admin, canActivate: [soloAdmin], children: [
+    { path: '',          component: AdminHome },
+    { path: 'users/:id', component: AdminUser }
+  ] },
+  { path: 'informes', load: () =&gt; import('./informes.js') },      // se descarga en la primera visita
+  { path: 'viejo',    redirectTo: '/' },
+  { path: '**',       component: NotFound }
 ]);
 
 class App {}
 component(App, {
   template: `
-    &lt;nav&gt;&lt;a routerLink="/"&gt;Inicio&lt;/a&gt; &lt;a routerLink="/users/42"&gt;Usuario 42&lt;/a&gt;&lt;/nav&gt;
+    &lt;nav&gt;&lt;a routerLink="/"&gt;Inicio&lt;/a&gt; &lt;a routerLink="/admin/users/42"&gt;Usuario 42&lt;/a&gt;&lt;/nav&gt;
     &lt;router-outlet&gt;&lt;/router-outlet&gt;`
 });
 mount(App, document.getElementById('app'));</code></pre>
+  <p class="note">El router se queda en modo hash a propósito (funciona en cualquier hosting estático). El modo <code>history</code> está en la hoja de ruta.</p>
+
+  <h2 id="herramientas">Herramientas: tipos, tests, avisos y chequeo de plantillas</h2>
+  <p><b>TypeScript.</b> El paquete trae sus <code>.d.ts</code> (comprobados con <code>tsc</code> en el CI): <code>signal&lt;T&gt;</code>, <code>input&lt;T&gt;</code>, <code>output&lt;T&gt;</code>, <code>viewChild&lt;T&gt;</code>, <code>Route</code>, <code>RouteGuard</code>, <code>OnInit</code>/<code>OnDestroy</code>/<code>OnError</code>… Funciona igual con JS y con TS.</p>
+  <p><b>Tests.</b> <code>@duvanjamid/angelite/lite/testing</code> monta un componente en el documento y te da lo básico para interactuar con él:</p>
+  <pre><code>import { render, cleanup } from '@duvanjamid/angelite/lite/testing';
+
+afterEach(cleanup);
+
+test('suma', async () =&gt; {
+  const t = render(Counter, { props: { start: 5 }, provide: [[Api, apiFalsa]] });  // props = inputs; provide = servicios
+  t.click('button');
+  await t.flush();                                  // espera a que las señales lleguen al DOM
+  assert.equal(t.text('output'), '6');
+  t.type('input', 'Ada');                           // escribe y dispara input + change
+});</code></pre>
+  <p><b>Avisos de desarrollo.</b> <code>enableDevWarnings()</code> (solo en desarrollo, antes de montar) avisa de lo que de otro modo falla en silencio: un <code>[prop]</code> que el componente no declara como input, claves repetidas en <code>@for</code>, un elemento desconocido o un módulo opcional (<code>portal</code>, <code>defer</code>) sin importar.</p>
+  <p><b>Chequeo de plantillas al compilar.</b> El compilador AOT avisa (o falla, con <code>check: 'error'</code>) si una plantilla usa un elemento desconocido, un pipe que no existe o —si le das la lista, o <code>members: 'auto'</code> para leerla de la clase vecina— un nombre que el componente no tiene. No comprueba tipos.</p>
+  <pre><code>aotPlugin({ components: ['ui-button'], members: 'auto', check: 'error' })
+
+// counter.ng.html: &lt;p&gt;{{ cuenta() }}&lt;/p&gt;      →  error: "cuenta" is not a member of the component</code></pre>
 
   <h2 id="aot">Precompilar plantillas (opcional)</h2>
-  <p>Por defecto Lite compila las plantillas en el navegador: un solo script, sin build. Si te importa cada KB, puedes convertir las plantillas en JS durante el build y enviar <b>solo el runtime</b> (sin parser de expresiones ni compilador): unos ~5 KB gzip en total para una app real, menos que Preact.</p>
+  <p>Por defecto Lite compila las plantillas en el navegador: un solo script, sin build. Si te importa cada KB, puedes convertir las plantillas en JS durante el build y enviar <b>solo el runtime</b> (sin parser de expresiones ni compilador): unos ~6 KB gzip en total para una app real, algo menos que Preact (6,2 KB).</p>
   <pre><code>// counter.ng.html
 &lt;button (click)="inc()"&gt;Clicks: {{ count() }}&lt;/button&gt;
 
@@ -357,7 +552,8 @@ link = signal(trustUrl('whatsapp://send?text=hola'));       // esquema propio pe
     <tr><td><code>@Input()</code> / <code>@Output()</code></td><td><code>input()</code> / <code>output()</code></td></tr>
     <tr><td><code>[(ngModel)]="prop"</code></td><td><code>[(ngModel)]="signal"</code> (la señal debe ser escribible)</td></tr>
     <tr><td>Asignaciones en plantillas (<code>(click)="x = 1"</code>)</td><td>No: <code>(click)="x.set(1)"</code></td></tr>
-    <tr><td>Formularios reactivos, HTTP, animaciones, SSR</td><td>Fuera de alcance (usa <code>fetch</code> y señales)</td></tr>
+    <tr><td>Formularios reactivos, cliente HTTP, animaciones, i18n, SSR e hidratación</td><td>Todavía no (usa <code>fetch</code> y señales; <a href="benchmarks.html#features">la tabla comparativa</a> dice qué falta y dónde lo tienen los demás)</td></tr>
+    <tr><td><code>@defer</code>, <code>viewChild()</code>, <code>providers</code>, <code>children</code>/<code>canActivate</code>/<code>loadComponent</code></td><td>Sí, con la misma idea: <code>@defer</code>, <code>viewChild()</code>, <code>providers</code>, <code>children</code>/<code>canActivate</code>/<code>load</code></td></tr>
   </table>
   <p class="note">Seguridad: la interpolación escribe siempre texto. Si enlazas <code>[innerHTML]</code> es tu responsabilidad sanear el contenido.</p>
 </main>

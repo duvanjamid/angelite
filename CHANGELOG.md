@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Framework completeness, wave 1 (Lite)
+Every optional piece lives in its own module, so an app that does not import it does not ship it (`@duvanjamid/angelite/lite` and `/lite/runtime-plus` include them; with a bundler import them from `src/lite/`).
+- **Named slots:** `<ng-content select="x">` receives the children that carry `slot="x"`; the rest still goes to the default `<ng-content>`.
+- **Portals** (`portal.js`): `<ng-portal to="#id">` renders its content inside another element (default `document.body`), in the component's scope, and cleans up with its block.
+- **`@defer`** (`defer.js`): `@defer (on idle; on viewport; on interaction; on hover; on timer(2s); on immediate; when expr) { ... } @placeholder { ... }`.
+- **Template references** (`refs.js`): `#name` + `viewChild('name')` (a signal with the element, or the component instance on a component tag; back to `null` when it leaves the DOM).
+- **Error boundaries:** a component with `ngOnError(error, where)` receives the errors of its bindings and handlers and of the content projected into it; the nearest one up the tree wins; without any, errors are logged as before.
+- **Scoped dependency injection:** `component(X, { providers: [Service, { provide, useClass | useValue | useFactory }] })` gives the component and its descendants their own instance; `inject()` outside any provider still returns the shared instance.
+- **Router:** nested routes (`children` + a `<router-outlet>` in the parent, which is not rebuilt when only the child changes), `canActivate` guards (`true` / `false` / redirect path, sync or async, a newer navigation cancels an older one), `load: () => import(...)` code splitting, `redirectTo`. `provideRouter()` can be called again without stacking listeners.
+- **TypeScript:** `.d.ts` for the whole public API (`types/`), checked with `tsc` in CI (`npm run typecheck`), including negative cases that must fail to compile.
+- **Testing helpers** (`@duvanjamid/angelite/lite/testing`): `render(Comp, { props, provide })`, `click`, `type`, `fire`, `flush`, `unmount`, `cleanup`.
+- **Development warnings** (`enableDevWarnings()`): unknown inputs on component tags, duplicate `@for` keys, unknown elements, and optional modules that a template needs but were not imported.
+- **Template checks in the AOT compiler:** unknown elements, unknown pipes and, with `members` (or `members: 'auto'`), names the component does not have; `check: 'warn' | 'error' | false`; `checkTemplate()` and `discoverMembers()` are exported.
+- `mount()` returns `{ instance, destroy }`; new `runtime-plus` and `testing` bundles.
+- The features table in `docs/benchmarks.html` now says where each framework provides each feature (integrated, optional module, official package, third party) and counts what ships in the package itself.
+
+**Cost:** the in-browser compiler build grew from 9.1 KB to 10.0 KB gzip and the precompiled app from 5.8 KB to 6.0 KB (the hooks and the component context are in the core). Budgets in `scripts/check-size.mjs` were raised on purpose and `benchmarks/size-lite.mjs` measures both AngeLite apps without rebuilding the other frameworks.
+
 ### Performance (Lite)
 - First paint: the root host created by `mount()` now has `display: contents` (an inline host around block content made the browser split boxes: ~1.5 ms after mount). **Behaviour change:** style the element you mount into, or the component's own root, not the host.
 - `@for` skips node placement entirely when a list update keeps the same keys in the same order; precompiled templates parse their HTML lazily.

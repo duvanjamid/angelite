@@ -136,10 +136,20 @@ Puntos débiles reales del diseño actual:
 7. **Sin contrato de versionado ni de API estable**, sin tipos y sin modo desarrollo con avisos. Es lo que más frena
    su adopción, más que cualquier medida de rendimiento.
 
-Qué tienen ellos aquí que nosotros no: inyección de dependencias con ámbitos (Angular, Vue, React con Context),
-router completo (rutas anidadas, guards, carga diferida), formularios reactivos, cliente HTTP, TypeScript de
-primera clase, comprobación de plantillas en compilación, límites de error, portales, animaciones, slots con nombre,
-referencias a hijos, i18n, DevTools, utilidades de testing y CLI.
+Qué tienen ellos aquí que nosotros no (la **Ola 1** cerró lo marcado con ✓; ver `CHANGELOG.md`):
+
+- ✓ inyección de dependencias con ámbitos (`providers`), ✓ router con rutas anidadas, guards y carga diferida,
+  ✓ TypeScript (`.d.ts` comprobados con `tsc`), ✓ límites de error (`ngOnError`; no capturan constructor ni `ngOnInit`),
+  ✓ portales, ✓ slots con nombre, ✓ referencias a hijos (`viewChild`), ✓ utilidades de testing, ✓ avisos de desarrollo,
+  ◐ comprobación de plantillas (elementos, pipes y nombres; no tipos).
+- Siguen sin existir (Ola 2): formularios reactivos, cliente HTTP, animaciones, i18n, SSR e hidratación, DevTools,
+  servicio de lenguaje para el editor, modo `history` y `createApp()`.
+
+Dónde lo tienen los demás importa: casi nada de esto viene en el núcleo de React, Preact o Vue (router, formularios,
+HTTP, i18n, animaciones y testing son paquetes aparte, oficiales o de terceros). Lo que sí traen dentro Vue, React y
+Angular es lo estructural (portales, límites de error, carga diferida, slots, DI), que es justo lo que cerramos en
+el propio paquete. La tabla de `docs/benchmarks.html` marca para cada fila si es integrado, módulo opcional, paquete
+oficial o de terceros.
 
 ### Una ventaja arquitectónica que sí tenemos
 
@@ -181,22 +191,23 @@ Esfuerzo: S = horas, M = días, L = semanas.
 
 Al arreglar cada uno, quitar el `todo` de su test en `tests/security.test.mjs`.
 
-**P1 — que sea adoptable (M):**
+**P1 — que sea adoptable (M):** (✓ = hecho en la Ola 1)
 
-8. Tipos `.d.ts` (JSDoc más `tsc --emitDeclarationOnly`).
-9. Modo desarrollo con avisos (etiqueta desconocida, input inexistente, URL insegura, claves duplicadas) y un gancho
-   de errores por componente y global.
-10. Router: rutas anidadas, guards y resolvers (portarlos del código antiguo), carga diferida, parámetros de consulta
-    y modo `history`.
-11. Formularios reactivos sobre señales (portar los validadores).
-12. Utilidades de testing (`renderComponent`, `flush`).
-13. Slots con nombre, referencias (`viewChild`) y portales.
-14. `createApp()` con registros e inyector por aplicación (arregla el estado global).
+8. ✓ Tipos `.d.ts`, escritos a mano y comprobados con `tsc` en el CI.
+9. ✓ Modo desarrollo con avisos (`enableDevWarnings()`: input inexistente, claves duplicadas, elemento desconocido,
+   módulo sin importar) y ✓ gancho de errores por componente (`ngOnError`). Falta un gancho global.
+10. Router: ✓ rutas anidadas, ✓ guards, ✓ carga diferida y ✓ `redirectTo`. Faltan resolvers, parámetros de consulta y
+    modo `history`.
+11. Formularios reactivos sobre señales (portar los validadores). *Ola 2*
+12. ✓ Utilidades de testing (`render`, `click`, `type`, `flush`, `cleanup`).
+13. ✓ Slots con nombre, ✓ referencias (`viewChild`) y ✓ portales.
+14. `createApp()` con registros e inyector por aplicación (arregla el estado global). *Ola 2*
 
 **P2 — plataforma y rendimiento (L):**
 
 15. SSR e hidratación sobre los blueprints.
-16. `@defer` y componentes perezosos.
+16. ✓ `@defer` (disparadores `idle`, `viewport`, `interaction`, `hover`, `timer`, `immediate`, `when`) y rutas perezosas.
+    Falta la división automática del código de un componente suelto.
 17. Optimizaciones del AOT: subárboles estáticos elevados, scope plano, constantes plegadas.
 18. Gancho para DevTools y un panel mínimo.
 19. Presupuesto de rendimiento en CI con métricas deterministas (número de operaciones DOM por escenario), no tiempos.
