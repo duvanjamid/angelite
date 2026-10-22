@@ -144,3 +144,17 @@ test('interpolated values are text, never HTML', async () => {
   assert.equal($('img'), null);
   assert.equal($('p').textContent, '<img src=x onerror=alert(1)>');
 });
+
+test('projected content survives its container being toggled', async () => {
+  class Box { open = input(false); }
+  component(Box, { selector: 'x-box', template: `@if (open()) {<div class="b"><ng-content></ng-content></div>}` });
+  const open = signal(true);
+  class App { open = open; n = signal(1); }
+  component(App, { imports: [Box], template: `<x-box [open]="open()"><i>{{ n() }}</i></x-box>` });
+  const { $ } = run(App);
+  assert.equal($('.b i').textContent, '1');
+  open.set(false); await tick();
+  assert.equal($('.b'), null);
+  open.set(true); await tick();
+  assert.equal($('.b i').textContent, '1');
+});

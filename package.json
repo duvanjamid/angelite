@@ -16,7 +16,7 @@
     "test": "node --test \"tests/*.test.mjs\"",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
-    "build:docs": "rollup -c && cp dist/angelite-lite.min.js docs/"
+    "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js docs/"
   },
   "keywords": [
     "framework",
@@ -58,6 +58,10 @@
     "./lite": {
       "import": "./dist/angelite-lite.esm.js",
       "default": "./dist/angelite-lite.min.js"
+    },
+    "./ui": {
+      "import": "./dist/angelite-ui.esm.js",
+      "default": "./dist/angelite-ui.min.js"
     }
   },
   "engines": {

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AngeLite UI · Componentes</title>
+<style>
+  :root { --bg:#fff; --fg:#1d2330; --muted:#5d667a; --line:#e3e6ee; --accent:#d6336c; --code-bg:#f6f7fb; --demo-bg:#fbfbfd; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161d; --fg:#e8eaf1; --muted:#98a1b6; --line:#2a2e3b; --accent:#ff6b9a; --code-bg:#1b1e28; --demo-bg:#181b24; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .layout { display:grid; grid-template-columns:220px minmax(0,1fr); max-width:1080px; margin:0 auto; }
+  aside { position:sticky; top:0; align-self:start; height:100vh; overflow:auto; padding:28px 16px; border-right:1px solid var(--line); font-size:.93rem; }
+  aside .brand { font-weight:800; font-size:1.1rem; margin-bottom:14px; display:block; text-decoration:none; color:var(--fg); }
+  aside .grp { margin:16px 0 4px; font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); }
+  aside a { display:block; padding:2px 0; color:var(--fg); text-decoration:none; } aside a:hover { color:var(--accent); }
+  main { padding:40px 28px 96px; min-width:0; }
+  h1 { font-size:2rem; margin:0 0 6px; } .lead { color:var(--muted); font-size:1.1rem; }
+  h2.group { margin:52px 0 0; padding-top:14px; border-top:1px solid var(--line); font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  section { padding-top:10px; } h3 { margin:26px 0 2px; } h3 code { font-size:.72em; font-weight:400; }
+  p { margin:6px 0 12px; } a { color:var(--accent); }
+  code { font:.9em ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--code-bg); padding:1px 5px; border-radius:4px; }
+  pre { margin:0; padding:14px 16px; overflow-x:auto; background:var(--code-bg); font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace; border-radius:8px; }
+  .example pre { border-radius:0; }
+  pre code { background:none; padding:0; font-size:inherit; }
+  .example { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:10px 0 12px; }
+  .example .demo { padding:16px; background:var(--demo-bg); }
+  .example summary { cursor:pointer; padding:8px 16px; font-size:.85rem; color:var(--muted); background:var(--code-bg); border-top:1px solid var(--line); }
+  table.api { border-collapse:collapse; width:100%; font-size:.88rem; margin-bottom:8px; }
+  table.api th, table.api td { text-align:left; padding:5px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.api th { color:var(--muted); font-weight:600; }
+  .note { border-left:3px solid var(--accent); padding:2px 14px; color:var(--muted); margin:14px 0; }
+  @media (max-width:760px) { .layout { grid-template-columns:1fr; } aside { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); } }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside><a class="brand" href="index.html">AngeLite <span style="color:var(--accent)">UI</span></a><div class="grp">Básicos</div><a href="#button">Button</a><a href="#badge">Badge</a><a href="#card">Card</a><a href="#alert">Alert</a><a href="#avatar">Avatar</a><a href="#tooltip">Tooltip</a><div class="grp">Feedback</div><a href="#progress">Progress, Spinner y Skeleton</a><a href="#toast">Toast</a><a href="#modal">Modal</a><div class="grp">Formularios</div><a href="#toggle">Toggle</a><a href="#text-field">Text field</a><a href="#select">Select</a><a href="#rating">Rating</a><div class="grp">Navegación</div><a href="#tabs">Tabs</a><a href="#accordion">Accordion</a><a href="#dropdown">Dropdown</a><a href="#pagination">Pagination</a><a href="#stepper">Stepper</a><div class="grp">Datos</div><a href="#table">Table</a>
+  <div class="grp">Más</div><a href="index.html">Guía de Lite</a><a href="benchmarks.html">Benchmarks</a></aside>
+<main>
+  <h1>Componentes</h1>
+  <p class="lead">21 componentes listos para usar, construidos con AngeLite Lite. JS + CSS pesan ~5 KB gzip en total. Cada demo de esta página es código real que se ejecuta aquí mismo.</p>
+  <pre><code>&lt;script src="angelite-lite.min.js"&gt;&lt;/script&gt;
+&lt;script src="angelite-ui.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const { component, mount, signal } = AngeLite;
+  const ui = AngeLiteUI;
+
+  class App { n = signal(0); }
+  component(App, {
+    imports: [ui.Button],              // o: imports: ui.all
+    template: `&lt;ui-button variant="primary" (click)="n.set(n() + 1)"&gt;Clicks: {{ n() }}&lt;/ui-button&gt;`
+  });
+  mount(App, document.body);
+&lt;/script&gt;</code></pre>
+  <p class="note">En los ejemplos están disponibles <code>signal, computed, component, mount, input, output, inject</code> (de <code>AngeLite</code>) y <code>ui</code> (<code>AngeLiteUI</code>). Los componentes son controlados: el valor vive en tu señal y el componente avisa con un <code>output</code>. Los colores salen de variables CSS <code>--ui-*</code> y respetan el modo oscuro. Las expresiones de plantilla no admiten funciones flecha: usa métodos de la clase.</p>
+<h2 class="group">Básicos</h2><section id="button"><h3>Button <code>&lt;ui-button&gt;</code></h3><p>Botón con variantes, tamaños, estado deshabilitado y carga.</p>
+<script type="text/plain" class="example">
+class Demo {
+  saving = signal(false);
+  save() { this.saving.set(true); setTimeout(() => this.saving.set(false), 1200); }
+}
+component(Demo, {
+  imports: [ui.Button],
+  template: `
+    <ui-button>Default</ui-button>
+    <ui-button variant="primary">Primary</ui-button>
+    <ui-button variant="danger">Danger</ui-button>
+    <ui-button variant="ghost">Ghost</ui-button>
+    <ui-button size="sm">Small</ui-button>
+    <ui-button variant="primary" [loading]="saving()" (click)="save()">Guardar</ui-button>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>variant</code></td><td>input</td><td><code>'default' | 'primary' | 'danger' | 'ghost'</code></td><td>Estilo</td></tr><tr><td><code>size</code></td><td>input</td><td><code>'sm' | 'md' | 'lg'</code></td><td>Tamaño</td></tr><tr><td><code>disabled</code></td><td>input</td><td><code>boolean</code></td><td>Deshabilita</td></tr><tr><td><code>loading</code></td><td>input</td><td><code>boolean</code></td><td>Muestra spinner y deshabilita</td></tr></table></section>
+<section id="badge"><h3>Badge <code>&lt;ui-badge&gt;</code></h3><p>Etiqueta pequeña para estados y contadores.</p>
+<script type="text/plain" class="example">
+class Demo {}
+component(Demo, {
+  imports: [ui.Badge],
+  template: `
+    <ui-badge>nuevo</ui-badge>
+    <ui-badge variant="primary">12</ui-badge>
+    <ui-badge variant="success">activo</ui-badge>
+    <ui-badge variant="warning">pendiente</ui-badge>
+    <ui-badge variant="danger">error</ui-badge>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>variant</code></td><td>input</td><td><code>'default' | 'primary' | 'success' | 'warning' | 'danger'</code></td><td>Color</td></tr></table></section>
+<section id="card"><h3>Card <code>&lt;ui-card&gt;</code></h3><p>Contenedor con título opcional. El contenido se proyecta con &lt;ng-content&gt;.</p>
+<script type="text/plain" class="example">
+class Demo { n = signal(3); }
+component(Demo, {
+  imports: [ui.Card, ui.Button],
+  template: `
+    <ui-card title="Resumen">
+      Tienes {{ n() }} notificaciones.
+      <ui-button size="sm" (click)="n.set(n() + 1)">+1</ui-button>
+    </ui-card>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>title</code></td><td>input</td><td><code>string</code></td><td>Título de la cabecera</td></tr></table></section>
+<section id="alert"><h3>Alert <code>&lt;ui-alert&gt;</code></h3><p>Mensaje contextual, descartable si se pide.</p>
+<script type="text/plain" class="example">
+class Demo { log = signal(''); }
+component(Demo, {
+  imports: [ui.Alert],
+  template: `
+    <ui-alert>Información general.</ui-alert>
+    <ui-alert type="success">Guardado correctamente.</ui-alert>
+    <ui-alert type="warning" [dismissible]="true" (closed)="log.set('Alerta cerrada')">Cuidado, se puede cerrar.</ui-alert>
+    <small>{{ log() }}</small>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>type</code></td><td>input</td><td><code>'info' | 'success' | 'warning' | 'error'</code></td><td>Tipo</td></tr><tr><td><code>dismissible</code></td><td>input</td><td><code>boolean</code></td><td>Muestra la ×</td></tr><tr><td><code>closed</code></td><td>output</td><td><code>—</code></td><td>Se emite al cerrar</td></tr></table></section>
+<section id="avatar"><h3>Avatar <code>&lt;ui-avatar&gt;</code></h3><p>Foto o iniciales calculadas del nombre.</p>
+<script type="text/plain" class="example">
+class Demo {}
+component(Demo, {
+  imports: [ui.Avatar],
+  template: `
+    <ui-avatar name="Ada Lovelace"></ui-avatar>
+    <ui-avatar name="Linus Torvalds" [size]="48"></ui-avatar>
+    <ui-avatar name="Grace" [size]="28"></ui-avatar>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>name</code></td><td>input</td><td><code>string</code></td><td>Nombre (para iniciales y title)</td></tr><tr><td><code>src</code></td><td>input</td><td><code>string</code></td><td>URL de imagen</td></tr><tr><td><code>size</code></td><td>input</td><td><code>number</code></td><td>Píxeles</td></tr></table></section>
+<section id="tooltip"><h3>Tooltip <code>&lt;ui-tooltip&gt;</code></h3><p>Texto de ayuda al pasar el ratón (solo CSS).</p>
+<script type="text/plain" class="example">
+class Demo {}
+component(Demo, {
+  imports: [ui.Tooltip],
+  template: `Pasa el ratón sobre <ui-tooltip text="¡Hola desde el tooltip!">esta palabra</ui-tooltip>.`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>text</code></td><td>input</td><td><code>string</code></td><td>Contenido del tooltip</td></tr></table></section>
+<h2 class="group">Feedback</h2><section id="progress"><h3>Progress, Spinner y Skeleton <code>&lt;ui-progress&gt; &lt;ui-spinner&gt; &lt;ui-skeleton&gt;</code></h3><p>Indicadores de carga y progreso.</p>
+<script type="text/plain" class="example">
+class Demo {
+  value = signal(35);
+  change(delta) { this.value.set(Math.max(0, Math.min(100, this.value() + delta))); }
+}
+component(Demo, {
+  imports: [ui.Progress, ui.Spinner, ui.Skeleton, ui.Button],
+  template: `
+    <ui-progress [value]="value()"></ui-progress>
+    <p>
+      <ui-button size="sm" (click)="change(-10)">−10</ui-button>
+      <ui-button size="sm" (click)="change(10)">+10</ui-button>
+      {{ value() }}% <ui-spinner></ui-spinner>
+    </p>
+    <ui-skeleton [height]="14"></ui-skeleton><br>
+    <ui-skeleton [height]="14"></ui-skeleton>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>value</code></td><td>input</td><td><code>0–100</code></td><td>Progress: porcentaje</td></tr><tr><td><code>height</code></td><td>input</td><td><code>number</code></td><td>Skeleton: alto en px</td></tr></table></section>
+<section id="toast"><h3>Toast <code>&lt;ui-toasts&gt; + ToastService</code></h3><p>Notificaciones efímeras. Se disparan desde cualquier sitio con el servicio compartido.</p>
+<script type="text/plain" class="example">
+const toasts = inject(ui.ToastService);
+
+class Demo {
+  say(type) { toasts.show('Toast de tipo ' + type, type); }
+}
+component(Demo, {
+  imports: [ui.Button, ui.Toasts],
+  template: `
+    <ui-button (click)="say('info')">Info</ui-button>
+    <ui-button (click)="say('success')">Éxito</ui-button>
+    <ui-button (click)="say('error')">Error</ui-button>
+    <ui-toasts></ui-toasts>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>ToastService.show(msg, type?, ms?)</code></td><td>output</td><td><code>—</code></td><td>Muestra un toast; devuelve su id</td></tr><tr><td><code>ToastService.dismiss(id)</code></td><td>output</td><td><code>—</code></td><td>Lo cierra</td></tr></table></section>
+<section id="modal"><h3>Modal <code>&lt;ui-modal&gt;</code></h3><p>Diálogo con fondo oscuro; se cierra con la × o clicando fuera.</p>
+<script type="text/plain" class="example">
+class Demo { open = signal(false); name = signal('Ada'); }
+component(Demo, {
+  imports: [ui.Modal, ui.Button],
+  template: `
+    <ui-button variant="primary" (click)="open.set(true)">Abrir modal</ui-button>
+    <ui-modal title="Hola" [open]="open()" (closed)="open.set(false)">
+      <p>Hola, {{ name() }}. El contenido proyectado sigue vivo al reabrir.</p>
+      <ui-button (click)="open.set(false)">Cerrar</ui-button>
+    </ui-modal>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>open</code></td><td>input</td><td><code>boolean</code></td><td>Visible</td></tr><tr><td><code>title</code></td><td>input</td><td><code>string</code></td><td>Título</td></tr><tr><td><code>closed</code></td><td>output</td><td><code>—</code></td><td>Petición de cierre</td></tr></table></section>
+<h2 class="group">Formularios</h2><section id="toggle"><h3>Toggle <code>&lt;ui-toggle&gt;</code></h3><p>Interruptor controlado.</p>
+<script type="text/plain" class="example">
+class Demo { on = signal(false); }
+component(Demo, {
+  imports: [ui.Toggle],
+  template: `
+    <ui-toggle label="Notificaciones" [checked]="on()" (changed)="on.set($event)"></ui-toggle>
+    <p>Valor: {{ on() }}</p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>checked</code></td><td>input</td><td><code>boolean</code></td><td>Estado</td></tr><tr><td><code>label</code></td><td>input</td><td><code>string</code></td><td>Etiqueta</td></tr><tr><td><code>changed</code></td><td>output</td><td><code>boolean</code></td><td>Nuevo valor</td></tr></table></section>
+<section id="text-field"><h3>Text field <code>&lt;ui-text-field&gt;</code></h3><p>Campo de texto con etiqueta y error. Es un componente controlado.</p>
+<script type="text/plain" class="example">
+class Demo {
+  email = signal('');
+  error = computed(() => this.email() && !this.email().includes('@') ? 'Falta la @' : '');
+}
+component(Demo, {
+  imports: [ui.TextField],
+  template: `
+    <ui-text-field label="Email" placeholder="tu@correo.com"
+      [value]="email()" [error]="error()" (valueChange)="email.set($event)"></ui-text-field>
+    <p>Escribiste: {{ email() }}</p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>label</code></td><td>input</td><td><code>string</code></td><td></td></tr><tr><td><code>value</code></td><td>input</td><td><code>string</code></td><td></td></tr><tr><td><code>type</code></td><td>input</td><td><code>string</code></td><td>Tipo de input</td></tr><tr><td><code>placeholder</code></td><td>input</td><td><code>string</code></td><td></td></tr><tr><td><code>error</code></td><td>input</td><td><code>string</code></td><td>Mensaje de error</td></tr><tr><td><code>valueChange</code></td><td>output</td><td><code>string</code></td><td>Cada pulsación</td></tr></table></section>
+<section id="select"><h3>Select <code>&lt;ui-select&gt;</code></h3><p>Lista desplegable a partir de strings u objetos {value, label}.</p>
+<script type="text/plain" class="example">
+class Demo {
+  country = signal('es');
+  options = [{ value: 'es', label: 'España' }, { value: 'mx', label: 'México' }, { value: 'co', label: 'Colombia' }];
+}
+component(Demo, {
+  imports: [ui.Select],
+  template: `
+    <ui-select label="País" [options]="options" [value]="country()" (valueChange)="country.set($event)"></ui-select>
+    <p>Elegido: {{ country() }}</p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>label</code></td><td>input</td><td><code>string</code></td><td></td></tr><tr><td><code>options</code></td><td>input</td><td><code>(string | {value,label})[]</code></td><td></td></tr><tr><td><code>value</code></td><td>input</td><td><code>string</code></td><td>Seleccionado</td></tr><tr><td><code>valueChange</code></td><td>output</td><td><code>string</code></td><td></td></tr></table></section>
+<section id="rating"><h3>Rating <code>&lt;ui-rating&gt;</code></h3><p>Valoración con estrellas.</p>
+<script type="text/plain" class="example">
+class Demo { stars = signal(3); }
+component(Demo, {
+  imports: [ui.Rating],
+  template: `<ui-rating [value]="stars()" (valueChange)="stars.set($event)"></ui-rating> {{ stars() }}/5`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>value</code></td><td>input</td><td><code>number</code></td><td></td></tr><tr><td><code>max</code></td><td>input</td><td><code>number</code></td><td>Estrellas</td></tr><tr><td><code>valueChange</code></td><td>output</td><td><code>number</code></td><td></td></tr></table></section>
+<h2 class="group">Navegación</h2><section id="tabs"><h3>Tabs <code>&lt;ui-tabs&gt;</code></h3><p>Pestañas. El contenido lo muestras tú con bloques @if.</p>
+<script type="text/plain" class="example">
+class Demo {
+  tabs = [{ id: 'a', label: 'General' }, { id: 'b', label: 'Seguridad' }, { id: 'c', label: 'Equipo' }];
+  active = signal('a');
+}
+component(Demo, {
+  imports: [ui.Tabs],
+  template: `
+    <ui-tabs [tabs]="tabs" [active]="active()" (activeChange)="active.set($event)"></ui-tabs>
+    <p>
+      @if (active() === 'a') {Ajustes generales.}
+      @else if (active() === 'b') {Contraseña y 2FA.}
+      @else {Miembros del equipo.}
+    </p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>tabs</code></td><td>input</td><td><code>{id,label}[]</code></td><td></td></tr><tr><td><code>active</code></td><td>input</td><td><code>string</code></td><td>Id activo</td></tr><tr><td><code>activeChange</code></td><td>output</td><td><code>string</code></td><td></td></tr></table></section>
+<section id="accordion"><h3>Accordion <code>&lt;ui-accordion-item&gt;</code></h3><p>Secciones plegables independientes.</p>
+<script type="text/plain" class="example">
+class Demo {}
+component(Demo, {
+  imports: [ui.AccordionItem],
+  template: `
+    <ui-accordion-item title="¿Qué es AngeLite?">Un núcleo Angular-style de ~6 KB basado en señales.</ui-accordion-item>
+    <ui-accordion-item title="¿Necesita compilar?">No: plantillas en strings y un solo script.</ui-accordion-item>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>title</code></td><td>input</td><td><code>string</code></td><td></td></tr></table></section>
+<section id="dropdown"><h3>Dropdown <code>&lt;ui-dropdown&gt;</code></h3><p>Menú desplegable simple.</p>
+<script type="text/plain" class="example">
+class Demo {
+  items = ['Editar', 'Duplicar', 'Eliminar'];
+  last = signal('—');
+}
+component(Demo, {
+  imports: [ui.Dropdown],
+  template: `
+    <ui-dropdown label="Acciones" [items]="items" (picked)="last.set($event)"></ui-dropdown>
+    <p>Última acción: {{ last() }}</p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>label</code></td><td>input</td><td><code>string</code></td><td></td></tr><tr><td><code>items</code></td><td>input</td><td><code>string[]</code></td><td></td></tr><tr><td><code>picked</code></td><td>output</td><td><code>string</code></td><td>Opción elegida</td></tr></table></section>
+<section id="pagination"><h3>Pagination <code>&lt;ui-pagination&gt;</code></h3><p>Paginador. Tú decides qué filas mostrar según la página actual.</p>
+<script type="text/plain" class="example">
+class Demo {
+  page = signal(1);
+  total = 47;
+  range = computed(() => {
+    const from = (this.page() - 1) * 10 + 1;
+    return from + '–' + Math.min(this.page() * 10, this.total);
+  });
+}
+component(Demo, {
+  imports: [ui.Pagination],
+  template: `
+    <ui-pagination [total]="total" [pageSize]="10" [page]="page()" (pageChange)="page.set($event)"></ui-pagination>
+    <p>Mostrando {{ range() }} de {{ total }}</p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>total</code></td><td>input</td><td><code>number</code></td><td>Elementos</td></tr><tr><td><code>pageSize</code></td><td>input</td><td><code>number</code></td><td></td></tr><tr><td><code>page</code></td><td>input</td><td><code>number</code></td><td>Página (desde 1)</td></tr><tr><td><code>pageChange</code></td><td>output</td><td><code>number</code></td><td></td></tr></table></section>
+<section id="stepper"><h3>Stepper <code>&lt;ui-stepper&gt;</code></h3><p>Indicador de pasos.</p>
+<script type="text/plain" class="example">
+class Demo {
+  step = signal(1);
+  steps = ['Cuenta', 'Perfil', 'Pago', 'Listo'];
+  move(d) { this.step.set(Math.max(0, Math.min(3, this.step() + d))); }
+}
+component(Demo, {
+  imports: [ui.Stepper, ui.Button],
+  template: `
+    <ui-stepper [steps]="steps" [current]="step()"></ui-stepper>
+    <p>
+      <ui-button size="sm" (click)="move(-1)">Atrás</ui-button>
+      <ui-button size="sm" variant="primary" (click)="move(1)">Siguiente</ui-button>
+    </p>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>steps</code></td><td>input</td><td><code>string[]</code></td><td></td></tr><tr><td><code>current</code></td><td>input</td><td><code>number</code></td><td>Índice activo (desde 0)</td></tr></table></section>
+<h2 class="group">Datos</h2><section id="table"><h3>Table <code>&lt;ui-table&gt;</code></h3><p>Tabla con ordenación por columna (clic en la cabecera).</p>
+<script type="text/plain" class="example">
+class Demo {
+  columns = [{ key: 'name', label: 'Nombre' }, { key: 'kb', label: 'KB (min+gzip)' }];
+  rows = [
+    { name: 'AngeLite', kb: 6 },
+    { name: 'Preact', kb: 4 },
+    { name: 'Vue', kb: 34 },
+    { name: 'React', kb: 45 }
+  ];
+}
+component(Demo, {
+  imports: [ui.Table],
+  template: `<ui-table [columns]="columns" [rows]="rows"></ui-table>`
+});
+mount(Demo, root);
+</script><table class="api"><tr><th>Nombre</th><th></th><th>Tipo</th><th>Descripción</th></tr><tr><td><code>columns</code></td><td>input</td><td><code>{key,label}[]</code></td><td></td></tr><tr><td><code>rows</code></td><td>input</td><td><code>object[]</code></td><td></td></tr></table></section>
+
+</main>
+</div>
+<script src="angelite-lite.min.js"></script>
+<script src="angelite-ui.min.js"></script>
+<script>
+  const prelude = 'const { signal, computed, component, mount, input, output, inject } = AngeLite; const ui = AngeLiteUI;\n';
+  document.querySelectorAll('script.example').forEach(el => {
+    const code = el.textContent.replace(/^\n/, '').replace(/\s+$/, '');
+    const box = document.createElement('div');
+    box.className = 'example';
+    box.innerHTML = '<div class="demo"></div><details><summary>Ver código</summary><pre><code></code></pre></details>';
+    box.querySelector('code').textContent = code;
+    const demo = box.querySelector('.demo');
+    el.replaceWith(box);
+    try { new Function('AngeLite', 'AngeLiteUI', 'root', prelude + code)(AngeLite, AngeLiteUI, demo); }
+    catch (e) { demo.textContent = 'Error: ' + e.message; }
+  });
+</script>
+</body>
+</html>

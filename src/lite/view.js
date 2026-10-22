@@ -296,7 +296,7 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
 
 function bindElement(el, scope, env, own) {
   const tag = el.tagName.toLowerCase();
-  if (tag === 'ng-content') { el.replaceWith(env.projected || ''); return; }
+  if (tag === 'ng-content') { el.replaceWith(...(env.projected || [])); return; }
   if (tag === 'router-outlet' && hooks.outlet) { hooks.outlet(el, own, mount); return; }
   const Comp = env.components[tag];
   if (Comp) { mountChild(Comp, el, scope, env, own); return; }
@@ -398,8 +398,8 @@ function mountChild(Comp, host, scope, env, own) {
 
   // Content between the tags is bound in the parent scope, then projected.
   bindChildren(host, scope, env, own2);
-  const projected = document.createDocumentFragment();
-  while (host.firstChild) projected.append(host.firstChild);
+  const projected = [...host.childNodes];
+  host.textContent = '';
 
   bindAttrs(host, scope, own2, instance);
   if (instance.ngOnInit) instance.ngOnInit();

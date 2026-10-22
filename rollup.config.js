@@ -32,4 +32,15 @@ const lite = {
   ]
 };
 
-export default [full, lite];
+const liteId = id => /lite\/index\.js$/.test(id);
+
+const ui = {
+  input: 'src/ui/index.js',
+  external: liteId,
+  output: [
+    { file: 'dist/angelite-ui.esm.js', format: 'esm', paths: () => './angelite-lite.esm.js' },
+    { file: 'dist/angelite-ui.min.js', format: 'iife', name: 'AngeLiteUI', globals: () => 'AngeLite', plugins: [terser()] }
+  ]
+};
+
+export default [full, lite, ui];
