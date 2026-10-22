@@ -1,172 +1,36 @@
 /**
- * Template compiler, component runtime and mount().
+ * AngeLite Lite runtime: views, blocks, components, events. No template parser in here:
+ * blueprints come either from the in-browser compiler (jit.js) or precompiled (tools/aot.mjs).
  *
- * Each template is compiled ONCE into a blueprint: a cleaned DOM fragment plus a flat list of
- * instructions (ops) addressed by node position. Creating a view is then: clone the fragment,
- * walk it once applying the ops, and create a single effect that re-evaluates the view's
- * bindings (writing to the DOM only when a value actually changed).
- *
- * Events are delegated to `document` and stored as properties on the elements, so views carry
- * no per-element listeners or closures.
+ * A view is created by cloning a blueprint's fragment and walking it once applying the ops; one lean
+ * effect per view re-evaluates its bindings and writes to the DOM only when a value changed.
+ * Events are delegated to `document` and stored as properties on the elements, so views carry no
+ * per-element listeners or closures.
  */
 
-import { compileExpression } from '../utils/expression.js';
 import { Effect, untracked } from './signals.js';
-import { pipes } from './pipes.js';
+import { prop as p } from '../utils/expression.js';
 
 const hooks = { outlet: null };
 export const setOutletBinder = fn => { hooks.outlet = fn; };
 
+let compiler = null;
+/** Installs the in-browser template compiler: (templateSource, componentsByTag) => blueprint. */
+export const setCompiler = fn => { compiler = fn; };
+
 const NONE = Symbol('none');
 const logError = (e, what) => console.error(`[AngeLite] ${what}:`, e);
 const ownOf = view => view.own || (view.own = []);
-
-/** Removes `from` and its following siblings up to and including `to`. */
-function eat(from, to) {
-  for (let n = from; n;) {
-    const after = n.nextSibling;
-    n.remove();
-    if (n === to) break;
-    n = after;
-  }
-}
-
-/* ---------- expressions ---------- */
-
-function splitTop(src, ch) {
-  const out = [];
-  let depth = 0, quote = null, cur = '';
-  for (let i = 0; i < src.length; i++) {
-    const c = src[i];
-    if (quote) {
-      cur += c;
-      if (c === '\\') cur += src[++i] || '';
-      else if (c === quote) quote = null;
-      continue;
-    }
-    if (c === '"' || c === "'") { quote = c; cur += c; continue; }
-    if ('([{'.includes(c)) depth++;
-    else if (')]}'.includes(c)) depth--;
-    const isOr = ch === '|' && (src[i + 1] === '|' || src[i - 1] === '|');
-    if (c === ch && depth === 0 && !isOr) { out.push(cur); cur = ''; continue; }
-    cur += c;
-  }
-  out.push(cur);
-  return out.map(s => s.trim());
-}
-
-const memo = (cache, key, make) => {
-  let v = cache.get(key);
-  if (!v) cache.set(key, v = make());
-  return v;
-};
-const exprCache = new Map(), textCache = new Map(), stmtCache = new Map();
-
-const compileExpr = src => memo(exprCache, src, () => {
-  const [base, ...rest] = splitTop(src, '|');
-  const baseFn = compileExpression(base);
-  if (!rest.length) return baseFn;
-  const steps = rest.map(p => {
-    const [name, ...args] = splitTop(p, ':');
-    return { name, args: args.map(compileExpression) };
-  });
-  return scope => steps.reduce((value, { name, args }) => {
-    if (!pipes[name]) throw new Error(`Unknown pipe "${name}"`);
-    return pipes[name](value, ...args.map(a => a(scope)));
-  }, baseFn(scope));
-});
-
-const compileStatements = src => memo(stmtCache, src, () => {
-  const list = splitTop(src, ';').filter(Boolean).map(compileExpression);
-  return scope => { for (let i = 0; i < list.length; i++) list[i](scope); };
-});
-
 const textOf = v => (v == null ? '' : String(v));
 
-const interpolation = text => memo(textCache, text, () => {
-  const parts = text.split(/\{\{([\s\S]*?)\}\}/);
-  const compiled = parts.map((p, i) => (i % 2 ? compileExpr(p) : p));
-  if (parts.length === 3 && !parts[0] && !parts[2]) {
-    const only = compiled[1];
-    return scope => textOf(only(scope));
-  }
-  return scope => {
-    let out = '';
-    for (let i = 0; i < compiled.length; i++) out += i % 2 ? textOf(compiled[i](scope)) : compiled[i];
-    return out;
-  };
-});
+/* ---------- pipes ---------- */
 
-/* ---------- control-flow syntax: @if / @else if / @else / @for / @empty ---------- */
-
-const esc = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-const USES_INDEX = /\$(?:index|count|first|last|even|odd)\b/;
-
-function matchClose(src, start, open, close, skipQuotes) {
-  let depth = 0, quote = null;
-  for (let i = start; i < src.length; i++) {
-    const c = src[i];
-    if (skipQuotes && quote) { if (c === quote) quote = null; continue; }
-    if (skipQuotes && (c === '"' || c === "'")) { quote = c; continue; }
-    if (c === open) depth++;
-    else if (c === close && --depth === 0) return i;
-  }
-  throw new SyntaxError(`Unclosed "${open}" in template`);
-}
-
-function transform(src) {
-  let out = '', i = 0;
-  while (i < src.length) {
-    const at = src.indexOf('@', i);
-    if (at < 0) break;
-    const m = /^@(else\s+if|if|for|else|empty)\s*/.exec(src.slice(at));
-    if (!m) { out += src.slice(i, at + 1); i = at + 1; continue; }
-    out += src.slice(i, at);
-    const kind = m[1].replace(/\s+/, ' ');
-    let pos = at + m[0].length, head = '';
-    if (kind !== 'else' && kind !== 'empty') {
-      if (src[pos] !== '(') throw new SyntaxError(`Expected "(" after @${kind}`);
-      const end = matchClose(src, pos, '(', ')', true);
-      head = src.slice(pos + 1, end).trim();
-      pos = end + 1;
-      while (/\s/.test(src[pos])) pos++;
-    }
-    if (src[pos] !== '{') throw new SyntaxError(`Expected "{" after @${kind}`);
-    const end = matchClose(src, pos, '{', '}', false);
-    const raw = src.slice(pos + 1, end);
-    const body = transform(raw);
-    if (kind === 'if') out += `<template data-if="${esc(head)}">${body}</template>`;
-    else if (kind === 'else if') out += `<template data-elseif="${esc(head)}">${body}</template>`;
-    else if (kind === 'else') out += `<template data-else>${body}</template>`;
-    else if (kind === 'empty') out += `<template data-empty>${body}</template>`;
-    else {
-      const [each, ...opts] = splitTop(head, ';');
-      const track = opts.map(o => /^track\s+([\s\S]+)$/.exec(o)).find(Boolean);
-      const ix = USES_INDEX.test(raw) ? ' data-ix' : '';
-      out += `<template data-for="${esc(each)}"${track ? ` data-track="${esc(track[1])}"` : ''}${ix}>${body}</template>`;
-    }
-    i = end + 1;
-  }
-  return out + src.slice(i);
-}
-
-const NO_TEXT = /^(?:TABLE|THEAD|TBODY|TFOOT|TR|COLGROUP|SELECT|OPTGROUP)$/;
-
-/**
- * Whitespace-only text nodes containing a newline (template indentation) are removed at the edges and
- * inside table-like parents, and collapsed to a single space between siblings, like Angular's default.
- */
-function trimWhitespace(root) {
-  for (let n = root.firstChild; n;) {
-    const next = n.nextSibling;
-    if (n.nodeType === 3) {
-      if (!n.data.trim() && n.data.includes('\n')) {
-        if (!n.previousSibling || !next || NO_TEXT.test(root.nodeName)) n.remove(); else n.data = ' ';
-      }
-    } else if (n.nodeType === 1) trimWhitespace(n.tagName === 'TEMPLATE' ? n.content : n);
-    n = next;
-  }
-}
+export const pipes = {};
+export const registerPipe = (name, fn) => { pipes[name] = fn; };
+export const P = (name, v, ...args) => {
+  if (!pipes[name]) throw new Error(`Unknown pipe "${name}"`);
+  return pipes[name](v, ...args);
+};
 
 /* ---------- DOM bindings ---------- */
 
@@ -200,7 +64,63 @@ function makeApply(name) {
   return (el, v) => { el[resolveProp(el, name)] = v; };
 }
 
-const applyText = (node, v) => { node.data = v; };
+
+/** Apply-function factories shared by the in-browser compiler and precompiled templates. */
+export const A = {
+  text: (node, v) => { node.data = v; },
+  prop: makeApply,
+  attr: name => (el, v) => el.setAttribute(name, v),
+  input: name => {
+    const dom = makeApply(name);
+    return (ref, v) => (ref.set ? ref.set(v) : dom(ref, v));
+  },
+  inputAttr: name => (ref, v) => (ref.set ? ref.set(v) : ref.setAttribute(name, v)),
+  model: (node, v) => {
+    if (node.type === 'checkbox') node.checked = !!v;
+    else node.value = v == null ? '' : v;
+  },
+  state: (state, v) => state.update(v),
+  pick: tests => scope => {
+    for (let i = 0; i < tests.length; i++) if (!tests[i] || tests[i](scope)) return i;
+    return -1;
+  },
+  stmts: fns => scope => { for (let i = 0; i < fns.length; i++) fns[i](scope); },
+  interp: parts => {
+    if (parts.length === 3 && !parts[0] && !parts[2]) return scope => textOf(parts[1](scope));
+    return scope => {
+      let out = '';
+      for (let i = 0; i < parts.length; i++) out += i % 2 ? textOf(parts[i](scope)) : parts[i];
+      return out;
+    };
+  },
+  modelGet: (src, label) => scope => {
+    const sig = src(scope);
+    if (typeof sig !== 'function' || !sig.set) throw new Error(`[(ngModel)]="${label}" needs a writable signal`);
+    return sig();
+  },
+  modelRun: src => (scope, e, node) => {
+    src(scope).set(node.type === 'checkbox' ? node.checked : node.type === 'number' ? node.valueAsNumber : node.value);
+  }
+};
+
+/** Builds a blueprint from serialized HTML (used by precompiled templates). */
+const mk = (html, ops, upd, dynamic) => {
+  const t = document.createElement('template');
+  t.innerHTML = html;
+  return { tpl: t.content, ops, upd, dynamic };
+};
+
+const callFn = (fn, recv, args) => {
+  if (typeof fn === 'function') return fn.apply(recv, args);
+  if (fn != null) throw new TypeError('Expression is not a function');
+};
+
+/** What precompiled templates receive: `aot(components, kit)`. M/F are method and function calls. */
+const kit = {
+  A, P, p, mk,
+  M: (o, k, ...args) => callFn(p(o, k), o, args),
+  F: (fn, self, ...args) => callFn(fn, self, args)
+};
 
 /* events: delegated to document for bubbling types; handlers live on the elements */
 
@@ -237,153 +157,6 @@ function onEvent(el, type, run, scope) {
       try { run(s, e, el); } catch (err) { logError(err, `(${type})`); }
     });
   }
-}
-
-/* ---------- blueprint compiler ---------- */
-
-const envFor = Comp => {
-  const components = {};
-  for (const C of Comp.$meta.imports || []) components[C.$meta.selector.toLowerCase()] = C;
-  return components;
-};
-
-function compile(content, components, forceMarker) {
-  const bp = { tpl: content, ops: [], upd: [], dynamic: !!forceMarker, n: 0 };
-
-  const slot = (fn, apply) => bp.upd.push({ fn, apply }) - 1;
-
-  function walkAttrs(el, ord, spec) {
-    for (const attr of [...el.attributes]) {
-      const { name, value } = attr;
-      if (name.startsWith('(') && name.endsWith(')')) {
-        el.removeAttribute(name);
-        const evt = name.slice(1, -1), run = compileStatements(value);
-        if (spec) spec.outputs.push({ evt, run });
-        else bp.ops.push({ ord, type: 'ev', evt, run });
-      } else if (name === '[(ngmodel)]' && !spec) {
-        el.removeAttribute(name);
-        const src = compileExpression(value);
-        const s = slot(scope => {
-          const sig = src(scope);
-          if (typeof sig !== 'function' || !sig.set) throw new Error(`[(ngModel)]="${value}" needs a writable signal`);
-          return sig();
-        }, (node, v) => {
-          if (node.type === 'checkbox') node.checked = !!v;
-          else node.value = v == null ? '' : v;
-        });
-        const handler = (scope, e, node) => {
-          src(scope).set(node.type === 'checkbox' ? node.checked : node.type === 'number' ? node.valueAsNumber : node.value);
-        };
-        bp.ops.push({ ord, type: 'model', slot: s, handler, change: el.type === 'checkbox' || el.tagName === 'SELECT' });
-      } else if (name.startsWith('[') && name.endsWith(']')) {
-        el.removeAttribute(name);
-        const prop = name.slice(1, -1), fn = compileExpr(value), dom = makeApply(prop);
-        if (spec) {
-          const s = slot(fn, (ref, v) => (ref.set ? ref.set(v) : dom(ref, v)));
-          spec.inputs.push({ key: prop, slot: s, fn });
-        } else bp.ops.push({ ord, type: 'ref', slot: slot(fn, dom) });
-      } else if (name === 'routerlink') {
-        el.setAttribute('href', '#' + (value.startsWith('/') ? value : '/' + value));
-      } else if (value.includes('{{')) {
-        const fn = interpolation(value);
-        if (spec) {
-          const s = slot(fn, (ref, v) => (ref.set ? ref.set(v) : ref.setAttribute(name, v)));
-          spec.inputs.push({ key: name, slot: s, fn });
-        } else bp.ops.push({ ord, type: 'ref', slot: slot(fn, (node, v) => node.setAttribute(name, v)) });
-      } else if (spec) spec.statics.push({ key: name, value });
-    }
-  }
-
-  function walk(parent, top) {
-    let node = parent.firstChild;
-    while (node) {
-      let next = node.nextSibling;
-      const ord = bp.n++;
-
-      if (node.nodeType === 3) {
-        if (node.data.includes('{{')) {
-          bp.ops.push({ ord, type: 'ref', slot: slot(interpolation(node.data), applyText) });
-          node.data = '';
-        }
-      } else if (node.nodeType === 1) {
-        const tag = node.localName;
-        if (tag === 'template' && node.hasAttribute('data-if')) {
-          const chain = [node];
-          for (let probe = next; probe;) {
-            if (probe.nodeType === 3 && !probe.data.trim()) { probe = probe.nextSibling; continue; }
-            if (probe.nodeType === 1 && probe.localName === 'template' &&
-                (probe.hasAttribute('data-elseif') || probe.hasAttribute('data-else'))) {
-              chain.push(probe);
-              probe = probe.nextSibling;
-              continue;
-            }
-            break;
-          }
-          const branches = chain.map(t => {
-            const src = t.getAttribute('data-if') ?? t.getAttribute('data-elseif');
-            return { test: src == null ? null : compileExpr(src), bp: compile(t.content, components) };
-          });
-          const anchor = document.createComment('@if');
-          node.replaceWith(anchor);
-          if (chain.length > 1 || anchor.nextSibling !== next) eat(anchor.nextSibling, chain[chain.length - 1]);
-          next = anchor.nextSibling;
-          const s = slot(scope => {
-            for (let i = 0; i < branches.length; i++) if (!branches[i].test || branches[i].test(scope)) return i;
-            return -1;
-          }, (state, idx) => state.update(idx));
-          bp.ops.push({ ord, type: 'if', slot: s, branches });
-          if (top) bp.dynamic = true;
-        } else if (tag === 'template' && node.hasAttribute('data-for')) {
-          const head = /^\s*(\w+)\s+of\s+([\s\S]+)$/.exec(node.getAttribute('data-for'));
-          if (!head) throw new SyntaxError(`Invalid @for: "${node.getAttribute('data-for')}"`);
-          let empty = null;
-          for (let probe = node.nextSibling; probe;) {
-            if (probe.nodeType === 3 && !probe.data.trim()) { probe = probe.nextSibling; continue; }
-            if (probe.nodeType === 1 && probe.hasAttribute('data-empty')) empty = probe;
-            break;
-          }
-          const forOp = {
-            ord, type: 'for', name: head[1],
-            track: node.hasAttribute('data-track') ? compileExpr(node.getAttribute('data-track')) : null,
-            ix: node.hasAttribute('data-ix'),
-            bp: compile(node.content, components),
-            empty: empty ? compile(empty.content, components) : null
-          };
-          const start = document.createComment('@for'), end = document.createComment('');
-          node.replaceWith(start);
-          start.after(end);
-          if (empty) eat(end.nextSibling, empty);
-          next = end.nextSibling;
-          bp.n++; // the end marker is part of the tree walk
-          forOp.slot = slot(compileExpr(head[2]), (state, list) => state.update(list));
-          bp.ops.push(forOp);
-          if (top) bp.dynamic = true;
-        } else if (tag === 'ng-content') {
-          bp.ops.push({ ord, type: 'content' });
-          if (top) bp.dynamic = true;
-        } else if (tag === 'router-outlet' && hooks.outlet) {
-          bp.ops.push({ ord, type: 'outlet' });
-        } else if (components[tag]) {
-          const spec = { inputs: [], outputs: [], statics: [] };
-          let childBp = null;
-          if (node.firstChild) {
-            const ct = document.createDocumentFragment();
-            while (node.firstChild) ct.append(node.firstChild);
-            childBp = compile(ct, components, true);
-          }
-          walkAttrs(node, ord, spec);
-          bp.ops.push({ ord, type: 'comp', Comp: components[tag], childBp, ...spec });
-        } else {
-          walkAttrs(node, ord, null);
-          walk(node, false);
-        }
-      }
-      node = next;
-    }
-  }
-
-  walk(content, true);
-  return bp;
 }
 
 /* ---------- views ---------- */
@@ -465,7 +238,7 @@ function applyOp(op, node, view, scope, ctx, st, n) {
       break;
     case 'model':
       st[op.slot] = node;
-      onEvent(node, op.change ? 'change' : 'input', op.handler, scope);
+      onEvent(node, op.change ? 'change' : 'input', op.run, scope);
       break;
     case 'if':
       st[op.slot] = new IfState(node, op.branches, scope, ctx, view);
@@ -479,7 +252,7 @@ function applyOp(op, node, view, scope, ctx, st, n) {
       break;
     }
     case 'outlet':
-      hooks.outlet(node, ownOf(view), mount);
+      if (hooks.outlet) hooks.outlet(node, ownOf(view), mount);
       break;
     case 'comp':
       applyComp(op, node, view, scope, ctx, st, n);
@@ -567,9 +340,7 @@ class ForState {
     this.ctx = ctx;
     this.entries = new Map();
     this.empty = null;
-    // Only used to compute track keys. Own writable props so enclosing @for scopes can't block assignment.
-    this.probe = Object.create(scope);
-    for (const key of [op.name, '$index']) Object.defineProperty(this.probe, key, { value: undefined, writable: true });
+    this.probe = Object.create(scope); // only used to compute track keys
     ownOf(view).push(() => {
       this.entries.forEach(destroyView);
       this.entries.clear();
@@ -688,12 +459,18 @@ function setIndex(sc, i, n) {
 
 /* ---------- components ---------- */
 
+const envFor = Comp => {
+  const components = {};
+  for (const C of Comp.$meta.imports || []) components[C.$meta.selector.toLowerCase()] = C;
+  return components;
+};
+
 function getBlueprint(Comp) {
   if (!Comp.$bp) {
-    const t = document.createElement('template');
-    t.innerHTML = transform(Comp.$meta.template || '');
-    trimWhitespace(t.content);
-    Comp.$bp = compile(t.content, envFor(Comp));
+    const meta = Comp.$meta, components = envFor(Comp);
+    if (meta.aot) Comp.$bp = meta.aot(components, kit);
+    else if (compiler) Comp.$bp = compiler(meta.template, components);
+    else throw new Error('AngeLite: this build has no template compiler. Precompile the template or use the full build.');
   }
   return Comp.$bp;
 }
@@ -749,7 +526,7 @@ function applyComp(op, host, view, scope, ctx, st, n) {
     let v;
     try { v = untracked(() => inp.fn(scope)); } catch (e) { logError(e, `[${inp.key}]`); continue; }
     st[n + inp.slot] = v;
-    if (target === host) makeApply(inp.key)(host, v); else target.set(v);
+    if (target === host) A.prop(inp.key)(host, v); else target.set(v);
   }
   for (const s of op.statics) {
     const k = keys[s.key.toLowerCase()];
@@ -772,7 +549,7 @@ function applyComp(op, host, view, scope, ctx, st, n) {
 
 /** Defines a component: `component(MyClass, { selector, template, imports })`. */
 export function component(Class, meta) {
-  if (!meta || !meta.template) throw new Error('component() needs a template');
+  if (!meta || !(meta.template || meta.aot)) throw new Error('component() needs a template');
   Class.$meta = { selector: 'app-root', ...meta };
   return Class;
 }

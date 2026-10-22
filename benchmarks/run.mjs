@@ -7,7 +7,7 @@ import os from 'node:os';
 
 const root = resolve(import.meta.dirname);
 const dist = join(root, 'dist');
-const FW = ['lite', 'preact', 'vue', 'react', 'angular'];
+const FW = ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
 const ROUNDS = Number(process.env.ROUNDS || 3);
 const ITER = Number(process.env.ITER || 7);
 const STARTUP_RUNS = 9;

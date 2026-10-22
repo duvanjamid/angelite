@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { window, document } from './setup.mjs';
 
-const A = await import('../src/lite/index.js');
+const A = await import('../src/lite/full.js');
 const { signal, computed, effect, component, mount, input, output } = A;
 
 const tick = () => new Promise(r => setTimeout(r, 0));

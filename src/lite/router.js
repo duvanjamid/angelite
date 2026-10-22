@@ -1,7 +1,7 @@
 /** Minimal hash router: provideRouter(routes), <router-outlet>, routerLink. */
 
 import { signal, computed, effect, untracked } from './signals.js';
-import { setOutletBinder } from './view.js';
+import { setOutletBinder } from './runtime.js';
 
 const read = () => (location.hash.slice(1) || '/').replace(/^(?!\/)/, '/');
 

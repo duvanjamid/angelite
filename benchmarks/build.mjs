@@ -1,6 +1,7 @@
 // Builds every benchmark app into dist/<framework>/ and writes dist/sizes.json
 import { build } from 'esbuild';
 import { build as viteBuild } from 'vite';
+import { aotPlugin } from '../tools/aot.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, statSync, rmSync } from 'node:fs';
 import { gzipSync, brotliCompressSync } from 'node:zlib';
@@ -28,12 +29,13 @@ async function esbuildApp(name, entry, extra = {}) {
 await esbuildApp('react', 'react/main.jsx', { jsx: 'automatic' });
 await esbuildApp('preact', 'preact/main.jsx', { jsx: 'automatic', jsxImportSource: 'preact' });
 await esbuildApp('lite', 'lite/main.js');
+await esbuildApp('lite-aot', 'lite-aot/main.js', { plugins: [aotPlugin()] });
 await viteBuild({ configFile: join(root, 'apps/vue/vite.config.js'), logLevel: 'warn' });
 execFileSync(join(root, 'node_modules/.bin/ng'), ['build'], { cwd: join(root, 'apps/angular'), stdio: 'inherit' });
 
 // ---- sizes ----
 const jsFiles = dir => readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js')).map(f => join(dir, f));
-const dirs = { react: 'react', preact: 'preact', vue: 'vue', lite: 'lite', angular: 'angular/browser' };
+const dirs = { react: 'react', preact: 'preact', vue: 'vue', lite: 'lite', 'lite-aot': 'lite-aot', angular: 'angular/browser' };
 const sizes = {};
 for (const [name, d] of Object.entries(dirs)) {
   let raw = 0, gz = 0, br = 0;

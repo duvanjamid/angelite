@@ -57,3 +57,4 @@ temp/
 
 # Angular build cache
 .angular/
+tests/.tmp/
