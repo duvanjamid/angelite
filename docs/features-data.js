@@ -460,7 +460,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "n",
-       ""
+       "no previsto: las señales ya actualizan solo lo que cambia"
       ],
       "preact": [
        "n",
@@ -523,8 +523,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "`tools/ssr.mjs`: renderiza en Node con jsdom; sin streaming"
       ],
       "preact": [
        "p",
@@ -547,7 +547,8 @@ window.FEATURES = {
       "preact": "off",
       "vue": "mod",
       "react": "mod",
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {
@@ -556,8 +557,8 @@ window.FEATURES = {
      "ev": "D",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "`hydrate()` sustituye el HTML del servidor sin parpadeo; no adopta los nodos (el cliente renderiza otra vez)"
       ],
       "preact": [
        "p",
@@ -580,7 +581,8 @@ window.FEATURES = {
       "preact": "core",
       "vue": "core",
       "react": "mod",
-      "angular": "core"
+      "angular": "core",
+      "lite": "mod"
      }
     },
     {
@@ -656,7 +658,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "y",
-       "anidadas, `canActivate`, `load()` y `redirectTo`; solo modo hash"
+       "anidadas, `canActivate`, `resolve`, `load()`, `redirectTo`, query; modos hash e history"
       ],
       "preact": [
        "p",
@@ -689,8 +691,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "p",
-       "ngModel; los reactivos solo en el código antiguo"
+       "y",
+       "`FormControl`/`FormGroup`/`FormArray` sobre señales y validadores; sin validadores asíncronos"
       ],
       "preact": [
        "n",
@@ -712,7 +714,8 @@ window.FEATURES = {
      "where": {
       "vue": "ext",
       "react": "ext",
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {
@@ -721,8 +724,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "y",
+       "sobre `fetch`: interceptores, `retry`, `timeout`, cancelación y `resource()` con señales"
       ],
       "preact": [
        "n",
@@ -742,7 +745,8 @@ window.FEATURES = {
       ]
      },
      "where": {
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {
@@ -887,8 +891,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "`animate.enter` / `animate.leave` con clases CSS; sin estados ni orquestación"
       ],
       "preact": [
        "n",
@@ -909,7 +913,8 @@ window.FEATURES = {
      },
      "where": {
       "vue": "core",
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {
@@ -986,8 +991,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "mensajes, plurales (`Intl`), idiomas con respaldo, carga perezosa y formatos; sin extracción de textos"
       ],
       "preact": [
        "n",
@@ -1007,7 +1012,8 @@ window.FEATURES = {
       ]
      },
      "where": {
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     }
    ]
@@ -1021,8 +1027,8 @@ window.FEATURES = {
      "ev": "V",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "`enableDevtools()`: árbol de componentes y señales (API y panel); sin extensión de navegador"
       ],
       "preact": [
        "y",
@@ -1045,7 +1051,8 @@ window.FEATURES = {
       "preact": "off",
       "vue": "off",
       "react": "off",
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {
@@ -1122,7 +1129,7 @@ window.FEATURES = {
      "cells": {
       "lite": [
        "p",
-       "plugin de esbuild para AOT"
+       "plugins de esbuild y Vite (recarga al editar) y `angelite-check`; sin generador de proyectos"
       ],
       "preact": [
        "y",
@@ -1155,8 +1162,8 @@ window.FEATURES = {
      "ev": "G",
      "cells": {
       "lite": [
-       "n",
-       ""
+       "p",
+       "`angelite-check` da `archivo:línea: mensaje`; sin autocompletado ni servicio de lenguaje"
       ],
       "preact": [
        "y",
@@ -1179,7 +1186,8 @@ window.FEATURES = {
       "preact": "ext",
       "vue": "off",
       "react": "ext",
-      "angular": "off"
+      "angular": "off",
+      "lite": "mod"
      }
     },
     {

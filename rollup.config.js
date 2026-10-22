@@ -75,4 +75,24 @@ const testing = {
   output: { file: 'dist/angelite-testing.esm.js', format: 'esm', paths: () => './angelite-lite.esm.js' }
 };
 
-export default [full, lite, runtime, runtimePlus, pipesBuild, testing, ui];
+// optional modules that build on the lite bundle: they import signals/runtime from it, so there is one reactive core
+const addons = {
+  input: {
+    'angelite-forms': 'src/lite/forms.js',
+    'angelite-http': 'src/lite/http.js',
+    'angelite-i18n': 'src/lite/i18n.js',
+    'angelite-devtools': 'src/lite/devtools.js',
+    'angelite-hydrate': 'src/lite/hydrate.js'
+  },
+  external: id => /lite\/(signals|runtime)\.js$/.test(id),
+  output: { dir: 'dist', format: 'esm', entryFileNames: '[name].esm.js', paths: () => './angelite-lite.esm.js' }
+};
+
+// the same add-ons as one <script>: global AngeLiteAddons, reading its signals from the global AngeLite (lite bundle)
+const addonsScript = {
+  input: 'src/lite/addons.js',
+  external: id => /lite\/(signals|runtime)\.js$/.test(id),
+  output: { file: 'dist/angelite-addons.min.js', format: 'iife', name: 'AngeLiteAddons', globals: () => 'AngeLite', plugins: [terser()] }
+};
+
+export default [full, lite, runtime, runtimePlus, pipesBuild, testing, addons, addonsScript, ui];

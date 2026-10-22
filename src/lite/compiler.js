@@ -190,6 +190,15 @@ export function compile(content, components, B, forceMarker) {
         if (spec) spec.ref = name.slice(1); else bp.ops.push({ ord, type: 'tref', name: name.slice(1) });
         continue;
       }
+      if (name === 'animate.enter' || name === 'animate.leave') { // class-based enter / leave animations (animate.js)
+        el.removeAttribute(name);
+        if (!spec) {
+          let op = bp.ops.find(o => o.type === 'anim' && o.ord === ord);
+          if (!op) bp.ops.push(op = { ord, type: 'anim' });
+          op[name.slice(8)] = value;
+        }
+        continue;
+      }
       const binding = name.startsWith('[') && name.endsWith(']') && name !== '[(ngmodel)]';
       if (DANGEROUS_TAGS.test(tag) && (binding || value.includes('{{'))) refuse(`binding to <${tag}>`);
       if (binding) {

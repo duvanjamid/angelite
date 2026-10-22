@@ -104,6 +104,7 @@ export function viewChild<T = Element>(name: string): Signal<T | null>;
 export interface RouteContext {
   path: string;
   params: Record<string, string>;
+  query: Record<string, string>;
   route: Route;
 }
 /** Return true to allow, false to stay, or a path to redirect to. */
@@ -117,17 +118,29 @@ export interface Route {
   load?: () => Promise<Type | { default: Type }>;
   children?: Route[];
   canActivate?: RouteGuard[];
+  /** Data loaded before the page renders; read it with `router.data()`. */
+  resolve?: Record<string, (to: RouteContext) => unknown | Promise<unknown>>;
   redirectTo?: string;
 }
 
 export interface Router {
   readonly path: Signal<string>;
+  /** `?page=2` as `{ page: '2' }`. */
+  readonly query: ReadonlySignal<Record<string, string>>;
+  /** What the matched routes' `resolve` functions returned. */
+  readonly data: Signal<Record<string, any>>;
   readonly current: ReadonlySignal<{ component: Type | undefined; params: Record<string, string> } | null>;
   params(): Record<string, string>;
-  navigate(to: string): void;
+  navigate(to: string, options?: { replace?: boolean }): void;
 }
 export const router: Router;
-export function provideRouter(routes: Route[]): Router;
+export interface RouterOptions {
+  /** `hash` (default) works on any static host; `history` uses real paths and needs server support. */
+  mode?: 'hash' | 'history';
+  /** Path prefix in history mode, e.g. `/app`. */
+  base?: string;
+}
+export function provideRouter(routes: Route[], options?: RouterOptions): Router;
 
 /* ---------- development ---------- */
 

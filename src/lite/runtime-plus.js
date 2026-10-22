@@ -5,3 +5,4 @@ export { viewChild } from './refs.js';
 export { enableDevWarnings } from './dev.js';
 import './portal.js';
 import './defer.js';
+import './animate.js';

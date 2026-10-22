@@ -362,10 +362,13 @@ export function destroyView(view) {
   }
 }
 
+// elements with an exit animation (animate.js) take care of their own removal
+const detach = n => (n.$leave ? n.$leave() : n.remove());
+
 export function removeView(view) {
   destroyView(view);
-  if (view.first === view.last) view.first.remove();
-  else rangeOf(view).forEach(n => n.remove());
+  if (view.first === view.last) detach(view.first);
+  else rangeOf(view).forEach(detach);
 }
 
 /* ---------- @if ---------- */
@@ -668,6 +671,7 @@ function applyComp(op, host, view, scope, ctx, st, n) {
   const cctx = newContext(op.Comp, ctx);
   const instance = createInstance(op.Comp, cctx);
   instance.$el = host;
+  host.$c = instance;
   const keys = keyMap(op.Comp, instance);
   const own = ownOf(view);
   if (op.ref && ops.tref) ops.tref({ name: op.ref, value: instance }, host, view, scope, ctx);
@@ -731,6 +735,7 @@ export function mount(Comp, el, up) {
   const ctx = newContext(Comp, up || null);
   const instance = createInstance(Comp, ctx);
   instance.$el = host;
+  host.$c = instance;
   const owner = [];
   attach(Comp, instance, host, ctx, owner);
   return {

@@ -21,7 +21,7 @@
     "test": "node --test tests/*.test.mjs",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
-    "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js docs/",
+    "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js dist/angelite-addons.min.js docs/",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
     "size": "node scripts/check-size.mjs",
     "typecheck": "tsc -p types/tsconfig.json"
@@ -81,7 +81,10 @@
     "./src/lite/refs.js",
     "./dist/angelite-runtime-plus.esm.js",
     "./dist/angelite-runtime-plus.min.js",
-    "./dist/angelite-testing.esm.js"
+    "./dist/angelite-testing.esm.js",
+    "./src/lite/animate.js",
+    "./dist/angelite-devtools.esm.js",
+    "./dist/angelite-addons.min.js"
   ],
   "exports": {
     ".": {
@@ -119,6 +122,42 @@
     "./tools/aot.mjs": {
       "types": "./types/aot.d.mts",
       "default": "./tools/aot.mjs"
+    },
+    "./lite/forms": {
+      "types": "./types/forms.d.ts",
+      "import": "./dist/angelite-forms.esm.js"
+    },
+    "./lite/http": {
+      "types": "./types/http.d.ts",
+      "import": "./dist/angelite-http.esm.js"
+    },
+    "./lite/i18n": {
+      "types": "./types/i18n.d.ts",
+      "import": "./dist/angelite-i18n.esm.js"
+    },
+    "./lite/devtools": {
+      "types": "./types/devtools.d.ts",
+      "import": "./dist/angelite-devtools.esm.js"
+    },
+    "./lite/hydrate": {
+      "types": "./types/hydrate.d.ts",
+      "import": "./dist/angelite-hydrate.esm.js"
+    },
+    "./tools/ssr.mjs": {
+      "types": "./types/ssr.d.mts",
+      "default": "./tools/ssr.mjs"
+    },
+    "./tools/vite.mjs": {
+      "types": "./types/vite.d.mts",
+      "default": "./tools/vite.mjs"
+    },
+    "./tools/check.mjs": {
+      "types": "./types/check.d.mts",
+      "default": "./tools/check.mjs"
+    },
+    "./lite/addons": {
+      "types": "./types/forms.d.ts",
+      "default": "./dist/angelite-addons.min.js"
     }
   },
   "engines": {
@@ -132,5 +171,8 @@
       "optional": true
     }
   },
-  "types": "types/lite.d.ts"
+  "types": "types/lite.d.ts",
+  "bin": {
+    "angelite-check": "tools/check.mjs"
+  }
 }

@@ -77,3 +77,49 @@ test('the legacy bundle still loads and defines window.AngeLite', { skip: !has('
   assert.ok(w.AngeLite.Component);
   assert.ok(w.AngeLite.FormControl);
 });
+
+test('dist add-ons (forms, http, i18n, devtools, hydrate, testing) share the lite bundle: one reactive core', { skip: !has('angelite-forms.esm.js') && 'dist/ not built' }, async () => {
+  const { window, document } = await import('./setup.mjs');
+  const lite = await import('../dist/angelite-lite.esm.js');
+  const { FormControl } = await import('../dist/angelite-forms.esm.js');
+  const { resource } = await import('../dist/angelite-http.esm.js');
+  const { createI18n } = await import('../dist/angelite-i18n.esm.js');
+  const { enableDevtools } = await import('../dist/angelite-devtools.esm.js');
+  const { hydrate } = await import('../dist/angelite-hydrate.esm.js');
+  const testing = await import('../dist/angelite-testing.esm.js');
+  assert.equal(typeof lite.viewChild, 'function');
+  assert.equal(typeof lite.enableDevWarnings, 'function');
+
+  // an effect from the lite bundle reacts to a signal owned by the forms bundle
+  const control = new FormControl('', [v => (v ? null : { required: true })]);
+  const seen = [];
+  lite.effect(() => { seen.push(control.valid()); });
+  control.value.set('x');
+  await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(seen, [false, true]);
+
+  const data = resource(() => Promise.resolve(5));
+  await new Promise(r => setTimeout(r, 0));
+  assert.equal(data.data(), 5);
+
+  // the i18n pipes register into the lite bundle's runtime
+  const i18n = createI18n({ locale: 'en', messages: { en: { hi: 'Hello' }, es: { hi: 'Hola' } } });
+  i18n.installPipes();
+  class App {}
+  lite.component(App, { selector: 'x-distaddons', template: '<p id="p">{{ "hi" | t }}</p>' });
+  const t = testing.render(App);
+  assert.equal(t.text('#p'), 'Hello');
+  i18n.setLocale('es');
+  await t.flush();
+  assert.equal(t.text('#p'), 'Hola');
+  assert.equal(enableDevtools().tree(t.container).length, 1);
+  t.unmount();
+
+  const root = document.createElement('div');
+  root.innerHTML = '<x-distaddons><p>stale</p></x-distaddons>';
+  document.body.append(root);
+  const app = hydrate(App, root);
+  assert.equal(root.querySelector('p').textContent, 'Hola');
+  app.destroy();
+  void window;
+});

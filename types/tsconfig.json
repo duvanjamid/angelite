@@ -8,5 +8,5 @@
     "skipLibCheck": false,
     "lib": ["ES2022", "DOM"]
   },
-  "include": ["check.ts", "*.d.ts", "*.d.mts", "../src/lite/*.d.ts", "../src/ui/index.d.ts", "../tools/aot.d.mts"]
+  "include": ["check.ts", "*.d.ts", "*.d.mts", "../src/lite/*.d.ts", "../src/ui/index.d.ts", "../tools/*.d.mts"]
 }

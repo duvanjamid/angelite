@@ -6,3 +6,4 @@ export { enableDevWarnings } from './dev.js';
 import './pipes.js';
 import './portal.js';
 import './defer.js';
+import './animate.js';

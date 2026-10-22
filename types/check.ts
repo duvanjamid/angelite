@@ -7,6 +7,14 @@ import type { OnInit, OnDestroy, OnError, Route, RouteGuard, Signal } from './li
 import { render, cleanup, flush } from '../src/lite/testing.js';
 import { all, Button, ToastService } from '../src/ui/index.js';
 import { compileTemplate, checkTemplate, aotPlugin } from '../tools/aot.mjs';
+import { FormControl, FormGroup, FormArray, Validators } from '../src/lite/forms.js';
+import { createHttp, retry, resource, HttpError } from '../src/lite/http.js';
+import { createI18n } from '../src/lite/i18n.js';
+import { enableDevtools } from '../src/lite/devtools.js';
+import { hydrate } from '../src/lite/hydrate.js';
+import { renderToString, renderPage, serializeState } from '../tools/ssr.mjs';
+import vitePlugin from '../tools/vite.mjs';
+import { checkFolder } from '../tools/check.mjs';
 
 class Api { get() { return 1; } }
 
@@ -65,7 +73,49 @@ compileTemplate('<p></p>', { components: ['ui-button'], check: 'error' });
 checkTemplate('<p></p>', { members: ['a'] });
 aotPlugin({ members: 'auto' });
 
+// wave 2
+const form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.minLength(2)]), tags: new FormArray([new FormControl('a')]) });
+const nameValid: boolean = form.get('name').valid();
+const formValue = form.value();
+form.get('name').value.set('x');
+form.setValue({ name: 'y' });
+form.touch();
+const http = createHttp({ baseUrl: '/api', interceptors: [retry(2), (req, next) => next({ ...req, headers: { ...req.headers, A: 'b' } })] });
+async function load() {
+  const u = await http.get<{ id: number }>('/users', { params: { page: 1 }, timeout: 500 });
+  const id: number = u.id;
+  await http.post('/users', { name: 'x' });
+  try { await http.get('/x'); } catch (e) { if (e instanceof HttpError) console.log(e.status); }
+}
+const users = resource(() => http.get<string[]>('/users'));
+const list: string[] | undefined = users.data();
+users.reload();
+const i18n = createI18n({ locale: 'es', fallback: 'en', messages: { en: { hi: 'Hi' } } });
+const hi: string = i18n.t('hi', { name: 'x', count: 2 });
+i18n.setLocale('en');
+i18n.installPipes();
+const tools = enableDevtools({ panel: true });
+tools.tree()[0]?.children;
+hydrate(Counter, document.body).destroy();
+renderToString(Counter, { url: '/a', setup: () => {}, ready: i => i, settle: 1 }).then((html: string) => html);
+renderPage(Counter, { shell: '<!--app-->', state: { a: 1 } });
+const safe2: string = serializeState({});
+vitePlugin({ members: 'auto', check: 'error' }).enforce;
+checkFolder('src', { members: 'auto' })[0]?.message;
+provideRouter([{ path: 'a', component: Counter, resolve: { user: ({ params }) => params.id } }], { mode: 'history', base: '/app' });
+router.navigate('/x', { replace: true });
+const q: Record<string, string> = router.query();
+
 // mistakes the types must catch
+// @ts-expect-error validators take a number
+Validators.minLength('3');
+// @ts-expect-error get() paths are strings
+form.get(3);
+// @ts-expect-error the router mode is hash or history
+provideRouter([], { mode: 'memory' });
+// @ts-expect-error interceptors receive a request and next
+createHttp({ interceptors: [() => 1] });
+
 // @ts-expect-error a signal holds one type
 app.instance.count.set('text');
 // @ts-expect-error computed signals are read-only
@@ -81,5 +131,5 @@ trustHtml(5);
 // @ts-expect-error emit() takes the declared payload
 app.instance.changed.emit('x');
 
-export { html, url, safe, n, id, ui, bad, missing, Decorated };
+export { html, url, safe, n, id, ui, bad, missing, Decorated, nameValid, formValue, load, list, hi, safe2, q };
 export type { Signal };
