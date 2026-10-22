@@ -312,7 +312,7 @@ AngeLite is [MIT licensed](./LICENSE).
 
 ## AngeLite Lite
 
-A ~6 KB signals-based core with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html).
+A ~8 KB (min+gzip) signals-based core, as fast as Preact/Vue and the lightest on memory in our benchmark, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html).
 
 ## Development
 

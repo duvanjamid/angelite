@@ -391,7 +391,7 @@ window.DOCS = [
             "desc": ""
           }
         ],
-        "code": "class Demo {}\ncomponent(Demo, {\n  imports: [ui.AccordionItem],\n  template: `\n    <ui-accordion-item title=\"¿Qué es AngeLite?\">Un núcleo Angular-style de ~6 KB basado en señales.</ui-accordion-item>\n    <ui-accordion-item title=\"¿Necesita compilar?\">No: plantillas en strings y un solo script.</ui-accordion-item>`\n});\nmount(Demo, root);"
+        "code": "class Demo {}\ncomponent(Demo, {\n  imports: [ui.AccordionItem],\n  template: `\n    <ui-accordion-item title=\"¿Qué es AngeLite?\">Un núcleo Angular-style de ~8 KB basado en señales.</ui-accordion-item>\n    <ui-accordion-item title=\"¿Necesita compilar?\">No: plantillas en strings y un solo script.</ui-accordion-item>`\n});\nmount(Demo, root);"
       },
       {
         "id": "dropdown",
@@ -498,7 +498,7 @@ window.DOCS = [
             "desc": ""
           }
         ],
-        "code": "class Demo {\n  columns = [{ key: 'name', label: 'Nombre' }, { key: 'kb', label: 'KB (min+gzip)' }];\n  rows = [\n    { name: 'AngeLite', kb: 6 },\n    { name: 'Preact', kb: 4 },\n    { name: 'Vue', kb: 34 },\n    { name: 'React', kb: 45 }\n  ];\n}\ncomponent(Demo, {\n  imports: [ui.Table],\n  template: `<ui-table [columns]=\"columns\" [rows]=\"rows\"></ui-table>`\n});\nmount(Demo, root);"
+        "code": "class Demo {\n  columns = [{ key: 'name', label: 'Nombre' }, { key: 'kb', label: 'KB (app del benchmark, min+gzip)' }];\n  rows = [\n    { name: 'AngeLite', kb: 8.4 },\n    { name: 'Preact', kb: 6.2 },\n    { name: 'Vue', kb: 25.6 },\n    { name: 'React', kb: 68.1 }\n  ];\n}\ncomponent(Demo, {\n  imports: [ui.Table],\n  template: `<ui-table [columns]=\"columns\" [rows]=\"rows\"></ui-table>`\n});\nmount(Demo, root);"
       }
     ]
   }
