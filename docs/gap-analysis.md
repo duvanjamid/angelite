@@ -20,7 +20,7 @@ De las 37 filas de la tabla: 16 son V, 2 son D y 19 son G. Las filas de segurida
 1. **Estado: los seis huecos de seguridad que encontramos están cerrados** (ver la sección 1), con un test real para cada uno
    y para su variante precompilada. Lite pasa de peor a mejor del grupo en las pruebas de ataque que ejecutamos.
 2. **Donde ganamos es tamaño, memoria y velocidad de listas** (ver el benchmark). Somos además el único con
-   un modo «sin build» pequeño: ~9 KB gzip frente a 63,7 KB de Vue con su compilador, y sin `eval`.
+   un modo «sin build» pequeño: ~10 KB gzip frente a 63,7 KB de Vue con su compilador, y sin `eval`.
 3. **Donde perdemos es todo lo que rodea al núcleo**: tipos, SSR, router, formularios, herramientas, comunidad.
    La tabla nos da 19,5 de 38 frente a 24,5 (Preact), 27 (Vue), 28,5 (React) y 33 (Angular). No es un ranking, pero la brecha es real.
 
@@ -76,17 +76,17 @@ cómo reportar; CodeQL con consultas ampliadas, Dependabot y `npm audit` en el C
 
 ## 2. Velocidad y rendimiento
 
-Medido (3 rondas × 9 iteraciones por operación, arranque con 41 cargas intercaladas; contenedor compartido, sin pintado).
+Medido tras la Ola 1 y la Ola 2 (5 rondas × 15 iteraciones por operación, arranque con 41 cargas intercaladas; contenedor compartido, sin pintado; esta máquina fue ~35 % más lenta que la de la medición anterior, así que los milisegundos absolutos no son comparables, sí las posiciones).
 Con la regla «a menos del 10 % es un empate»:
 
 | | Lite precompilado | Mejor de los demás |
 |---|---|---|
-| Tamaño de la app (gzip) | **5,8 KB** (el más pequeño) | Preact 6,2 KB |
-| Arranque | **17,5 ms** (rangos intercuartílicos solapados: empate técnico) | Preact 18,1 ms |
-| Memoria con 10.000 filas | **6,5 MB** | Angular 11,8 MB |
-| 12 mediciones en total | **mediana más baja en 10**; en las otras 2 está a menos del 5 % (`update10th`: React +3 %, `append1k`: +5 %) | — |
+| Tamaño de la app (gzip) | **6,1 KB** (el más pequeño; las funciones nuevas costaron 0,2 KB) | Preact 6,2 KB |
+| Arranque | 23,1 ms (rangos intercuartílicos solapados: empate técnico) | Preact 21,3 ms |
+| Memoria con 10.000 filas | **6,6 MB** | Angular 11,8 MB |
+| 12 mediciones en total | **mediana más baja en 7**; empate dentro del 10 % en 4 (arranque, `replace1k`, `swap`, `create10k`); por detrás en `remove` (Preact, +16 % en esta corrida) | — |
 
-La puntuación global (media geométrica del tiempo relativo al mejor) es 1,01× para Lite precompilado; React queda en 1,58×.
+`swap` y `remove` varían de una corrida a otra: dos repeticiones dedicadas (5 × 15) dieron 4,70 ms frente a 4,90 de Preact en ambas, y otra sin el gancho de animaciones 4,75 frente a 4,70. Lo honesto es leerlas como empate con Preact y Angular. La puntuación global (media geométrica del tiempo relativo al mejor) es 1,03× para Lite precompilado; React queda en 1,55×.
 Mejoras de esta ronda que se midieron: el anfitrión raíz con `display: contents` (−1,5 ms tras el montaje) y una vía rápida en `@for`
 cuando la lista mantiene las mismas claves en el mismo orden (`update10th` pasó de ~9,8 a ~7,9 ms).
 
@@ -166,7 +166,7 @@ tienen esa base; hay que aprovecharla antes de añadir más funciones.
 
 Todo verificado:
 
-- **Modo «sin build» pequeño**: 9,1 KB gzip con compilador incluido, frente a 63,7 KB de la build con compilador de Vue.
+- **Modo «sin build» pequeño**: 10,1 KB gzip con compilador incluido, frente a 63,7 KB de la build con compilador de Vue.
   Angular no tiene equivalente utilizable (su compilador JIT es grande y usa `new Function`).
 - **Sin `eval` ni `new Function` en ningún bundle**, también en el modo sin build. La build con compilador de Vue y el
   JIT de Angular sí los usan, y requieren `unsafe-eval` en CSP.
