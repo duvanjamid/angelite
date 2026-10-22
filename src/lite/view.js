@@ -198,11 +198,31 @@ function bindChildren(parent, scope, env, own) {
   }
 }
 
+/**
+ * Renders a template fragment. The view spans `first`..`end` (an end marker is always added), so the
+ * nodes that nested @if/@for blocks insert later are still covered when the view is moved or removed.
+ */
 function render(content, scope, env) {
   const frag = content.cloneNode(true);
   const own = [];
   bindChildren(frag, scope, env, own);
-  return { own, nodes: [...frag.childNodes], frag };
+  const end = document.createComment('');
+  frag.append(end);
+  return { own, first: frag.firstChild, end, frag };
+}
+
+function rangeOf(view) {
+  const nodes = [];
+  for (let n = view.first; n; n = n.nextSibling) {
+    nodes.push(n);
+    if (n === view.end) break;
+  }
+  return nodes;
+}
+
+function removeView(view) {
+  dispose(view.own);
+  rangeOf(view).forEach(n => n.remove());
 }
 
 function bindIf(chain, scope, env, own) {
@@ -216,8 +236,7 @@ function bindIf(chain, scope, env, own) {
   let current = -1, view = null;
   const clear = () => {
     if (!view) return;
-    dispose(view.own);
-    view.nodes.forEach(n => n.remove());
+    removeView(view);
     view = null;
   };
   own.push(clear);
@@ -286,16 +305,17 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
   let emptyView = null;
   const clearEmpty = () => {
     if (!emptyView) return;
-    dispose(emptyView.own);
-    emptyView.nodes.forEach(n => n.remove());
+    removeView(emptyView);
     emptyView = null;
   };
-  const drop = e => { dispose(e.own); e.nodes.forEach(n => n.remove()); };
+  const drop = removeView;
   own.push(() => { entries.forEach(drop); entries.clear(); clearEmpty(); });
 
   const makeScope = makeItemProto(scope, name);
   const count = signal(0);
-  const probe = Object.create(scope); // only used to compute track keys
+  // Only used to compute track keys. Own writable props so nested @for scopes (getter-only) can be shadowed.
+  const probe = Object.create(scope);
+  for (const key of [name, '$index']) Object.defineProperty(probe, key, { value: undefined, writable: true });
 
   effect(() => {
     const items = Array.from(list(scope) || []);
@@ -321,9 +341,7 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
           seqAt.push(i);
         } else {
           e = { item: signal(item), index: signal(i), count, pos: -1 };
-          const view = render(tpl.content, makeScope(e), env);
-          e.own = view.own;
-          e.nodes = view.nodes;
+          Object.assign(e, render(tpl.content, makeScope(e), env));
         }
         next.set(key, e);
         order[i] = e;
@@ -334,7 +352,7 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
 
       if (fresh) {
         const frag = document.createDocumentFragment();
-        order.forEach(e => frag.append(...e.nodes));
+        order.forEach(e => { frag.append(e.frag); e.frag = null; });
         anchor.after(frag);
       } else {
         // Nodes in the longest increasing run keep their place; only the rest move.
@@ -342,8 +360,9 @@ function bindFor(tpl, emptyTpl, scope, env, own) {
         lis(seq).forEach(k => stay.add(seqAt[k]));
         let cursor = anchor;
         order.forEach((e, i) => {
-          if (!stay.has(i) && e.nodes.length) cursor.after(...e.nodes);
-          if (e.nodes.length) cursor = e.nodes[e.nodes.length - 1];
+          if (e.frag) { cursor.after(e.frag); e.frag = null; }
+          else if (!stay.has(i)) cursor.after(...rangeOf(e));
+          cursor = e.end;
         });
       }
 

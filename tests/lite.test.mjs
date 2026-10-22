@@ -167,3 +167,38 @@ test('$el and ngAfterViewInit give access to the rendered host', async () => {
   assert.equal(seen, '2');
   assert.equal($('x-c').tagName, 'X-C');
 });
+
+test('nested @for loops (inner track sees outer item scope)', async () => {
+  const data = signal([{ id: 1, kids: ['a', 'b'] }, { id: 2, kids: ['c'] }]);
+  class C { data = data; }
+  component(C, {
+    template: `@for (g of data(); track g.id) {<ul>@for (k of g.kids; track k) {<li>{{ g.id }}{{ k }}{{ $index }}</li>}</ul>}`
+  });
+  const { $$ } = run(C);
+  assert.deepEqual($$('li').map(l => l.textContent), ['1a0', '1b1', '2c0']);
+  data.set([{ id: 2, kids: ['c', 'd'] }, { id: 1, kids: ['b'] }]);
+  await tick();
+  assert.deepEqual($$('li').map(l => l.textContent), ['2c0', '2d1', '1b0']);
+});
+
+test('nested blocks: nodes inserted later are moved/removed with their parent view', async () => {
+  const all = [{ g: 'A', items: [1, 2, 3] }, { g: 'B', items: [4, 5] }, { g: 'C', items: [6, 7, 8] }];
+  const even = signal(false);
+  const groups = computed(() => all
+    .map(g => ({ g: g.g, items: g.items.filter(i => !even() || i % 2 === 0) }))
+    .filter(g => g.items.length));
+  const show = signal(true);
+  class C { groups = groups; show = show; }
+  component(C, {
+    template: `@if (show()) {@for (g of groups(); track g.g) {<h2>{{ g.g }}</h2>@for (i of g.items; track i) {<p>{{ i }}</p>}}}`
+  });
+  const { root } = run(C);
+  const dump = () => [...root.querySelectorAll('h2,p')].map(n => n.textContent).join(' ');
+  assert.equal(dump(), 'A 1 2 3 B 4 5 C 6 7 8');
+  even.set(true); await tick();
+  assert.equal(dump(), 'A 2 B 4 C 6 8');
+  even.set(false); await tick();
+  assert.equal(dump(), 'A 1 2 3 B 4 5 C 6 7 8');
+  show.set(false); await tick();
+  assert.equal(dump(), '', 'no orphan nodes after the @if closes');
+});
