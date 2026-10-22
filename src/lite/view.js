@@ -119,7 +119,7 @@ function transform(src) {
   while (i < src.length) {
     const at = src.indexOf('@', i);
     if (at < 0) break;
-    const m = /^@(else\s+if|if|for|else|empty)\s*/.exec(src.slice(at));
+    const m = /^@(else\s+if|if|for|else|empty)(?![\w$])\s*/.exec(src.slice(at));
     if (!m) { out += src.slice(i, at + 1); i = at + 1; continue; }
     out += src.slice(i, at);
     const kind = m[1].replace(/\s+/, ' ');
@@ -400,6 +400,7 @@ class View extends Effect {
     this.last = null;
     this.frag = null;
     this.pos = -1;
+    this.dep = null; // nested blocks / projected views that read this view's scope
   }
 }
 
@@ -496,6 +497,16 @@ function rangeOf(view) {
   return nodes;
 }
 
+/**
+ * Re-runs a view and everything nested in it. Needed when a scope variable (a @for item or index) was
+ * replaced in place: nested blocks read it through the scope chain, not through a signal.
+ */
+function refresh(view) {
+  if (view.st) view.run();
+  const dep = view.dep;
+  if (dep) for (let i = 0; i < dep.length; i++) dep[i].refresh();
+}
+
 function destroyView(view) {
   view.stop();
   const own = view.own;
@@ -522,7 +533,10 @@ class IfState {
     this.cur = -1;
     this.v = null;
     ownOf(view).push(() => { if (this.v) destroyView(this.v); });
+    (view.dep || (view.dep = [])).push(this);
   }
+
+  refresh() { if (this.v) refresh(this.v); }
 
   update(idx) {
     if (idx === this.cur) return;
@@ -570,11 +584,17 @@ class ForState {
     // Only used to compute track keys. Own writable props so enclosing @for scopes can't block assignment.
     this.probe = Object.create(scope);
     for (const key of [op.name, '$index']) Object.defineProperty(this.probe, key, { value: undefined, writable: true });
+    (view.dep || (view.dep = [])).push(this);
     ownOf(view).push(() => {
       this.entries.forEach(destroyView);
       this.entries.clear();
       if (this.empty) destroyView(this.empty);
     });
+  }
+
+  refresh() {
+    this.entries.forEach(refresh);
+    if (this.empty) refresh(this.empty);
   }
 
   update(list) {
@@ -630,7 +650,7 @@ class ForState {
         let changed = false;
         if (sc[name] !== item) { sc[name] = item; changed = true; }
         if (ix && (sc.$index !== i || sc.$count !== n)) { setIndex(sc, i, n); changed = true; }
-        if (changed && e.st) e.run();
+        if (changed) refresh(e);
         seq.push(e.pos);
         seqAt.push(i);
       } else {
@@ -741,6 +761,7 @@ function applyComp(op, host, view, scope, ctx, st, n) {
 
   // Content between the tags is rendered in the parent scope, then projected.
   const projected = op.childBp ? instantiate(op.childBp, scope, ctx) : null;
+  if (projected) (view.dep || (view.dep = [])).push({ refresh: () => refresh(projected) });
 
   for (const inp of op.inputs) {
     const k = keys[inp.key.toLowerCase()];
