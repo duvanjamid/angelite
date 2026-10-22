@@ -9,7 +9,7 @@ memoria**. Para eso hay cuatro capas de control, de la más barata a la más car
 |---|---|---|---|
 | 1. Tamaño | Bytes gzip de cada bundle (`npm run size`) y de **lo que realmente se envía** a un usuario: la app de la tabla con esbuild (`npm run size:apps`) | CI, en cada PR | ninguno |
 | 2. Trabajo | Llamadas al DOM y ejecuciones de efectos por escenario (1.000 filas): `tests/perf-budget.test.mjs` contra `tests/perf-budget.json` | CI (`npm test`), en cada PR | ninguno: es determinista |
-| 3. Tiempo relativo | AngeLite frente a Preact **en la misma ejecución** (`npm run perf`, workflow `perf.yml`); se compara el cociente con `benchmarks/baseline.json` | a demanda, semanal y en PR que tocan el núcleo; no bloquea | medio (tolerancia del 20 %) |
+| 3. Tiempo relativo | AngeLite frente a Preact **en la misma ejecución** (`npm run perf`, workflow `perf.yml`); se compara el cociente con `benchmarks/baseline.json`: falla una operación suelta si empeora más de un 35 %, o la media geométrica de todas si empeora más de un 10 % | a demanda, semanal y en PR que tocan el núcleo; no bloquea | medio (una operación sola varía hasta ~30 %; la media, mucho menos) |
 | 4. Benchmark completo | Los cinco frameworks, 12 mediciones, memoria y arranque (`benchmarks/run.mjs`) | a mano, antes de publicar; actualiza `docs/benchmarks.html` | alto: hay que leerlo con la regla del 10 % |
 
 Por qué así: el tiempo en un runner compartido varía un 10–20 % de una ejecución a otra, así que no sirve para frenar un
