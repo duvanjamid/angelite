@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### AngeLite Lite (new, `@duvanjamid/angelite/lite`)
+- New minimal core in `src/lite/` (~6 KB min+gzip vs ~16 KB for the full bundle): signals (`signal`, `computed`, `effect`), templates with `@if`/`@else`/`@for`/`@empty`, `[prop]`/`(event)`/`[(ngModel)]` bindings, components with `input()`/`output()`/`<ng-content>`, pipes, `inject()` and a hash router.
+- Fine-grained updates: only DOM nodes that depend on a changed signal are touched.
+- Interactive documentation with live examples in `docs/index.html` (`npm run build:docs` refreshes `docs/angelite-lite.min.js`).
+- The existing full bundle is untouched.
+
 ### Security
 - Interpolated values (`{{ }}`) are now HTML-escaped in `@for`, `*ngFor` and component templates. Use bound properties instead of interpolating raw HTML.
 

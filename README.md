@@ -310,6 +310,10 @@ We welcome contributions to AngeLite! Please see our [Contributing Guide](./CONT
 AngeLite is [MIT licensed](./LICENSE).
 
 
+## AngeLite Lite
+
+A ~6 KB signals-based core with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). See [`docs/index.html`](docs/index.html) for live examples.
+
 ## Development
 
 ```bash
