@@ -26,18 +26,20 @@ async function esbuildApp(name, entry, extra = {}) {
   writeFileSync(join(out, 'index.html'), page(name));
 }
 
-await esbuildApp('react', 'react/main.jsx', { jsx: 'automatic' });
-await esbuildApp('preact', 'preact/main.jsx', { jsx: 'automatic', jsxImportSource: 'preact' });
-await esbuildApp('lite', 'lite/main.js');
-await esbuildApp('lite-aot', 'lite-aot/main.js', { plugins: [aotPlugin()] });
-await viteBuild({ configFile: join(root, 'apps/vue/vite.config.js'), logLevel: 'warn' });
-execFileSync(join(root, 'node_modules/.bin/ng'), ['build'], { cwd: join(root, 'apps/angular'), stdio: 'inherit' });
+// BUILD=lite-aot,lite,preact builds a subset (quick mode); by default everything is built
+const want = name => !process.env.BUILD || process.env.BUILD.split(',').includes(name);
+if (want('react')) await esbuildApp('react', 'react/main.jsx', { jsx: 'automatic' });
+if (want('preact')) await esbuildApp('preact', 'preact/main.jsx', { jsx: 'automatic', jsxImportSource: 'preact' });
+if (want('lite')) await esbuildApp('lite', 'lite/main.js');
+if (want('lite-aot')) await esbuildApp('lite-aot', 'lite-aot/main.js', { plugins: [aotPlugin({ check: false })] });
+if (want('vue')) await viteBuild({ configFile: join(root, 'apps/vue/vite.config.js'), logLevel: 'warn' });
+if (want('angular')) execFileSync(join(root, 'node_modules/.bin/ng'), ['build'], { cwd: join(root, 'apps/angular'), stdio: 'inherit' });
 
 // ---- sizes ----
 const jsFiles = dir => readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js')).map(f => join(dir, f));
 const dirs = { react: 'react', preact: 'preact', vue: 'vue', lite: 'lite', 'lite-aot': 'lite-aot', angular: 'angular/browser' };
 const sizes = {};
-for (const [name, d] of Object.entries(dirs)) {
+for (const [name, d] of Object.entries(dirs).filter(([name]) => want(name))) {
   let raw = 0, gz = 0, br = 0;
   for (const f of jsFiles(join(dist, d)).filter(f => statSync(f).isFile())) {
     const buf = readFileSync(f);

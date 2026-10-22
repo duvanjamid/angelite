@@ -7,7 +7,9 @@ import os from 'node:os';
 
 const root = resolve(import.meta.dirname);
 const dist = join(root, 'dist');
-const FW = ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
+// FW=lite-aot,preact runs a subset (quick mode, see compare.mjs); results then go to results.quick.json
+const FW = process.env.FW ? process.env.FW.split(',') : ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
+const OUT = process.env.FW ? 'results.quick.json' : 'results.json';
 const ROUNDS = Number(process.env.ROUNDS || 3);
 const ITER = Number(process.env.ITER || 7);
 const STARTUP_RUNS = process.env.ONLY ? 0 : Number(process.env.STARTUP_RUNS || 41);
@@ -80,7 +82,7 @@ const median = a => { const s = [...a].sort((x, y) => x - y); const m = s.length
 const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
 
 const browser = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium',
+  executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium',
   args: ['--enable-precise-memory-info', '--js-flags=--expose-gc', '--disable-background-timer-throttling', '--disable-renderer-backgrounding']
 });
 
@@ -178,7 +180,7 @@ if (STARTUP_ONLY) {
 const results = {
   generatedAt: new Date().toISOString(),
   env: { chromium: browser.version(), cpus: os.cpus().length, cpu: os.cpus()[0].model, node: process.version, rounds: ROUNDS, iterations: ITER },
-  versions: Object.fromEntries(['react', 'preact', 'vue', '@angular/core'].map(n => [n, JSON.parse(readFileSync(join(root, 'node_modules', n, 'package.json'), 'utf8')).version])),
+  versions: Object.fromEntries(['react', 'preact', 'vue', '@angular/core'].filter(n => existsSync(join(root, 'node_modules', n, 'package.json'))).map(n => [n, JSON.parse(readFileSync(join(root, 'node_modules', n, 'package.json'), 'utf8')).version])),
   benches: BENCHES.map(({ id, label }) => ({ id, label })),
   frameworks: {}
 };
@@ -192,7 +194,7 @@ for (const fw of FW) {
   };
 }
 results.versions.lite = JSON.parse(readFileSync(join(root, '..', 'package.json'), 'utf8')).version;
-writeFileSync(join(root, 'results.json'), JSON.stringify(results, null, 2));
+writeFileSync(join(root, OUT), JSON.stringify(results, null, 2));
 console.log(JSON.stringify(Object.fromEntries(FW.map(f => [f, Object.fromEntries(Object.entries(results.frameworks[f].ops).map(([k, v]) => [k, +v.median.toFixed(1)]))])), null, 1));
 await browser.close();
 server.close();

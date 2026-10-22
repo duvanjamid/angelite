@@ -24,7 +24,9 @@
     "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js dist/angelite-addons.min.js docs/",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
     "size": "node scripts/check-size.mjs",
-    "typecheck": "tsc -p types/tsconfig.json"
+    "typecheck": "tsc -p types/tsconfig.json",
+    "size:apps": "node scripts/check-app-size.mjs",
+    "perf": "cd benchmarks && BUILD=lite-aot,lite,preact node build.mjs && FW=lite-aot,lite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs && node compare.mjs"
   },
   "keywords": [
     "framework",
@@ -48,6 +50,7 @@
   },
   "homepage": "https://github.com/duvanjamid/angelite#readme",
   "devDependencies": {
+    "esbuild": "^0.25.12",
     "http-server": "^14.1.1",
     "jsdom": "^29.1.1",
     "rollup": "^2.79.1",

@@ -1,0 +1,55 @@
+name: Performance
+
+# Timing is noisy on shared runners, so this is NOT a required check: it runs on demand, weekly, and on pull requests
+# that touch the core, and compares AngeLite against Preact in the same run (ratios), so the machine's speed cancels out.
+# The deterministic budget (DOM calls and effect runs, tests/perf-budget.test.mjs) and the size budgets are in ci.yml.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
+  pull_request:
+    paths:
+      - 'src/lite/**'
+      - 'tools/aot.mjs'
+      - 'benchmarks/**'
+
+concurrency:
+  group: perf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: AngeLite vs Preact (relative)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install benchmark dependencies and Chromium
+        working-directory: benchmarks
+        run: |
+          npm ci
+          npx playwright-core install --with-deps chromium
+      - name: Build the AngeLite and Preact apps
+        working-directory: benchmarks
+        run: BUILD=lite-aot,lite,preact node build.mjs
+      - name: Run the benchmark (3 apps)
+        working-directory: benchmarks
+        run: |
+          CHROMIUM="$(node -e "console.log(require('playwright-core').chromium.executablePath())")" \
+          FW=lite-aot,lite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs
+      - name: Compare with the baseline
+        working-directory: benchmarks
+        run: node compare.mjs | tee compare.txt
+      - name: Keep the numbers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-quick
+          path: |
+            benchmarks/results.quick.json
+            benchmarks/compare.txt

@@ -6,6 +6,10 @@
 
 Al participar en este proyecto, te comprometes a mantener un ambiente respetuoso y colaborativo. Esperamos que todos los contribuyentes sean amables, pacientes y acogedores con los demás.
 
+## Rendimiento
+
+Cada función nueva debe llegar sin dañar el rendimiento del núcleo. Hay un presupuesto de tamaño, un presupuesto de trabajo determinista (`tests/perf-budget.test.mjs`) y una comparación de tiempos contra Preact. Las reglas y los comandos están en [`docs/performance.md`](docs/performance.md); la plantilla de PR trae la lista de comprobación.
+
 ## Cómo Contribuir
 
 Hay varias formas de contribuir a AngeLite:
