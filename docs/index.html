@@ -59,7 +59,7 @@
     <a href="#inicio">Inicio</a><a href="#senales">Señales</a><a href="#plantillas">Plantillas</a>
     <a href="#flujo">Control de flujo</a><a href="#formularios">Formularios</a>
     <a href="#componentes">Componentes</a><a href="#pipes">Pipes</a><a href="#di">Servicios</a>
-    <a href="#router">Router</a><a href="#limites">Diferencias con Angular</a>
+    <a href="#router">Router</a><a href="#aot">Precompilar</a><a href="#limites">Diferencias con Angular</a>
   </nav>
 
   <h2 id="inicio">Inicio rápido</h2>
@@ -309,6 +309,25 @@ component(App, {
     &lt;router-outlet&gt;&lt;/router-outlet&gt;`
 });
 mount(App, document.getElementById('app'));</code></pre>
+
+  <h2 id="aot">Precompilar plantillas (opcional)</h2>
+  <p>Por defecto Lite compila las plantillas en el navegador: un solo script, sin build. Si te importa cada KB, puedes convertir las plantillas en JS durante el build y enviar <b>solo el runtime</b> (sin parser de expresiones ni compilador): unos ~5 KB gzip en total para una app real, menos que Preact.</p>
+  <pre><code>// counter.ng.html
+&lt;button (click)="inc()"&gt;Clicks: {{ count() }}&lt;/button&gt;
+
+// counter.js
+import { signal, component, mount } from '@duvanjamid/angelite/lite/runtime';
+import aot from './counter.ng.html';              // compilada por el plugin
+
+class Counter { count = signal(0); inc() { this.count.update(n =&gt; n + 1); } }
+component(Counter, { aot });                       // en lugar de template
+mount(Counter, document.body);
+
+// build (esbuild)
+import { aotPlugin } from '@duvanjamid/angelite/tools/aot.mjs';
+esbuild.build({ entryPoints: ['counter.js'], bundle: true, minify: true, plugins: [aotPlugin({ components: ['ui-button'] })] });</code></pre>
+  <p>También hay una CLI: <code>node tools/aot.mjs plantilla.html salida.js --components ui-button,ui-card</code>. El código generado se comprueba en los tests: una plantilla precompilada produce exactamente el mismo DOM que la compilada en el navegador. Los pipes integrados son opt-in en este modo: <code>import '@duvanjamid/angelite/lite/pipes'</code> o registra los tuyos con <code>registerPipe</code>.</p>
+  <p class="note">La herramienta usa <code>jsdom</code> solo en tiempo de build. En producción no se carga nada de ella.</p>
 
   <h2 id="limites">Diferencias con Angular</h2>
   <p>Es "homólogo", no un clon. Lo que cambia a propósito para mantenerlo pequeño:</p>

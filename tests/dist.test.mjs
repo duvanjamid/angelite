@@ -32,6 +32,21 @@ test('dist/angelite-lite.min.js works as a plain <script>: global AngeLite, sign
   assert.equal(btn.textContent, '2 HI');
 });
 
+test('dist/angelite-runtime.min.js is template-compiler free: it mounts precompiled templates only', { skip: !has('angelite-runtime.min.js') && 'dist/ not built' }, async () => {
+  const w = page();
+  w.eval(read('angelite-runtime.min.js'));
+  const { signal, component, mount } = w.AngeLite;
+  class C { n = signal(1); }
+  assert.throws(() => { component(C, { selector: 'x-c', template: '<i>{{ n() }}</i>' }); mount(C, w.document.getElementById('app')); }, /no template compiler/);
+  const { compileTemplate } = await import('../tools/aot.mjs');
+  const source = compileTemplate('<i id="i">{{ n() }}</i>').replace('export default', 'globalThis.__aot =');
+  w.eval(source);
+  class D { n = signal(5); }
+  component(D, { selector: 'x-d', aot: w.__aot });
+  mount(D, w.document.getElementById('app'));
+  assert.equal(w.document.getElementById('i').textContent, '5');
+});
+
 test('dist/angelite-ui.min.js adds the component library on top of the lite bundle', { skip }, async () => {
   const w = page();
   w.eval(read('angelite-lite.min.js'));

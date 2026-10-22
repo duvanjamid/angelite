@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### AngeLite Lite — runtime split and ahead-of-time templates
+- Lite is now split into a template-free **runtime** (`@duvanjamid/angelite/lite/runtime`, ~4.5 KB gzip), a backend-agnostic **compiler** and an **in-browser backend** (`jit.js`). `@duvanjamid/angelite/lite` still compiles templates in the browser, with no build step.
+- `tools/aot.mjs` (CLI + esbuild plugin) compiles templates to JS at build time so apps ship only the runtime. A test asserts precompiled templates render exactly like in-browser ones.
+- The expression parser is single-pass with a pluggable emitter (closures in the browser, JS source in the AOT tool) and is ~40% smaller.
+- Built-in pipes are opt-in (`@duvanjamid/angelite/lite/pipes`; the full bundle includes them); the router is tree-shakable.
+- `benchmarks/` gains the `lite-aot` app: the same table app with a precompiled template.
+
 ### AngeLite Lite (new, `@duvanjamid/angelite/lite`)
 - New minimal core in `src/lite/` (~8 KB min+gzip vs ~16 KB for the full bundle): signals (`signal`, `computed`, `effect`), templates with `@if`/`@else`/`@for`/`@empty`, `[prop]`/`(event)`/`[(ngModel)]` bindings, components with `input()`/`output()`/`<ng-content>`, pipes, `inject()` and a hash router.
 - Updates are batched per view and only write to the DOM when a value actually changed.

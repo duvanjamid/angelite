@@ -1,4 +1,6 @@
-/** Built-in pipes. Add your own with registerPipe(name, fn). */
+/** Built-in pipes (opt-in: importing this module registers them). Add your own with registerPipe(name, fn). */
+
+import { pipes } from './runtime.js';
 
 const date = (v, style) => {
   const d = v instanceof Date ? v : new Date(v);
@@ -10,7 +12,7 @@ const date = (v, style) => {
       : d.toLocaleDateString();
 };
 
-export const pipes = {
+Object.assign(pipes, {
   uppercase: v => String(v ?? '').toUpperCase(),
   lowercase: v => String(v ?? '').toLowerCase(),
   titlecase: v => String(v ?? '').replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase()),
@@ -20,8 +22,4 @@ export const pipes = {
   currency: (v, code = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency: code }).format(v),
   slice: (v, start, end) => (v == null ? v : v.slice(start, end)),
   date
-};
-
-export function registerPipe(name, fn) {
-  pipes[name] = fn;
-}
+});

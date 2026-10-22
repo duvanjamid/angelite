@@ -25,14 +25,14 @@ const full = {
 };
 
 const lite = {
-  input: 'src/lite/index.js',
+  input: 'src/lite/full.js',
   output: [
     { file: 'dist/angelite-lite.esm.js', format: 'esm' },
     { file: 'dist/angelite-lite.min.js', format: 'iife', name: 'AngeLite', plugins: [terser()] }
   ]
 };
 
-const liteId = id => /lite\/index\.js$/.test(id);
+const liteId = id => /lite\/(index|full)\.js$/.test(id);
 
 const ui = {
   input: 'src/ui/index.js',
@@ -43,4 +43,20 @@ const ui = {
   ]
 };
 
-export default [full, lite, ui];
+// runtime only (no template compiler): for precompiled templates, see tools/aot.mjs
+const runtime = {
+  input: 'src/lite/api.js',
+  output: [
+    { file: 'dist/angelite-runtime.esm.js', format: 'esm' },
+    { file: 'dist/angelite-runtime.min.js', format: 'iife', name: 'AngeLite', plugins: [terser()] }
+  ]
+};
+
+// built-in pipes for the runtime-only build: shares the runtime's pipe registry
+const pipesBuild = {
+  input: 'src/lite/pipes.js',
+  external: id => /lite\/runtime\.js$/.test(id),
+  output: { file: 'dist/angelite-pipes.esm.js', format: 'esm', paths: () => './angelite-runtime.esm.js' }
+};
+
+export default [full, lite, runtime, pipesBuild, ui];
