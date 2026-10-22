@@ -1,9 +1,11 @@
 /**
- * Directivas estructurales modernas para Lagunlar
+ * Directivas estructurales modernas para AngeLite
  * Implementa la sintaxis @ similar a Angular 20
  */
 
 import { registerDirective } from './directive-processor.js';
+import { evaluate, safeEvaluate, interpolate } from '../utils/expression.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * @if - Directiva condicional moderna
@@ -92,25 +94,7 @@ class IfDirective {
   }
   
   evaluateExpression(expr) {
-    try {
-      // Evaluación simple para demostración
-      if (expr.includes('.')) {
-        const parts = expr.split('.');
-        let value = this.context;
-        
-        for (const part of parts) {
-          if (value === null || value === undefined) return false;
-          value = value[part];
-        }
-        
-        return Boolean(value);
-      }
-      
-      return Boolean(this.context[expr]);
-    } catch (e) {
-      console.error('Error evaluando expresión:', expr, e);
-      return false;
-    }
+    return Boolean(safeEvaluate(expr, this.context, false));
   }
 }
 
@@ -160,11 +144,11 @@ class ForDirective {
     const itemOfPart = mainParts[0].trim();
     
     // Extraer la parte "item of items"
-    const match = itemOfPart.match(/(\w+)\s+of\s+(\w+)/);
+    const match = itemOfPart.match(/(\w+)\s+of\s+(.+)/);
     if (!match) return;
     
     const [, itemName, arrayName] = match;
-    const array = this.context[arrayName];
+    const array = safeEvaluate(arrayName.trim(), this.context, null);
     
     if (!Array.isArray(array)) return;
     
@@ -248,32 +232,11 @@ class ForDirective {
   }
   
   processInterpolation(template, context) {
-    return template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
-      try {
-        return this.evaluateExpression(expr.trim(), context);
-      } catch (e) {
-        console.error('Error evaluando expresión:', expr, e);
-        return '';
-      }
-    });
+    return interpolate(template, context);
   }
   
   evaluateExpression(expr, context) {
-    // Manejar acceso a propiedades con notación de punto
-    if (expr.includes('.')) {
-      const parts = expr.split('.');
-      let value = context;
-      
-      for (const part of parts) {
-        if (value === null || value === undefined) return '';
-        value = value[part];
-      }
-      
-      return value;
-    }
-    
-    // Manejar acceso simple a propiedades
-    return context[expr];
+    return evaluate(expr, context);
   }
 }
 
@@ -358,25 +321,7 @@ class SwitchDirective {
   }
   
   evaluateExpression(expr) {
-    try {
-      // Evaluación simple para demostración
-      if (expr.includes('.')) {
-        const parts = expr.split('.');
-        let value = this.context;
-        
-        for (const part of parts) {
-          if (value === null || value === undefined) return null;
-          value = value[part];
-        }
-        
-        return value;
-      }
-      
-      return this.context[expr];
-    } catch (e) {
-      console.error('Error evaluando expresión:', expr, e);
-      return null;
-    }
+    return safeEvaluate(expr, this.context, null);
   }
 }
 

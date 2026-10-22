@@ -309,3 +309,17 @@ We welcome contributions to AngeLite! Please see our [Contributing Guide](./CONT
 
 AngeLite is [MIT licensed](./LICENSE).
 
+
+## AngeLite Lite
+
+A ~8 KB (min+gzip) signals-based core, as fast as Preact/Vue and the lightest on memory in our benchmark, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html).
+
+## Development
+
+```bash
+npm install
+npm test        # run the test suite
+npm run build   # bundle to dist/
+```
+
+Debug logging is off by default; enable it with `AngeLite.setDebug(true)`.

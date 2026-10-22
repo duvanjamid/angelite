@@ -1,7 +1,7 @@
 /**
- * User Component for Lagunlar Test App
+ * User Component for AngeLite Test App
  */
-import { Component } from '../../src/lagunlar.js';
+import { Component } from '../../src/angelite.js';
 
 export class UserComponent {
     constructor() {

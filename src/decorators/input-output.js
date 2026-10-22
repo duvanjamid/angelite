@@ -1,5 +1,5 @@
 /**
- * Decoradores Input y Output para Lagunlar
+ * Decoradores Input y Output para AngeLite
  * Implementa comunicación entre componentes similar a Angular
  */
 

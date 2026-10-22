@@ -1,5 +1,5 @@
 /**
- * Directive decorator for Lagunlar
+ * Directive decorator for AngeLite
  * Provides Angular-like directive functionality
  */
 

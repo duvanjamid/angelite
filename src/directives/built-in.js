@@ -1,10 +1,11 @@
 /**
- * Built-in directives for Lagunlar
+ * Built-in directives for AngeLite
  * Provides Angular-like directive functionality
  */
 
 import { Directive } from '../decorators/directive.js';
 import { registerDirective } from './directive-processor.js';
+import { safeEvaluate, interpolate } from '../utils/expression.js';
 
 /**
  * NgIf directive - conditionally renders elements
@@ -36,25 +37,7 @@ export class NgIf {
   }
   
   evaluateExpression(expr) {
-    try {
-      // Simple evaluation for demo
-      if (expr.includes('.')) {
-        const parts = expr.split('.');
-        let value = this.context;
-        
-        for (const part of parts) {
-          if (value === null || value === undefined) return false;
-          value = value[part];
-        }
-        
-        return Boolean(value);
-      }
-      
-      return Boolean(this.context[expr]);
-    } catch (e) {
-      console.error('Error evaluating expression:', expr, e);
-      return false;
-    }
+    return Boolean(safeEvaluate(expr, this.context, false));
   }
 }
 
@@ -86,11 +69,11 @@ export class NgFor {
   
   processNgFor(expression) {
     // Parse "let item of items" syntax
-    const match = expression.match(/let\s+(\w+)\s+of\s+(\w+)/);
+    const match = expression.match(/let\s+(\w+)\s+of\s+(.+)/);
     if (!match) return;
     
     const [, itemName, arrayName] = match;
-    const array = this.context[arrayName];
+    const array = safeEvaluate(arrayName.trim(), this.context, null);
     
     if (!Array.isArray(array)) return;
     
@@ -117,17 +100,8 @@ export class NgFor {
     
     // Create elements for each item
     array.forEach((item, index) => {
-      // Replace item variable in template
-      let itemTemplate = template.replace(
-        new RegExp(`{{\\s*${itemName}\\s*}}`, 'g'),
-        item
-      );
-      
-      // Replace index variable in template
-      itemTemplate = itemTemplate.replace(
-        new RegExp(`{{\\s*index\\s*}}`, 'g'),
-        index
-      );
+      // Interpolate (values are HTML-escaped)
+      const itemTemplate = interpolate(template, { ...this.context, [itemName]: item, index });
       
       // Create element from template
       const div = document.createElement('div');

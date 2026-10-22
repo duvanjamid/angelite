@@ -1,5 +1,5 @@
 /**
- * Virtual DOM implementation for Lagunlar
+ * Virtual DOM implementation for AngeLite
  * Lightweight virtual DOM implementation
  */
 

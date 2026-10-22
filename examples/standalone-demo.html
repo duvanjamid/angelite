@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Standalone Demo</title>
+    <title>AngeLite Standalone Demo</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -133,11 +133,11 @@
     </style>
 </head>
 <body>
-    <h1>Lagunlar Framework Demo</h1>
+    <h1>AngeLite Framework Demo</h1>
     <div id="app"></div>
 
     <script>
-        // Simplified Lagunlar framework implementation
+        // Simplified AngeLite framework implementation
         class MicroAngular {
             constructor() {
                 this.components = new Map();
@@ -315,7 +315,7 @@
         }
 
         // Create global instance
-        const lagunlar = new MicroAngular();
+        const angelite = new MicroAngular();
 
         // Counter Component
         class CounterComponent {
@@ -345,7 +345,7 @@
         }
 
         // Register Counter Component
-        lagunlar.createComponent({
+        angelite.createComponent({
             selector: 'app-counter',
             template: `
                 <div>
@@ -385,7 +385,7 @@
         }
 
         // Register Todo Component
-        lagunlar.createComponent({
+        angelite.createComponent({
             selector: 'app-todo',
             template: `
                 <div>
@@ -431,7 +431,7 @@
         }
 
         // Register User Component
-        lagunlar.createComponent({
+        angelite.createComponent({
             selector: 'app-user',
             template: `
                 <div>
@@ -452,7 +452,7 @@
         // App Component
         class AppComponent {
             constructor() {
-                this.title = 'Lagunlar Demo';
+                this.title = 'AngeLite Demo';
                 this.currentTime = new Date().toLocaleTimeString();
                 this.updateInterval = null;
             }
@@ -473,25 +473,25 @@
                 // Render counter component
                 const counterContainer = document.getElementById('counter-container');
                 if (counterContainer) {
-                    lagunlar.bootstrap(CounterComponent, counterContainer);
+                    angelite.bootstrap(CounterComponent, counterContainer);
                 }
                 
                 // Render todo component
                 const todoContainer = document.getElementById('todo-container');
                 if (todoContainer) {
-                    lagunlar.bootstrap(TodoComponent, todoContainer);
+                    angelite.bootstrap(TodoComponent, todoContainer);
                 }
                 
                 // Render user component
                 const userContainer = document.getElementById('user-container');
                 if (userContainer) {
-                    lagunlar.bootstrap(UserComponent, userContainer);
+                    angelite.bootstrap(UserComponent, userContainer);
                 }
             }
         }
 
         // Register App Component
-        lagunlar.createComponent({
+        angelite.createComponent({
             selector: 'app-root',
             template: `
                 <div class="app-container">
@@ -512,7 +512,7 @@
         // Bootstrap the application when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             const app = document.getElementById('app');
-            lagunlar.bootstrap(AppComponent, app);
+            angelite.bootstrap(AppComponent, app);
         });
     </script>
 </body>

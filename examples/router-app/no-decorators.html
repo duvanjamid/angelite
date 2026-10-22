@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Demo (Sin Decoradores)</title>
+    <title>AngeLite Demo (Sin Decoradores)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -47,11 +47,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Lagunlar Demo (Sin Decoradores)</h1>
+        <h1>AngeLite Demo (Sin Decoradores)</h1>
         <div id="app">
             <div class="card">
                 <h2>Cargando...</h2>
-                <p>Inicializando la aplicación Lagunlar</p>
+                <p>Inicializando la aplicación AngeLite</p>
             </div>
         </div>
     </div>
@@ -78,8 +78,8 @@
             `;
         }
 
-        // Implementación mínima de Lagunlar sin usar módulos ES6
-        const Lagunlar = {
+        // Implementación mínima de AngeLite sin usar módulos ES6
+        const AngeLite = {
             // Componente básico
             createComponent: function(config, ComponentClass) {
                 ComponentClass.prototype._selector = config.selector;
@@ -196,7 +196,7 @@
         // Definir un componente de contador
         function CounterComponent() {
             this.count = 0;
-            this.title = 'Contador de Lagunlar';
+            this.title = 'Contador de AngeLite';
         }
 
         CounterComponent.prototype.increment = function() {
@@ -219,7 +219,7 @@
         };
 
         // Configurar el componente
-        const AppComponent = Lagunlar.createComponent({
+        const AppComponent = AngeLite.createComponent({
             selector: 'app-counter',
             template: `
                 <div class="card">
@@ -231,7 +231,7 @@
                 </div>
                 
                 <div class="card">
-                    <h3>Características implementadas en Lagunlar</h3>
+                    <h3>Características implementadas en AngeLite</h3>
                     <ul>
                         <li>Detección de cambios automática</li>
                         <li>Directivas estructurales modernas (@if, @for, etc.)</li>
@@ -248,7 +248,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const app = document.getElementById('app');
-                Lagunlar.bootstrap(AppComponent, app);
+                AngeLite.bootstrap(AppComponent, app);
             } catch (error) {
                 showError('Error al inicializar la aplicación', error.stack);
             }

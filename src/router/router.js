@@ -1,9 +1,10 @@
 /**
- * Sistema de enrutamiento para Lagunlar
+ * Sistema de enrutamiento para AngeLite
  * Permite la navegación entre diferentes vistas de la aplicación
  */
 
 import { markDirty } from '../core/change-detection.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Clase Route - Define una ruta en la aplicación
@@ -80,7 +81,7 @@ export class Router {
    */
   setOptions(options) {
     this.options = { ...this.options, ...options };
-    console.log('Opciones del router:', this.options);
+    logger.debug('Opciones del router:', this.options);
   }
   
   /**
@@ -92,9 +93,9 @@ export class Router {
     this.routes = routes;
     
     // Imprimir rutas registradas para depuración
-    console.log('Rutas registradas:');
+    logger.debug('Rutas registradas:');
     routes.forEach(route => {
-      console.log(`- Ruta: ${route.path}, Componente: ${route.component ? route.component.name : 'desconocido'}`);
+      logger.debug(`- Ruta: ${route.path}, Componente: ${route.component ? route.component.name : 'desconocido'}`);
     });
     
     this.handleUrlChange();
@@ -113,7 +114,7 @@ export class Router {
       // Modo hash: usar el fragmento de la URL como ruta
       fragment = window.location.hash.slice(1);
       url = fragment || '/';
-      console.log(`handleUrlChange - Modo hash - Fragmento: ${fragment}, URL: ${url}`);
+      logger.debug(`handleUrlChange - Modo hash - Fragmento: ${fragment}, URL: ${url}`);
     } else {
       // Modo HTML5: usar el pathname
       url = window.location.pathname;
@@ -133,7 +134,7 @@ export class Router {
         fragment = window.location.hash.slice(1);
       }
       
-      console.log(`handleUrlChange - Modo HTML5 - URL: ${url}, Fragmento: ${fragment}`);
+      logger.debug(`handleUrlChange - Modo HTML5 - URL: ${url}, Fragmento: ${fragment}`);
     }
     
     // Asegurarse de que la ruta comience con /
@@ -194,14 +195,14 @@ export class Router {
     
     // Normalizar URL - Eliminar la barra inicial para la comparación
     const normalizedUrl = pathUrl.startsWith('/') ? pathUrl.substring(1) : pathUrl;
-    console.log(`matchRoute - URL normalizada: ${normalizedUrl}`);
+    logger.debug(`matchRoute - URL normalizada: ${normalizedUrl}`);
     const urlSegments = normalizedUrl.split('/').filter(segment => segment);
     
     // Si la URL normalizada está vacía, buscar la ruta raíz
     if (!normalizedUrl) {
       for (const route of routes) {
         if (route.path === '' || route.path === '/') {
-          console.log('Encontrada coincidencia con ruta raíz');
+          logger.debug('Encontrada coincidencia con ruta raíz');
           return { route, params: {} };
         }
       }
@@ -214,7 +215,7 @@ export class Router {
       
       // Comprobar coincidencia exacta (para rutas sin parámetros)
       if (normalizedUrl === routePath) {
-        console.log(`Encontrada coincidencia exacta con ruta: ${route.path}`);
+        logger.debug(`Encontrada coincidencia exacta con ruta: ${route.path}`);
         return { route, params: {} };
       }
     }
@@ -235,7 +236,7 @@ export class Router {
       const match = this.matchPath(normalizedUrl, route.path, route.pathMatch);
       
       if (match) {
-        console.log(`Encontrada coincidencia con ruta: ${route.path} usando matchPath`);
+        logger.debug(`Encontrada coincidencia con ruta: ${route.path} usando matchPath`);
         const params = { ...parentParams, ...match.params };
         
         // Si hay rutas hijas, intentar coincidir con ellas
@@ -258,7 +259,7 @@ export class Router {
     // Si no se encuentra ninguna coincidencia, buscar una ruta comodín (**)
     for (const route of routes) {
       if (route.path === '**') {
-        console.log('Usando ruta comodín ** como fallback');
+        logger.debug('Usando ruta comodín ** como fallback');
         return { route, params: {} };
       }
     }
@@ -277,22 +278,22 @@ export class Router {
   matchPath(url, pattern, pathMatch) {
     // Caso especial: ruta raíz y patrón vacío
     if ((url === '/' || url === '') && (pattern === '' || pattern === '/')) {
-      console.log(`Coincidencia especial encontrada para URL: ${url} y patrón: ${pattern}`);
+      logger.debug(`Coincidencia especial encontrada para URL: ${url} y patrón: ${pattern}`);
       return { params: {}, remainingUrl: '' };
     }
     
     // Imprimir valores para depuración
-    console.log(`Comparando URL: ${url} con patrón: ${pattern}`);
+    logger.debug(`Comparando URL: ${url} con patrón: ${pattern}`);
     
     // Normalizar URL y patrón - Eliminar barras iniciales para la comparación
     const normalizedUrl = url.startsWith('/') ? url.substring(1) : url;
     const normalizedPattern = pattern.startsWith('/') ? pattern.substring(1) : pattern;
     
-    console.log(`URL normalizada: ${normalizedUrl}, Patrón normalizado: ${normalizedPattern}`);
+    logger.debug(`URL normalizada: ${normalizedUrl}, Patrón normalizado: ${normalizedPattern}`);
     
     // Comparación directa para rutas exactas (sin parámetros)
     if (normalizedUrl === normalizedPattern) {
-      console.log(`Coincidencia exacta encontrada: ${normalizedUrl} === ${normalizedPattern}`);
+      logger.debug(`Coincidencia exacta encontrada: ${normalizedUrl} === ${normalizedPattern}`);
       return { params: {}, remainingUrl: '' };
     }
     
@@ -428,7 +429,7 @@ export class Router {
       return this.outlets.get(name);
     }
     
-    console.log(`Buscando outlet ${name} en el DOM`);
+    logger.debug(`Buscando outlet ${name} en el DOM`);
     
     // Buscar el elemento router-outlet con el nombre especificado
     let outlet;
@@ -455,7 +456,7 @@ export class Router {
     }
     
     if (outlet) {
-      console.log(`Outlet ${name} encontrado: ${outlet.tagName}`);
+      logger.debug(`Outlet ${name} encontrado: ${outlet.tagName}`);
       
       // Si es un router-outlet, preparar el contenedor para renderizar
       if (outlet.tagName.toLowerCase() === 'router-outlet') {
@@ -470,7 +471,7 @@ export class Router {
         
         // Usar el contenedor como el outlet real
         outlet = container;
-        console.log(`Usando contenedor para el outlet ${name}`);
+        logger.debug(`Usando contenedor para el outlet ${name}`);
       }
       
       // Marcar el elemento como outlet
@@ -481,7 +482,7 @@ export class Router {
     
     // Si todavía no se encuentra el outlet, crear uno temporal
     if (!outlet && this.rootComponent) {
-      console.log(`Creando outlet ${name} temporal`);
+      logger.debug(`Creando outlet ${name} temporal`);
       
       // Crear un contenedor temporal para el outlet
       outlet = document.createElement('div');
@@ -501,7 +502,7 @@ export class Router {
           const main = appRoot.querySelector('main');
           if (main) {
             main.appendChild(outlet);
-            console.log(`Outlet ${name} movido a su ubicación correcta`);
+            logger.debug(`Outlet ${name} movido a su ubicación correcta`);
           }
         }
       }, 500);
@@ -527,7 +528,7 @@ export class Router {
    */
   updateView() {
     if (!this.rootComponent || !this.currentRoute) {
-      console.log('No hay componente raíz o ruta actual definida');
+      logger.debug('No hay componente raíz o ruta actual definida');
       return;
     }
     
@@ -548,7 +549,7 @@ export class Router {
       return;
     }
     
-    console.log(`Renderizando componente ${RouteComponent.name} para URL ${this.currentUrl} en outlet ${outletName}`);
+    logger.debug(`Renderizando componente ${RouteComponent.name} para URL ${this.currentUrl} en outlet ${outletName}`);
     
     // Crear y renderizar el componente
     const routeComponentInstance = new RouteComponent();
@@ -577,7 +578,7 @@ export class Router {
     
     // Renderizar el componente en el outlet
     if (template) {
-      console.log(`Renderizando plantilla de ${RouteComponent.name} en outlet ${outletName}`);
+      logger.debug(`Renderizando plantilla de ${RouteComponent.name} en outlet ${outletName}`);
       
       // Marcar el outlet con la ruta actual para depuración
       outlet.setAttribute('current-route', this.currentUrl);
@@ -784,7 +785,7 @@ export function initializeRouter(routes, rootComponent, options = {}) {
   
   const routerOptions = { ...defaultOptions, ...options };
   
-  console.log('Inicializando router con opciones:', routerOptions);
+  logger.debug('Inicializando router con opciones:', routerOptions);
   
   // Configurar el router
   router.setOptions(routerOptions);

@@ -1,9 +1,11 @@
 /**
- * Renderer for Lagunlar
+ * Renderer for AngeLite
  * Handles virtual DOM diffing and real DOM updates
  */
 
 import { isSameVNode } from './vdom.js';
+import { evaluate as evaluateExpression, escapeHtml } from '../utils/expression.js';
+import { logger } from '../utils/logger.js';
 import { applyDirectives } from '../directives/directive-processor.js';
 import { markDirty, initChangeDetection } from './change-detection.js';
 import { applyInputsToComponent, connectOutputsToParent } from '../decorators/input-output.js';
@@ -14,7 +16,7 @@ import { registerBuiltInPipes } from '../pipes/built-in-pipes.js';
 registerBuiltInPipes();
 
 // Verificar que los pipes se han registrado correctamente
-console.log('Pipes registrados en el sistema:', getRegisteredPipes());
+logger.debug('Pipes registrados en el sistema:', getRegisteredPipes());
 
 // Inicializar el sistema de detección de cambios
 initChangeDetection();
@@ -217,9 +219,9 @@ function processInterpolation(template, context) {
   return template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
     try {
       // Verificar si la expresión contiene pipes
-      if (expr.includes('|')) {
+      if (/(?<!\|)\|(?!\|)/.test(expr)) {
         // Dividir la expresión por el operador de pipe |
-        const parts = expr.split('|').map(part => part.trim());
+        const parts = expr.split(/(?<!\|)\|(?!\|)/).map(part => part.trim());
         const baseExpr = parts[0];
         
         // Evaluar la expresión base
@@ -282,7 +284,7 @@ function processInterpolation(template, context) {
                   currency: currency
                 }).format(Number(value));
               } catch (e) {
-                console.error('Error en pipe currency:', e);
+                logger.error('Error en pipe currency:', e);
               }
               break;
               
@@ -290,7 +292,7 @@ function processInterpolation(template, context) {
               try {
                 value = new Intl.NumberFormat().format(Number(value));
               } catch (e) {
-                console.error('Error en pipe number:', e);
+                logger.error('Error en pipe number:', e);
               }
               break;
               
@@ -302,7 +304,7 @@ function processInterpolation(template, context) {
                   maximumFractionDigits: 2
                 }).format(Number(value));
               } catch (e) {
-                console.error('Error en pipe percent:', e);
+                logger.error('Error en pipe percent:', e);
               }
               break;
               
@@ -310,56 +312,27 @@ function processInterpolation(template, context) {
               try {
                 value = JSON.stringify(value, null, 2);
               } catch (e) {
-                console.error('Error en pipe json:', e);
+                logger.error('Error en pipe json:', e);
               }
               break;
           }
         }
         
         // Asegurarse de que el resultado sea una cadena
-        return value !== undefined && value !== null ? value.toString() : '';
+        return value !== undefined && value !== null ? escapeHtml(value) : '';
       } else {
         // Evaluar expresión simple
-        const result = evaluateExpression(expr.trim(), context);
+        let result = evaluateExpression(expr.trim(), context);
+        if (typeof result === 'function') result = result.call(context);
         
         // Asegurarse de que el resultado sea una cadena
-        return result !== undefined && result !== null ? result.toString() : '';
+        return result !== undefined && result !== null ? escapeHtml(result) : '';
       }
     } catch (e) {
-      console.error('Error evaluando expresión:', expr, e);
+      logger.error('Error evaluando expresión:', expr, e);
       return match; // Devolver la expresión original en caso de error para facilitar la depuración
     }
   });
-}
-
-/**
- * Evaluate an expression in the given context
- * 
- * @param {string} expr - Expression to evaluate
- * @param {Object} context - Context object
- * @returns {*} Evaluated result
- */
-function evaluateExpression(expr, context) {
-  // Handle property access with dot notation
-  if (expr.includes('.')) {
-    const parts = expr.split('.');
-    let value = context;
-    
-    for (const part of parts) {
-      if (value === null || value === undefined) return '';
-      value = value[part];
-      
-      // Handle function calls
-      if (typeof value === 'function') {
-        value = value.call(context);
-      }
-    }
-    
-    return value;
-  }
-  
-  // Handle simple property access
-  return context[expr];
 }
 
 /**

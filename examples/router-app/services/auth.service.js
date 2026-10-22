@@ -28,7 +28,7 @@ export class AuthService {
    * Comprueba si hay un usuario guardado en localStorage
    */
   checkLocalStorage() {
-    const storedUser = localStorage.getItem('lagunlar_user');
+    const storedUser = localStorage.getItem('angelite_user');
     
     if (storedUser) {
       try {
@@ -36,7 +36,7 @@ export class AuthService {
         this.isLoggedIn = true;
       } catch (error) {
         console.error('Error parsing stored user:', error);
-        localStorage.removeItem('lagunlar_user');
+        localStorage.removeItem('angelite_user');
       }
     }
   }
@@ -63,7 +63,7 @@ export class AuthService {
     this.isLoggedIn = true;
     
     // Guardar usuario en localStorage
-    localStorage.setItem('lagunlar_user', JSON.stringify(this.currentUser));
+    localStorage.setItem('angelite_user', JSON.stringify(this.currentUser));
     
     // Notificar a los listeners
     this.notifyAuthChange(true);
@@ -79,7 +79,7 @@ export class AuthService {
     this.isLoggedIn = false;
     
     // Eliminar usuario de localStorage
-    localStorage.removeItem('lagunlar_user');
+    localStorage.removeItem('angelite_user');
     
     // Notificar a los listeners
     this.notifyAuthChange(false);

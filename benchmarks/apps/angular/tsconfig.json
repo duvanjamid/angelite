@@ -1,0 +1,19 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "strict": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "isolatedModules": true,
+    "lib": ["ES2022", "dom"]
+  },
+  "angularCompilerOptions": { "strictTemplates": true },
+  "files": ["src/main.ts"],
+  "include": ["src/**/*.d.ts"]
+}

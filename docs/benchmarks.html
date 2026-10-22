@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AngeLite Lite · Benchmarks</title>
+<style>
+  :root { --bg:#fff; --fg:#1d2330; --muted:#5d667a; --line:#e3e6ee; --accent:#d6336c; --code-bg:#f6f7fb; --card:#fbfbfd;
+    --c-lite:#d6336c; --c-preact:#7c5cff; --c-vue:#2f9e5b; --c-react:#2f6fd6; --c-angular:#d98a00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161d; --fg:#e8eaf1; --muted:#98a1b6; --line:#2a2e3b; --accent:#ff6b9a; --code-bg:#1b1e28; --card:#181b24;
+    --c-lite:#ff6b9a; --c-preact:#a08cff; --c-vue:#4cc88a; --c-react:#6aa0ff; --c-angular:#f0b23c; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:44px 20px 96px; }
+  h1 { font-size:2.1rem; line-height:1.15; margin:0 0 8px; }
+  h2 { margin:52px 0 6px; font-size:1.35rem; padding-top:16px; border-top:1px solid var(--line); }
+  p { margin:8px 0 14px; } .lead { color:var(--muted); font-size:1.12rem; }
+  a { color:var(--accent); }
+  code { font:.9em ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--code-bg); padding:1px 5px; border-radius:4px; }
+  pre { margin:0; padding:14px 16px; overflow-x:auto; background:var(--code-bg); font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace; border-radius:8px; }
+  pre code { background:none; padding:0; }
+  nav { margin:18px 0 0; display:flex; gap:6px 18px; flex-wrap:wrap; font-size:.95rem; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin:14px 0 0; font-size:.9rem; }
+  .legend i, .row i.sw { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; }
+  .chart { border:1px solid var(--line); border-radius:10px; background:var(--card); padding:14px 16px; margin:12px 0; }
+  .chart h3 { margin:0 0 10px; font-size:1rem; }
+  .row { display:grid; grid-template-columns:90px 1fr 92px; gap:10px; align-items:center; margin:5px 0; font-size:.9rem; }
+  .bar { height:14px; border-radius:4px; min-width:2px; }
+  .row .v { text-align:right; font-variant-numeric:tabular-nums; }
+  .row.best .v { font-weight:700; }
+  table { border-collapse:collapse; width:100%; font-size:.9rem; font-variant-numeric:tabular-nums; }
+  th, td { padding:6px 10px; border-bottom:1px solid var(--line); text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  th { color:var(--muted); font-weight:600; }
+  td.best { font-weight:700; color:var(--accent); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:16px 0; }
+  .card { border:1px solid var(--line); border-radius:10px; padding:10px 14px; background:var(--card); }
+  .card b { display:block; font-size:1.45rem; } .card span { color:var(--muted); font-size:.82rem; }
+  .note { border-left:3px solid var(--accent); padding:2px 14px; color:var(--muted); margin:14px 0; }
+  ul { padding-left:20px; } li { margin:4px 0; }
+  .small { font-size:.85rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Benchmarks</h1>
+  <p class="lead">AngeLite Lite frente a Preact, Vue, React y Angular, con la misma aplicación en los cinco: una tabla con 1.000 – 10.000 filas, estilo <i>js-framework-benchmark</i>. Números reales, medidos en Chromium; el resumen está al final de cada sección.</p>
+  <nav><a href="#peso">Peso</a><a href="#arranque">Arranque y memoria</a><a href="#velocidad">Velocidad</a><a href="#lectura">Conclusiones</a><a href="#metodo">Metodología y límites</a><a href="#repro">Reproducir</a><a href="index.html">← Guía</a><a href="components.html">Componentes</a></nav>
+  <div class="legend" id="legend"></div>
+  <div id="summary"></div>
+
+  <h2 id="peso">Peso</h2>
+  <p>JavaScript de la aplicación completa (framework + la tabla), minificado. Es lo que baja el navegador.</p>
+  <div id="size"></div>
+
+  <h2 id="arranque">Arranque y memoria</h2>
+  <p>Arranque: tiempo desde que empieza la navegación hasta que la app está montada (incluye descargar, parsear y ejecutar el JS, en localhost). Memoria: heap de JavaScript tras forzar GC.</p>
+  <div id="startup"></div>
+  <div id="memory"></div>
+
+  <h2 id="velocidad">Velocidad</h2>
+  <p>Mediana en milisegundos de cada operación (menos es mejor): desde que se dispara hasta que el DOM refleja el cambio y se ha calculado el layout.</p>
+  <div id="ops"></div>
+  <div id="score"></div>
+
+  <h2 id="lectura">Lectura honesta</h2>
+  <ul id="reading"></ul>
+
+  <h2 id="metodo">Metodología y límites</h2>
+  <ul>
+    <li><b>Misma app, mismo DOM</b>: <code>table &gt; tbody &gt; tr</code> con 3 celdas, un manejador de clic por fila y la fila seleccionada con clase <code>danger</code>. Los datos salen del mismo generador determinista (<code>benchmarks/apps/shared.js</code>).</li>
+    <li><b>Implementaciones idiomáticas</b>: React 19 con <code>memo</code> + <code>useCallback</code>; Preact (solo núcleo + hooks, <code>shouldComponentUpdate</code> en la fila); Vue 3 con plantilla compilada y <code>shallowRef</code>; Angular 20 con señales, <code>OnPush</code>, <code>@for … track</code> y sin Zone.js (<code>provideZonelessChangeDetection</code>); AngeLite Lite con señales y <code>@for … track</code>.</li>
+    <li><b>Qué se mide</b>: <code>performance.now()</code> hasta que una condición del DOM se cumple (p. ej. «hay 1.000 filas») y se fuerza style + layout. <b>No incluye el pintado</b> (paint/composite). Calentamiento de 2 iteraciones por operación descartadas; las rondas alternan el orden de los frameworks.</li>
+    <li><b>Entorno</b>: <span id="env"></span>. Es un contenedor compartido, sin limitar la CPU: úsalo para comparar <i>entre frameworks en la misma ejecución</i>, no como cifras absolutas. Las diferencias de pocos ms están dentro del ruido; se muestra el p10–p90 al pasar el ratón por cada celda.</li>
+    <li><b>Peso</b>: bundle de producción de cada app con el empaquetador habitual (esbuild para React, Preact y Lite; Vite para Vue; <code>ng build</code> para Angular). Incluye el código de la tabla, idéntico en los cinco. Preact no incluye <code>preact/compat</code>.</li>
+    <li><b>Qué no mide</b>: SSR, hidratación, ecosistema, DevTools, accesibilidad, rendimiento en móvil ni uso real de memoria a largo plazo. Angular y React ofrecen mucho más que Lite; esto compara solo el núcleo de renderizado.</li>
+  </ul>
+
+  <h2 id="repro">Reproducir</h2>
+  <pre><code>cd benchmarks
+npm install
+npm run build     # compila las 5 apps → benchmarks/dist
+npm run bench     # ejecuta la suite → benchmarks/results.json
+ROUNDS=3 ITER=7 npm run bench   # (valores por defecto)</code></pre>
+  <p class="small">Datos generados: <span id="when"></span>. Versiones: <span id="versions"></span>.</p>
+</main>
+<script src="benchmarks-data.js"></script>
+<script>
+(() => {
+  const D = window.BENCH;
+  const FW = ['lite', 'preact', 'vue', 'react', 'angular'];
+  const NAME = { lite: 'AngeLite Lite', preact: 'Preact', vue: 'Vue', react: 'React', angular: 'Angular' };
+  const $ = id => document.getElementById(id);
+  const f = D.frameworks;
+  const fmt = (n, d = 1) => n.toLocaleString('es-ES', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const kb = n => fmt(n / 1024) + ' KB';
+
+  $('legend').innerHTML = FW.map(k => `<span><i style="background:var(--c-${k})"></i>${NAME[k]}</span>`).join('');
+  $('env').textContent = `${D.env.chromium} headless, ${D.env.cpus} CPU (${D.env.cpu}), Node ${D.env.node}, ${D.env.rounds} rondas × ${D.env.iterations} iteraciones`;
+  $('when').textContent = new Date(D.generatedAt).toLocaleString('es-ES');
+  $('versions').textContent = Object.entries(D.versions).map(([k, v]) => `${k === 'lite' ? 'AngeLite' : k} ${v}`).join(' · ');
+
+  function chart(title, values, unit, d = 1, note = '') {
+    const max = Math.max(...FW.map(k => values[k]));
+    const best = Math.min(...FW.map(k => values[k]));
+    return `<div class="chart"><h3>${title}</h3>` + FW.slice().sort((a, b) => values[a] - values[b]).map(k =>
+      `<div class="row${values[k] === best ? ' best' : ''}"><span><i class="sw" style="background:var(--c-${k})"></i>${NAME[k]}</span>
+       <div><div class="bar" style="width:${(values[k] / max * 100).toFixed(1)}%;background:var(--c-${k})"></div></div>
+       <span class="v">${fmt(values[k], d)} ${unit}</span></div>`).join('') + (note ? `<p class="small">${note}</p>` : '') + '</div>';
+  }
+  const pick = fn => Object.fromEntries(FW.map(k => [k, fn(f[k])]));
+
+  $('size').innerHTML =
+    chart('Min + gzip', pick(x => x.size.gzip / 1024), 'KB') +
+    chart('Min + brotli', pick(x => x.size.brotli / 1024), 'KB') +
+    chart('Min (sin comprimir)', pick(x => x.size.raw / 1024), 'KB');
+  $('startup').innerHTML = chart('Arranque (mediana)', pick(x => x.startup.median), 'ms');
+  $('memory').innerHTML =
+    chart('Heap en reposo (0 filas)', pick(x => x.memory.idle), 'MB', 2) +
+    chart('Heap con 1.000 filas', pick(x => x.memory.rows1k), 'MB', 2) +
+    chart('Heap con 10.000 filas', pick(x => x.memory.rows10k), 'MB', 2);
+
+  // operations table
+  const head = '<tr><th>Operación</th>' + FW.map(k => `<th style="color:var(--c-${k})">${NAME[k]}</th>`).join('') + '</tr>';
+  const rel = {};
+  FW.forEach(k => rel[k] = []);
+  const rows = D.benches.map(b => {
+    const vals = FW.map(k => f[k].ops[b.id].median);
+    const best = Math.min(...vals);
+    FW.forEach((k, i) => rel[k].push(vals[i] / best));
+    return `<tr><td>${b.label}</td>` + FW.map((k, i) => {
+      const o = f[k].ops[b.id];
+      return `<td class="${vals[i] === best ? 'best' : ''}" title="p10 ${fmt(o.p10)} – p90 ${fmt(o.p90)} ms (n=${o.n})">${fmt(vals[i])}</td>`;
+    }).join('') + '</tr>';
+  });
+  $('ops').innerHTML = `<div class="chart"><table>${head}${rows.join('')}</table><p class="small">Milisegundos, mediana. En negrita, el más rápido de cada fila.</p></div>`;
+
+  const geo = k => Math.exp(rel[k].reduce((s, r) => s + Math.log(r), 0) / rel[k].length);
+  const score = Object.fromEntries(FW.map(k => [k, geo(k)]));
+  $('score').innerHTML = chart('Puntuación global (media geométrica del tiempo relativo al mejor; 1,00 = el más rápido en todo)', score, '×', 2);
+
+  const bestOf = (vals, low = true) => FW.reduce((a, b) => (low ? vals[b] < vals[a] : vals[b] > vals[a]) ? b : a);
+  const gz = pick(x => x.size.gzip / 1024), st = pick(x => x.startup.median);
+  // data-driven reading, so the text can never drift from the numbers
+  const rank = (vals, k) => FW.slice().sort((a, b) => vals[a] - vals[b]).indexOf(k) + 1;
+  const ord = n => ['primero', 'segundo', 'tercero', 'cuarto', 'quinto'][n - 1];
+  const ratio = (id, other) => f.lite.ops[id].median / f[other].ops[id].median;
+  const fastest = id => FW.reduce((a, b) => f[b].ops[id].median < f[a].ops[id].median ? b : a);
+  const slowOps = D.benches.filter(b => ratio(b.id, fastest(b.id)) > 1.25);
+  const bullets = [
+    `<b>Peso</b>: Lite queda ${ord(rank(pick(x => x.size.gzip), 'lite'))} por tamaño (${fmt(gz.lite)} KB gzip). Es ${fmt(gz.react / gz.lite, 1)}× más ligero que React, ${fmt(gz.angular / gz.lite, 1)}× que Angular y ${fmt(gz.vue / gz.lite, 1)}× que Vue; Preact (${fmt(gz.preact)} KB) es ${fmt(gz.lite / gz.preact, 2)}× más pequeño.`,
+    `<b>Arranque</b>: ${fmt(st.lite, 0)} ms (${ord(rank(st, 'lite'))} de 5), cerca de Preact (${fmt(st.preact, 0)} ms) y muy por debajo de React (${fmt(st.react, 0)} ms).`,
+    `<b>Velocidad</b>: puntuación global ${fmt(score.lite, 2)}× (${NAME[bestOf(score)]} es la mejor con ${fmt(score[bestOf(score)], 2)}×; ${NAME[bestOf(score, false)]}, la peor con ${fmt(score[bestOf(score, false)], 2)}×). ${slowOps.length ? `Lite tarda más de un 25 % más que el mejor en: ${slowOps.map(b => b.label.toLowerCase()).join(', ')}.` : 'No queda más de un 25 % por detrás del mejor en ninguna operación.'} Diferencias de pocos ms o por debajo del ~10 % están dentro del ruido de esta medición.`,
+    `<b>Memoria</b>: con 10.000 filas Lite usa ${fmt(f.lite.memory.rows10k, 1)} MB (${ord(rank(pick(x => x.memory.rows10k), 'lite'))} de 5), frente a ${fmt(f.angular.memory.rows10k, 1)} MB de Angular, ${fmt(f.preact.memory.rows10k, 1)} MB de Preact y ${fmt(f.react.memory.rows10k, 1)} MB de React. Cada fila es un objeto simple y una única vista reactiva, sin señales ni listeners propios.`,
+    `<b>En resumen</b>: ${bestOf(score) === 'lite' ? 'en esta ejecución Lite es la más rápida en conjunto' : 'Lite queda cerca de los mejores en velocidad'} y ${rank(pick(x => x.memory.rows10k), 'lite') === 1 ? 'la que menos memoria usa' : 'usa poca memoria'}; el precio es el peso: Preact sigue siendo ${fmt(gz.lite / gz.preact, 2)}× más pequeño, y Lite no ofrece el ecosistema de React, Vue o Angular.`
+  ];
+  $('reading').innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
+
+  // summary cards
+  const sc = score;
+  $('summary').innerHTML = `<div class="cards">
+    <div class="card"><b>${fmt(gz.lite)} KB</b><span>AngeLite Lite, min+gzip (${NAME[bestOf(gz)]} es el más ligero)</span></div>
+    <div class="card"><b>${fmt(gz.react / gz.lite, 1)}×</b><span>React pesa más que Lite</span></div>
+    <div class="card"><b>${fmt(gz.angular / gz.lite, 1)}×</b><span>Angular pesa más que Lite</span></div>
+    <div class="card"><b>${fmt(sc.lite, 2)}×</b><span>velocidad global de Lite vs el mejor (${NAME[bestOf(sc)]}: ${fmt(sc[bestOf(sc)], 2)}×)</span></div>
+  </div>`;
+})();
+</script>
+</body>
+</html>

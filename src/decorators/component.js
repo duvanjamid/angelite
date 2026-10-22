@@ -1,5 +1,5 @@
 /**
- * Component decorator for Lagunlar
+ * Component decorator for AngeLite
  * Provides Angular-like component definition
  */
 

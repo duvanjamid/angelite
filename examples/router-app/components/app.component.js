@@ -9,7 +9,7 @@ const componentConfig = {
   template: `
     <div class="app-container">
       <header>
-        <h1>Lagunlar Router App</h1>
+        <h1>AngeLite Router App</h1>
         <div>
           <button id="loginBtn" @if="!isLoggedIn">Login</button>
           <button id="logoutBtn" @if="isLoggedIn">Logout</button>
@@ -30,7 +30,7 @@ const componentConfig = {
       </main>
       
       <footer class="footer">
-        <p>Lagunlar Framework Demo - {{ currentYear }}</p>
+        <p>AngeLite Framework Demo - {{ currentYear }}</p>
       </footer>
     </div>
   `

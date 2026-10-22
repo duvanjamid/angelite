@@ -1,7 +1,7 @@
 /**
- * Counter Component for Lagunlar Test App
+ * Counter Component for AngeLite Test App
  */
-import { Component } from '../../src/lagunlar.js';
+import { Component } from '../../src/angelite.js';
 
 export class CounterComponent {
     constructor() {

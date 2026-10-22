@@ -13,9 +13,12 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "http-server -c-1 .",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/*.test.mjs",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js docs/",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
+    "size": "node scripts/check-size.mjs"
   },
   "keywords": [
     "framework",
@@ -40,7 +43,41 @@
   "homepage": "https://github.com/duvanjamid/angelite#readme",
   "devDependencies": {
     "http-server": "^14.1.1",
+    "jsdom": "^29.1.1",
     "rollup": "^2.79.1",
     "rollup-plugin-terser": "^7.0.2"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/angelite.js",
+    "./src/core/*",
+    "./src/decorators/*",
+    "./src/directives/*",
+    "./src/forms/*",
+    "./src/pipes/*",
+    "./src/router/*",
+    "./src/ui/*",
+    "./dist/angelite.js",
+    "./dist/angelite.esm.js",
+    "./dist/angelite.min.js",
+    "./dist/angelite-ui.esm.js",
+    "./dist/angelite-ui.min.js"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/angelite.esm.js",
+      "default": "./dist/angelite.js"
+    },
+    "./lite": {
+      "import": "./dist/angelite-lite.esm.js",
+      "default": "./dist/angelite-lite.min.js"
+    },
+    "./ui": {
+      "import": "./dist/angelite-ui.esm.js",
+      "default": "./dist/angelite-ui.min.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

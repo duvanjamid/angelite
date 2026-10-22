@@ -8,11 +8,11 @@ const componentConfig = {
   selector: 'app-home',
   template: `
     <div class="home-container">
-      <h2>Bienvenido a Lagunlar</h2>
+      <h2>Bienvenido a AngeLite</h2>
       
       <div class="card">
         <h3>Framework ligero con características de Angular</h3>
-        <p>Lagunlar es un framework frontend ligero que funciona directamente en el navegador sin necesidad de compilación.</p>
+        <p>AngeLite es un framework frontend ligero que funciona directamente en el navegador sin necesidad de compilación.</p>
         <p>Esta aplicación de ejemplo demuestra las siguientes características:</p>
         
         <ul>
@@ -78,7 +78,7 @@ class HomeComponentClass {
   constructor() {
     // Valores originales
     this.currentDate = new Date();
-    this.message = 'Bienvenido a Lagunlar';
+    this.message = 'Bienvenido a AngeLite';
     this.price = 99.99;
     this.number = 1234.5678;
     this.percentage = 0.7856;
@@ -88,7 +88,7 @@ class HomeComponentClass {
       role: 'admin'
     };
     this.showContent = true;
-    this.items = ['Angular', 'React', 'Vue', 'Svelte', 'Lagunlar'];
+    this.items = ['Angular', 'React', 'Vue', 'Svelte', 'AngeLite'];
     this.selectedOption = 0;
     
     // Sobrescribir los getters para que los pipes funcionen

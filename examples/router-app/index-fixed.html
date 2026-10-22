@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Router App</title>
+    <title>AngeLite Router App</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,7 +154,7 @@
     <div id="app">
         <div class="card">
             <h2>Cargando aplicación...</h2>
-            <p>Por favor espere mientras se inicializa Lagunlar.</p>
+            <p>Por favor espere mientras se inicializa AngeLite.</p>
         </div>
     </div>
 
@@ -174,8 +174,8 @@
         
         // Importar todos los módulos necesarios
         try {
-            // Importar Lagunlar
-            const LagunlarModule = await import('../../src/lagunlar.js');
+            // Importar AngeLite
+            const AngeLiteModule = await import('../../src/angelite.js');
             
             // Importar componentes y servicios
             const AppComponentModule = await import('./components/app.component.js');
@@ -207,24 +207,24 @@
             
             // Definir las rutas
             const routes = [
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: '',
                     component: HomeComponent
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: 'home',
                     component: HomeComponent
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: 'about',
                     component: AboutComponent
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: 'users',
                     component: UsersComponent,
                     guards: [AuthGuard]
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: 'users/:id',
                     component: UserDetailComponent,
                     guards: [AuthGuard],
@@ -233,18 +233,18 @@
                         title: 'User Detail'
                     }
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: 'forms',
                     component: FormExampleComponent
                 }),
-                new LagunlarModule.Route({
+                new AngeLiteModule.Route({
                     path: '**',
                     component: NotFoundComponent
                 })
             ];
 
             // Inicializar el router
-            LagunlarModule.initializeRouter(routes, AppComponent);
+            AngeLiteModule.initializeRouter(routes, AppComponent);
 
             // Inicializar servicios
             new UserService();
@@ -253,13 +253,13 @@
             // Inicializar la aplicación
             document.addEventListener('DOMContentLoaded', () => {
                 const app = document.getElementById('app');
-                LagunlarModule.bootstrap(AppComponent, app);
+                AngeLiteModule.bootstrap(AppComponent, app);
             });
             
             // Si el evento DOMContentLoaded ya ocurrió, inicializar ahora
             if (document.readyState === 'complete' || document.readyState === 'interactive') {
                 const app = document.getElementById('app');
-                LagunlarModule.bootstrap(AppComponent, app);
+                AngeLiteModule.bootstrap(AppComponent, app);
             }
         } catch (error) {
             console.error('Error al inicializar la aplicación:', error);
@@ -268,7 +268,7 @@
                     <h2>Error al inicializar la aplicación</h2>
                     <p><strong>Mensaje:</strong> ${error.message}</p>
                     <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
-                    <p>Verifica que los archivos de Lagunlar existen y están correctamente estructurados.</p>
+                    <p>Verifica que los archivos de AngeLite existen y están correctamente estructurados.</p>
                 </div>
             `;
         }

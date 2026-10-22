@@ -185,7 +185,7 @@ class FormExampleComponentClass {
       }),
       interests: this.formBuilder.array([
         ['Angular'],
-        ['Lagunlar']
+        ['AngeLite']
       ]),
       acceptTerms: [false, Validators.required()]
     });
@@ -255,7 +255,7 @@ class FormExampleComponentClass {
       },
       interests: [
         'Angular',
-        'Lagunlar'
+        'AngeLite'
       ],
       acceptTerms: false
     });

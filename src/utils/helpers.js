@@ -1,5 +1,5 @@
 /**
- * Helper utilities for Lagunlar
+ * Helper utilities for AngeLite
  */
 
 /**

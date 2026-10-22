@@ -1,13 +1,15 @@
 /**
- * Sistema de Pipes para Lagunlar
+ * Sistema de Pipes para AngeLite
  * Permite transformar datos en las plantillas
  */
+
+import { logger } from '../utils/logger.js';
 
 // Registro global de pipes
 const pipeRegistry = new Map();
 
 // Exponer el registro de pipes para depuración
-window.pipeRegistry = pipeRegistry;
+if (typeof window !== 'undefined') window.pipeRegistry = pipeRegistry;
 
 /**
  * Devuelve una lista de los nombres de los pipes registrados
@@ -103,7 +105,7 @@ export function applyPipe(pipeName, value, ...args) {
     
     // Aplicar el pipe y convertir el resultado a string si es necesario
     const result = pipe.transform(value, ...args);
-    console.log(`Pipe '${pipeName}' aplicado: ${value} -> ${result}`);
+    logger.debug(`Pipe '${pipeName}' aplicado: ${value} -> ${result}`);
     return result;
   } catch (e) {
     console.error(`Error al aplicar el pipe ${pipeName}:`, e);
@@ -121,7 +123,7 @@ export function applyPipe(pipeName, value, ...args) {
  */
 export function processPipeExpression(expression, context) {
   try {
-    console.log(`Procesando expresión con pipes: ${expression}`);
+    logger.debug(`Procesando expresión con pipes: ${expression}`);
     
     // Dividir la expresión por el operador de pipe |
     const parts = expression.split('|').map(part => part.trim());
@@ -131,7 +133,7 @@ export function processPipeExpression(expression, context) {
     
     // Evaluar la expresión base
     let value = evaluateExpression(baseExpr, context);
-    console.log(`Valor base para '${baseExpr}':`, value);
+    logger.debug(`Valor base para '${baseExpr}':`, value);
     
     // Aplicar cada pipe en secuencia
     for (let i = 1; i < parts.length; i++) {
@@ -142,7 +144,7 @@ export function processPipeExpression(expression, context) {
       const pipeName = pipeSegments[0].trim();
       const argExpressions = pipeSegments.slice(1).map(p => p.trim());
       
-      console.log(`Aplicando pipe '${pipeName}' con argumentos:`, argExpressions);
+      logger.debug(`Aplicando pipe '${pipeName}' con argumentos:`, argExpressions);
       
       // Evaluar los argumentos
       const args = argExpressions.map(arg => {
@@ -168,7 +170,7 @@ export function processPipeExpression(expression, context) {
         case 'uppercase':
           if (window.uppercasePipe) {
             value = window.uppercasePipe.transform(value);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -176,7 +178,7 @@ export function processPipeExpression(expression, context) {
         case 'lowercase':
           if (window.lowercasePipe) {
             value = window.lowercasePipe.transform(value);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -184,7 +186,7 @@ export function processPipeExpression(expression, context) {
         case 'titlecase':
           if (window.titlecasePipe) {
             value = window.titlecasePipe.transform(value);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -192,7 +194,7 @@ export function processPipeExpression(expression, context) {
         case 'date':
           if (window.datePipe) {
             value = window.datePipe.transform(value, ...args);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -200,7 +202,7 @@ export function processPipeExpression(expression, context) {
         case 'currency':
           if (window.currencyPipe) {
             value = window.currencyPipe.transform(value, ...args);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -208,7 +210,7 @@ export function processPipeExpression(expression, context) {
         case 'number':
           if (window.numberPipe) {
             value = window.numberPipe.transform(value, ...args);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -216,7 +218,7 @@ export function processPipeExpression(expression, context) {
         case 'percent':
           if (window.percentPipe) {
             value = window.percentPipe.transform(value, ...args);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -224,7 +226,7 @@ export function processPipeExpression(expression, context) {
         case 'json':
           if (window.jsonPipe) {
             value = window.jsonPipe.transform(value);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -232,7 +234,7 @@ export function processPipeExpression(expression, context) {
         case 'slice':
           if (window.slicePipe) {
             value = window.slicePipe.transform(value, ...args);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -240,7 +242,7 @@ export function processPipeExpression(expression, context) {
         case 'async':
           if (window.asyncPipe) {
             value = window.asyncPipe.transform(value);
-            console.log(`Pipe '${pipeName}' aplicado directamente:`, value);
+            logger.debug(`Pipe '${pipeName}' aplicado directamente:`, value);
             continue;
           }
           break;
@@ -250,7 +252,7 @@ export function processPipeExpression(expression, context) {
       try {
         const prevValue = value;
         value = applyPipe(pipeName, value, ...args);
-        console.log(`Pipe '${pipeName}' aplicado a través del registro: ${prevValue} -> ${value}`);
+        logger.debug(`Pipe '${pipeName}' aplicado a través del registro: ${prevValue} -> ${value}`);
       } catch (e) {
         console.error(`Error al aplicar el pipe '${pipeName}':`, e);
         // Si el pipe falla, mantener el valor anterior

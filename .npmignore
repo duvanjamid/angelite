@@ -1,6 +1,5 @@
 # Archivos de desarrollo
 .git/
-.github/
 .gitignore
 .npmignore
 .windsurf/
