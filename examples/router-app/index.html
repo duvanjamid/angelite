@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Router App</title>
+    <title>AngeLite Router App</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,18 +154,18 @@
     <div id="app">
         <div class="card">
             <h2>Cargando aplicación...</h2>
-            <p>Por favor espere mientras se inicializa Lagunlar.</p>
+            <p>Por favor espere mientras se inicializa AngeLite.</p>
         </div>
     </div>
 
-    <!-- Importar Lagunlar como módulo -->
+    <!-- Importar AngeLite como módulo -->
     <script type="module">
-        // Importar Lagunlar y asignarlo a window para uso global
-        import * as LagunlarModule from '../../src/lagunlar.js';
-        window.Lagunlar = LagunlarModule;
+        // Importar AngeLite y asignarlo a window para uso global
+        import * as AngeLiteModule from '../../src/angelite.js';
+        window.AngeLite = AngeLiteModule;
         
-        // Verificar que Lagunlar se ha cargado correctamente
-        console.log('Lagunlar cargado correctamente:', window.Lagunlar);
+        // Verificar que AngeLite se ha cargado correctamente
+        console.log('AngeLite cargado correctamente:', window.AngeLite);
         // Capturar errores de carga
         window.addEventListener('error', function(e) {
             console.error('Error de carga:', e.message, e.filename);
@@ -179,14 +179,14 @@
             `;
         }, true);
         
-        // Usar el objeto global Lagunlar
+        // Usar el objeto global AngeLite
         try {
-            // Verificar que Lagunlar se ha cargado correctamente
-            if (!window.Lagunlar) {
-                throw new Error('El objeto global Lagunlar no está disponible');
+            // Verificar que AngeLite se ha cargado correctamente
+            if (!window.AngeLite) {
+                throw new Error('El objeto global AngeLite no está disponible');
             }
             
-            console.log('Lagunlar cargado correctamente:', window.Lagunlar);
+            console.log('AngeLite cargado correctamente:', window.AngeLite);
             
             // Importar componentes y servicios
             const AppComponentModule = await import('./components/app.component.js');
@@ -218,24 +218,24 @@
             
             // Definir las rutas
             const routes = [
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: '',
                     component: HomeComponent
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: 'home',
                     component: HomeComponent
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: 'about',
                     component: AboutComponent
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: 'users',
                     component: UsersComponent,
                     guards: [AuthGuard]
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: 'users/:id',
                     component: UserDetailComponent,
                     guards: [AuthGuard],
@@ -244,11 +244,11 @@
                         title: 'User Detail'
                     }
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: 'forms',
                     component: FormExampleComponent
                 }),
-                new Lagunlar.Route({
+                new AngeLite.Route({
                     path: '**',
                     component: NotFoundComponent
                 })
@@ -261,7 +261,7 @@
             };
             
             console.log('Inicializando router con opciones:', routerOptions);
-            Lagunlar.initializeRouter(routes, AppComponent, routerOptions);
+            AngeLite.initializeRouter(routes, AppComponent, routerOptions);
 
             // Inicializar servicios
             new UserService();
@@ -271,7 +271,7 @@
             function initApp() {
                 console.log('Inicializando aplicación...');
                 const app = document.getElementById('app');
-                Lagunlar.bootstrap(AppComponent, app);
+                AngeLite.bootstrap(AppComponent, app);
                 console.log('Aplicación inicializada');
             }
             
@@ -308,7 +308,7 @@
                     <h2>Error al inicializar la aplicación</h2>
                     <p><strong>Mensaje:</strong> ${error.message}</p>
                     <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
-                    <p>Verifica que los archivos de Lagunlar existen y están correctamente estructurados.</p>
+                    <p>Verifica que los archivos de AngeLite existen y están correctamente estructurados.</p>
                 </div>
             `;
         }

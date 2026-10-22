@@ -1,6 +1,6 @@
-# Lagunlar Framework - Roadmap de Desarrollo
+# AngeLite Framework - Roadmap de Desarrollo
 
-Este documento describe las características pendientes por implementar en el framework Lagunlar para convertirlo en una solución completa para proyectos de gran escala.
+Este documento describe las características pendientes por implementar en el framework AngeLite para convertirlo en una solución completa para proyectos de gran escala.
 
 ## Características Pendientes
 

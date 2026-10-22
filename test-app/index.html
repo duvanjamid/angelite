@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Test App</title>
+    <title>AngeLite Test App</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <h1>Lagunlar Framework Demo</h1>
+    <h1>AngeLite Framework Demo</h1>
     <div id="app"></div>
 
     <!-- Include the framework -->
     <script type="module">
-        // Import Lagunlar framework
-        import { Component, bootstrap } from '../src/lagunlar.js';
+        // Import AngeLite framework
+        import { Component, bootstrap } from '../src/angelite.js';
         import { CounterComponent } from './components/counter.component.js';
         import { TodoComponent } from './components/todo.component.js';
         import { UserComponent } from './components/user.component.js';
@@ -21,7 +21,7 @@
         // Define the root component
         class AppComponent {
             constructor() {
-                this.title = 'Lagunlar Demo';
+                this.title = 'AngeLite Demo';
                 this.currentTime = new Date().toLocaleTimeString();
                 this.updateInterval = null;
             }

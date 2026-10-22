@@ -8,12 +8,12 @@ const componentConfig = {
   selector: 'app-about',
   template: `
     <div class="about-container">
-      <h2>Acerca de Lagunlar</h2>
+      <h2>Acerca de AngeLite</h2>
       
       <div class="card">
-        <h3>¿Qué es Lagunlar?</h3>
-        <p>Lagunlar es un framework frontend ligero inspirado en Angular, diseñado para funcionar directamente en el navegador sin necesidad de compilación.</p>
-        <p>El objetivo de Lagunlar es proporcionar una experiencia de desarrollo similar a Angular pero con un enfoque más ligero y sin necesidad de herramientas de compilación.</p>
+        <h3>¿Qué es AngeLite?</h3>
+        <p>AngeLite es un framework frontend ligero inspirado en Angular, diseñado para funcionar directamente en el navegador sin necesidad de compilación.</p>
+        <p>El objetivo de AngeLite es proporcionar una experiencia de desarrollo similar a Angular pero con un enfoque más ligero y sin necesidad de herramientas de compilación.</p>
       </div>
       
       <div class="card">

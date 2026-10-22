@@ -2,6 +2,7 @@
  * AngeLite - A lightweight framework with Angular's features that runs directly in the browser
  */
 
+import { setDebug } from './utils/logger.js';
 import { Component } from './decorators/component.js';
 import { Directive } from './decorators/directive.js';
 import { Injectable } from './decorators/injectable.js';
@@ -104,6 +105,7 @@ registerFormDirectives();
 
 // Export public API
 export {
+  setDebug,
   Component,
   Directive,
   Injectable,
@@ -187,7 +189,8 @@ export {
 };
 
 // Global namespace for browser usage without modules
-window.AngeLite = {
+if (typeof window !== 'undefined') window.AngeLite = {
+  setDebug,
   Component,
   Directive,
   Injectable,

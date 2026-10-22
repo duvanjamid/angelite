@@ -1,7 +1,10 @@
 /**
- * Directive processor for Lagunlar
+ * Directive processor for AngeLite
  * Handles applying directives to DOM elements
  */
+
+import { evaluate as evaluateExpression, safeEvaluate, interpolate as processInterpolation } from '../utils/expression.js';
+import { logger } from '../utils/logger.js';
 
 // Registry of available directives
 const directiveRegistry = new Map();
@@ -100,8 +103,8 @@ function processModernDirectives(element, context) {
           const expression = attr.value;
           if (expression) {
             // Evaluar la expresión en el contexto del componente
-            const result = evaluateExpression(expression, context);
-            directive.value = result;
+            // Directives like @for use their own syntax, so failures are non-fatal
+            directive.value = safeEvaluate(expression, context, undefined);
           }
           
           // Inicializar la directiva
@@ -115,12 +118,12 @@ function processModernDirectives(element, context) {
           }
           element._directives.push(directive);
           
-          console.log(`Directiva ${directiveName} aplicada con éxito`, directive);
+          logger.debug(`Directiva ${directiveName} aplicada con éxito`, directive);
         } catch (e) {
-          console.error(`Error al procesar directiva ${directiveName}:`, e);
+          logger.error(`Error al procesar directiva ${directiveName}:`, e);
         }
       } else {
-        console.warn(`Directiva no registrada: ${directiveName}`);
+        logger.warn(`Directiva no registrada: ${directiveName}`);
       }
     }
   }
@@ -166,11 +169,11 @@ function processStructuralDirectives(element, context) {
  */
 function processNgFor(element, expression, context) {
   // Parse "let item of items" syntax
-  const match = expression.match(/let\s+(\w+)\s+of\s+(\w+)/);
+  const match = expression.match(/let\s+(\w+)\s+of\s+(.+)/);
   if (!match) return;
   
   const [, itemName, arrayName] = match;
-  const array = evaluateExpression(arrayName, context);
+  const array = evaluateExpression(arrayName.trim(), context);
   
   if (!Array.isArray(array)) return;
   
@@ -296,52 +299,4 @@ function applyDirective(element, DirectiveClass, context) {
   if (directive.ngOnInit) {
     directive.ngOnInit();
   }
-}
-
-/**
- * Process interpolation in templates ({{ expression }})
- * 
- * @param {string} template - Template string
- * @param {Object} context - Component context
- * @returns {string} Processed template
- */
-function processInterpolation(template, context) {
-  return template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, expr) => {
-    try {
-      return evaluateExpression(expr.trim(), context);
-    } catch (e) {
-      console.error('Error evaluating expression:', expr, e);
-      return '';
-    }
-  });
-}
-
-/**
- * Evaluate an expression in the given context
- * 
- * @param {string} expr - Expression to evaluate
- * @param {Object} context - Context object
- * @returns {*} Evaluated result
- */
-function evaluateExpression(expr, context) {
-  // Handle property access with dot notation
-  if (expr.includes('.')) {
-    const parts = expr.split('.');
-    let value = context;
-    
-    for (const part of parts) {
-      if (value === null || value === undefined) return '';
-      value = value[part];
-      
-      // Handle function calls
-      if (typeof value === 'function') {
-        value = value.call(context);
-      }
-    }
-    
-    return value;
-  }
-  
-  // Handle simple property access
-  return context[expr];
 }

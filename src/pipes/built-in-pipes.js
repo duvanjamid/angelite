@@ -1,9 +1,10 @@
 /**
- * Pipes incorporados para Lagunlar
+ * Pipes incorporados para AngeLite
  * Implementa transformadores de datos comunes
  */
 
 import { Pipe } from './pipe.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Pipe UpperCasePipe - Convierte texto a mayúsculas
@@ -367,7 +368,7 @@ export class TitleCasePipe {
 
 // Registrar todos los pipes incorporados
 export function registerBuiltInPipes() {
-  console.log('Registrando pipes incorporados...');
+  logger.debug('Registrando pipes incorporados...');
   
   // Crear instancias de los pipes directamente para asegurar que estén disponibles inmediatamente
   window.uppercasePipe = new UpperCasePipe();
@@ -393,5 +394,5 @@ export function registerBuiltInPipes() {
   Pipe({ name: 'slice' })(SlicePipe);
   Pipe({ name: 'async', pure: false })(AsyncPipe);
   
-  console.log('Pipes incorporados registrados correctamente');
+  logger.debug('Pipes incorporados registrados correctamente');
 }

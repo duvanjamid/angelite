@@ -1,5 +1,5 @@
 /**
- * Injectable decorator for Lagunlar
+ * Injectable decorator for AngeLite
  * Provides Angular-like dependency injection
  */
 

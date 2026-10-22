@@ -1,5 +1,5 @@
 /**
- * Resolvers para Lagunlar Router
+ * Resolvers para AngeLite Router
  * Permite cargar datos antes de activar una ruta
  */
 

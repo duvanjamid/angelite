@@ -1,5 +1,5 @@
 /**
- * Sistema de detección de cambios para Lagunlar
+ * Sistema de detección de cambios para AngeLite
  * Implementa un mecanismo automático para detectar y aplicar cambios en los componentes
  */
 
@@ -40,8 +40,14 @@ function scheduleChangeDetection() {
   
   // Usa requestAnimationFrame para sincronizar con el ciclo de renderizado del navegador
   requestAnimationFrame(() => {
-    runChangeDetection();
-    changeDetectionInProgress = false;
+    try {
+      runChangeDetection();
+    } finally {
+      changeDetectionInProgress = false;
+    }
+    
+    // Componentes marcados durante el ciclo: reprogramar en vez de perderlos
+    if (dirtyComponents.size > 0) scheduleChangeDetection();
   });
 }
 
@@ -169,18 +175,38 @@ export function initChangeDetection() {
 /**
  * Modifica métodos nativos para activar detección de cambios automáticamente
  */
+let nativeMethodsPatched = false;
+
 function patchNativeMethods() {
-  // Patch para eventos DOM
+  if (nativeMethodsPatched) return;
+  nativeMethodsPatched = true;
+  
+  // Patch para eventos DOM. Los wrappers se recuerdan por listener para que
+  // removeEventListener siga funcionando.
+  const wrappers = new WeakMap();
   const originalAddEventListener = EventTarget.prototype.addEventListener;
+  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+  
   EventTarget.prototype.addEventListener = function(type, listener, options) {
-    // Envuelve el listener para activar detección de cambios
-    const wrappedListener = function(event) {
-      const result = listener.call(this, event);
-      scheduleChangeDetection();
-      return result;
-    };
+    if (typeof listener !== 'function') {
+      return originalAddEventListener.call(this, type, listener, options);
+    }
     
-    return originalAddEventListener.call(this, type, wrappedListener, options);
+    let wrapped = wrappers.get(listener);
+    if (!wrapped) {
+      wrapped = function(event) {
+        const result = listener.call(this, event);
+        scheduleChangeDetection();
+        return result;
+      };
+      wrappers.set(listener, wrapped);
+    }
+    
+    return originalAddEventListener.call(this, type, wrapped, options);
+  };
+  
+  EventTarget.prototype.removeEventListener = function(type, listener, options) {
+    return originalRemoveEventListener.call(this, type, wrappers.get(listener) || listener, options);
   };
   
   // Patch para promesas
@@ -204,6 +230,7 @@ function patchNativeMethods() {
   // Patch para setTimeout y setInterval
   const originalSetTimeout = window.setTimeout;
   window.setTimeout = function(fn, delay, ...args) {
+    if (typeof fn !== 'function') return originalSetTimeout(fn, delay, ...args);
     return originalSetTimeout(function() {
       fn(...args);
       scheduleChangeDetection();
@@ -212,6 +239,7 @@ function patchNativeMethods() {
   
   const originalSetInterval = window.setInterval;
   window.setInterval = function(fn, delay, ...args) {
+    if (typeof fn !== 'function') return originalSetInterval(fn, delay, ...args);
     return originalSetInterval(function() {
       fn(...args);
       scheduleChangeDetection();

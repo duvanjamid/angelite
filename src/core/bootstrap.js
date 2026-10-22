@@ -1,5 +1,5 @@
 /**
- * Bootstrap module for Lagunlar
+ * Bootstrap module for AngeLite
  * Handles application initialization
  */
 
@@ -7,7 +7,7 @@ import { render } from './renderer.js';
 import { createElement } from './vdom.js';
 
 /**
- * Bootstrap a Lagunlar application
+ * Bootstrap a AngeLite application
  * 
  * @param {Function} RootComponent - Root component class
  * @param {HTMLElement} container - DOM element to mount the app

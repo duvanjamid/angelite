@@ -1,5 +1,5 @@
 /**
- * Directivas para formularios reactivos en Lagunlar
+ * Directivas para formularios reactivos en AngeLite
  * Permiten vincular controles de formulario con elementos HTML
  */
 

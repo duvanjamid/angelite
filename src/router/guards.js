@@ -1,5 +1,5 @@
 /**
- * Guardias de ruta para Lagunlar Router
+ * Guardias de ruta para AngeLite Router
  * Permite controlar el acceso a las rutas
  */
 

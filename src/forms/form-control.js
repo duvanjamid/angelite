@@ -1,5 +1,5 @@
 /**
- * Sistema de formularios reactivos para Lagunlar
+ * Sistema de formularios reactivos para AngeLite
  * Implementa controles de formulario similares a Angular
  */
 

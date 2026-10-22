@@ -1,11 +1,12 @@
 /**
- * Componentes de Router para Lagunlar
+ * Componentes de Router para AngeLite
  * Implementa componentes para facilitar el uso del router
  */
 
 import { Component } from '../decorators/component.js';
 import { Input } from '../decorators/input-output.js';
 import { router } from './router.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * RouterOutletComponent - Componente que sirve como contenedor para las vistas de ruta
@@ -18,7 +19,7 @@ export class RouterOutletComponent {
   }
   
   ngOnInit() {
-    console.log('RouterOutletComponent inicializado');
+    logger.debug('RouterOutletComponent inicializado');
     
     // Verificar que tenemos acceso al elemento
     if (!this.element) {
@@ -29,23 +30,23 @@ export class RouterOutletComponent {
     // Crear un contenedor si no existe
     let container = this.getContainer();
     if (!container) {
-      console.log('Creando contenedor para router-outlet');
+      logger.debug('Creando contenedor para router-outlet');
       container = document.createElement('div');
       container.className = 'router-outlet-container';
       this.element.appendChild(container);
     }
     
-    console.log('Registrando outlet en el router:', this.name, container);
+    logger.debug('Registrando outlet en el router:', this.name, container);
     
     // Registrar como outlet en el router
     router.registerOutlet(this.name, container);
     
     // Actualizar la vista si ya hay una ruta activa
     if (router.currentRoute) {
-      console.log('Actualizando vista con ruta actual:', router.currentRoute);
+      logger.debug('Actualizando vista con ruta actual:', router.currentRoute);
       router.updateView();
     } else {
-      console.log('No hay ruta activa aún');
+      logger.debug('No hay ruta activa aún');
     }
   }
   
@@ -284,25 +285,25 @@ export class RouterLinkActiveDirective {
 
 // Registrar componentes
 export function registerRouterComponents() {
-  console.log('Registrando componentes del router...');
+  logger.debug('Registrando componentes del router...');
   
   // Registrar RouterOutletComponent
   Component({
     selector: 'router-outlet',
     template: `<div class="router-outlet-container"></div>`
   })(RouterOutletComponent);
-  console.log('RouterOutletComponent registrado');
+  logger.debug('RouterOutletComponent registrado');
   
   // Registrar RouterLinkComponent
   Component({
     selector: 'router-link',
     template: `<a href="{{to}}" class="router-link"><ng-content></ng-content></a>`
   })(RouterLinkComponent);
-  console.log('RouterLinkComponent registrado');
+  logger.debug('RouterLinkComponent registrado');
   
   // Registrar atributos para enlaces de router
   const linkElements = document.querySelectorAll('[router-link]');
-  console.log(`Encontrados ${linkElements.length} elementos con atributo router-link`);
+  logger.debug(`Encontrados ${linkElements.length} elementos con atributo router-link`);
   
   // Configurar los enlaces del router
   linkElements.forEach(element => {
@@ -310,10 +311,10 @@ export function registerRouterComponents() {
     if (href) {
       element.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log(`Navegando a: ${href}`);
+        logger.debug(`Navegando a: ${href}`);
         router.navigate(href);
       });
-      console.log(`Enlace configurado para: ${href}`);
+      logger.debug(`Enlace configurado para: ${href}`);
     }
   });
   
@@ -342,10 +343,10 @@ export function registerRouterComponents() {
     if (href) {
       element.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log(`Navegando a: ${href}`);
+        logger.debug(`Navegando a: ${href}`);
         router.navigate(href);
       });
-      console.log(`Enlace configurado para: ${href}`);
+      logger.debug(`Enlace configurado para: ${href}`);
     }
   }
   
@@ -355,5 +356,5 @@ export function registerRouterComponents() {
     subtree: true
   });
   
-  console.log('Componentes del router registrados correctamente');
+  logger.debug('Componentes del router registrados correctamente');
 }

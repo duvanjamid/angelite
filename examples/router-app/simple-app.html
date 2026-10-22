@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lagunlar Simple App</title>
+    <title>AngeLite Simple App</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -47,11 +47,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Lagunlar Demo App</h1>
+        <h1>AngeLite Demo App</h1>
         <div id="app">
             <div class="card">
                 <h2>Cargando...</h2>
-                <p>Inicializando la aplicación Lagunlar</p>
+                <p>Inicializando la aplicación AngeLite</p>
             </div>
         </div>
     </div>
@@ -78,8 +78,8 @@
             `;
         }
 
-        // Implementación mínima de Lagunlar
-        const Lagunlar = {
+        // Implementación mínima de AngeLite
+        const AngeLite = {
             // Componente básico
             createComponent: function(config, ComponentClass) {
                 ComponentClass.prototype._selector = config.selector;
@@ -193,7 +193,7 @@
             }
         };
 
-        // Mostrar información sobre Lagunlar
+        // Mostrar información sobre AngeLite
         const features = [
             'Detección de cambios automática',
             'Directivas estructurales modernas (@if, @for, etc.)',
@@ -207,17 +207,17 @@
         
         // Definir componente principal
         function MainComponent() {
-            this.title = 'Lagunlar Simple App';
+            this.title = 'AngeLite Simple App';
             this.features = features;
         }
 
         // Configurar el componente
-        const AppComponent = Lagunlar.createComponent({
+        const AppComponent = AngeLite.createComponent({
             selector: 'app-main',
             template: `
                 <div class="card">
                     <h2>{{ title }}</h2>
-                    <p>Se ha cargado correctamente el framework Lagunlar.</p>
+                    <p>Se ha cargado correctamente el framework AngeLite.</p>
                     <h3>Características implementadas:</h3>
                     <ul>${featuresList}</ul>
                     <div>
@@ -266,7 +266,7 @@
             };
 
             // Configurar el componente
-            const CounterApp = Lagunlar.createComponent({
+            const CounterApp = AngeLite.createComponent({
                 selector: 'app-counter',
                 template: `
                     <div class="card">
@@ -284,14 +284,14 @@
 
             // Renderizar el componente
             const app = document.getElementById('app');
-            Lagunlar.bootstrap(CounterApp, app);
+            AngeLite.bootstrap(CounterApp, app);
         }
 
         // Función para inicializar la aplicación
         function initApp() {
             try {
                 const app = document.getElementById('app');
-                Lagunlar.bootstrap(AppComponent, app);
+                AngeLite.bootstrap(AppComponent, app);
             } catch (error) {
                 showError('Error al inicializar la aplicación', error.stack);
             }

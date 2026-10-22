@@ -309,3 +309,13 @@ We welcome contributions to AngeLite! Please see our [Contributing Guide](./CONT
 
 AngeLite is [MIT licensed](./LICENSE).
 
+
+## Development
+
+```bash
+npm install
+npm test        # run the test suite
+npm run build   # bundle to dist/
+```
+
+Debug logging is off by default; enable it with `AngeLite.setDebug(true)`.

@@ -1,5 +1,5 @@
 /**
- * Validadores para formularios reactivos en Lagunlar
+ * Validadores para formularios reactivos en AngeLite
  */
 
 /**
