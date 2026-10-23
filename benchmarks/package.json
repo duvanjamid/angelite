@@ -2,7 +2,7 @@
   "name": "angelite-benchmarks",
   "private": true,
   "type": "module",
-  "description": "Benchmarks: AngeLite Lite vs React, Preact, Vue and Angular",
+  "description": "Benchmarks: AngeLite vs React, Preact, Vue and Angular",
   "scripts": {
     "build": "node build.mjs",
     "bench": "node run.mjs",

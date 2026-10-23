@@ -1,4 +1,4 @@
-// Runs the same attack inputs against AngeLite Lite, Preact, Vue, and React, and prints what each one does.
+// Runs the same attack inputs against AngeLite, Preact, Vue, and React, and prints what each one does.
 //   cd benchmarks && npm install && node security-probe.mjs
 // (Angular needs its AOT build to run, so it is covered by reading its sanitizer in the package and its docs.)
 import { JSDOM } from 'jsdom';

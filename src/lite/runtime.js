@@ -1,5 +1,5 @@
 /**
- * AngeLite Lite runtime: views, blocks, components, events. No template parser in here:
+ * AngeLite runtime: views, blocks, components, events. No template parser in here:
  * blueprints come either from the in-browser compiler (jit.js) or precompiled (tools/aot.mjs).
  *
  * A view is created by cloning a blueprint's fragment and walking it once applying the ops; one lean

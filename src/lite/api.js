@@ -1,5 +1,5 @@
 /**
- * AngeLite Lite public API (runtime only). Use this entry with precompiled templates (tools/aot.mjs);
+ * AngeLite public API (runtime only). Use this entry with precompiled templates (tools/aot.mjs);
  * `index.js` adds the in-browser template compiler.
  */
 

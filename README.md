@@ -305,7 +305,7 @@ We welcome contributions to AngeLite! Please see our [Contributing Guide](./CONT
 AngeLite is [MIT licensed](./LICENSE).
 
 
-## AngeLite Lite
+## AngeLite
 
 A signals-based core with Angular-style templates (`@if`, `@for`, `@defer`, `[(ngModel)]`, components with named slots, pipes, scoped DI, a router with nested routes, guards and lazy loading), about **10 KB** min+gzip with the in-browser compiler and **about 6 KB for an app with precompiled templates** (you only pay for what you import; the everything-included `lite` bundle is ~11.7 KB). As fast as or faster than Preact/Vue/React/Angular in our benchmark and the lightest on memory. Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the runtime and checks templates for unknown elements, pipes and names.
 

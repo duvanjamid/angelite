@@ -1,4 +1,4 @@
-/** Type definitions for AngeLite Lite (`@duvanjamid/angelite/lite`). */
+/** Type definitions for AngeLite (`@duvanjamid/angelite/lite`). */
 
 /* ---------- signals ---------- */
 

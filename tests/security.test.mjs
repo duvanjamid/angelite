@@ -1,4 +1,4 @@
-// Security behaviour of AngeLite Lite, for both the in-browser compiler and precompiled templates.
+// Security behaviour of AngeLite, for both the in-browser compiler and precompiled templates.
 // Every attack here must stay blocked: if one of these fails, a vulnerability was reintroduced.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

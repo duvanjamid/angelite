@@ -11,12 +11,12 @@ acknowledgement, and a fix is released before details are made public.
 
 Only the latest release is supported.
 
-## What AngeLite Lite protects you from
+## What AngeLite protects you from
 
 The trust model is simple: **templates are code you wrote; the data you render is untrusted.**
-Lite is built so untrusted data cannot become markup, script or a dangerous URL by accident.
+AngeLite is built so untrusted data cannot become markup, script or a dangerous URL by accident.
 
-| Threat | What Lite does |
+| Threat | What AngeLite does |
 |---|---|
 | Markup in text (`{{ value }}`) | Always inserted as text. |
 | `javascript:` / `vbscript:` / `data:text/html` URLs in `href`, `src`, `action`, `formaction`, `data`, `xlink:href` (the attributes where a URL can run code) | Only `http`, `https`, `mailto`, `tel`, `sms`, `ftp` and relative URLs pass (and `data:image/*;base64` for `src`). Anything else becomes `unsafe:<url>` and a warning is logged. Wrap a value in `trustUrl()` to allow your own scheme. |

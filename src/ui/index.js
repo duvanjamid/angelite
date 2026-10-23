@@ -1,5 +1,5 @@
 /**
- * AngeLite UI: accessible components built on AngeLite Lite.
+ * AngeLite UI: accessible components built on AngeLite.
  * Every component is a plain class + component(); inputs are input(), events are output(). Importing this module installs
  * the stylesheet once (theme it with the --ui-* CSS variables). Each component is marked pure, so a bundler keeps only the
  * ones you import.
