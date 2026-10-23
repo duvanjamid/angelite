@@ -133,3 +133,16 @@ app.instance.changed.emit('x');
 
 export { html, url, safe, n, id, ui, bad, missing, Decorated, nameValid, formValue, load, list, hi, safe2, q };
 export type { Signal };
+
+// UI library
+import { all as uiAll, Modal, Combobox, ToastService as Toasting, focusables } from '../src/ui/index.js';
+import { meta as uiMeta } from '../src/ui/meta.js';
+const toaster = new Toasting();
+toaster.show('hi', 'success', 0);
+toaster.clear();
+const componentList = [Modal, Combobox, ...uiAll];
+const firstInput: string = uiMeta[0].inputs[0].name;
+const reachable: HTMLElement[] = focusables(document.body);
+// @ts-expect-error toast types are a closed set
+toaster.show('hi', 'loud');
+export { componentList, firstInput, reachable };

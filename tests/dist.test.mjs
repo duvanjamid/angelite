@@ -52,7 +52,7 @@ test('dist/angelite-ui.min.js adds the component library on top of the lite bund
   w.eval(read('angelite-lite.min.js'));
   w.eval(read('angelite-ui.min.js'));
   const ui = w.AngeLiteUI;
-  assert.equal(ui.all.length, 21);
+  assert.equal(ui.all.length, 33);
   assert.ok(w.document.getElementById('angelite-ui-css'));
   w.eval(`
     class A { }

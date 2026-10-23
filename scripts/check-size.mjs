@@ -8,7 +8,7 @@ const BUDGETS = {
   'dist/angelite-lite.min.js': 13000,
   'dist/angelite-runtime.min.js': 7100,
   'dist/angelite-runtime-plus.min.js': 8550,
-  'dist/angelite-ui.min.js': 5500,
+  'dist/angelite-ui.min.js': 12000,
   'dist/angelite.min.js': 17500
 };
 

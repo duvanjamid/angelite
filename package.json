@@ -161,6 +161,10 @@
     "./lite/addons": {
       "types": "./types/forms.d.ts",
       "default": "./dist/angelite-addons.min.js"
+    },
+    "./ui/meta": {
+      "types": "./types/ui-meta.d.ts",
+      "default": "./src/ui/meta.js"
     }
   },
   "engines": {

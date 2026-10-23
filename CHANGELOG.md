@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### UI library v2 (`@duvanjamid/angelite/ui`)
+- **33 components** (was 21), all accessible and keyboard-operable: Button, Badge, Chip, Avatar, Divider, Card, Alert, Spinner, Progress, Skeleton, EmptyState; TextField, Textarea, Select, Checkbox, RadioGroup, Toggle, Slider, Rating, Combobox; Tabs, Breadcrumb, Pagination, Stepper, AccordionItem, Dropdown; Modal, Drawer, Popover, Tooltip, Toasts; Table, CodeBlock.
+- **Accessibility:** labels wired to controls (`for`/`id`, `aria-describedby`, `aria-invalid`), `role="switch"` toggle, radiogroup rating, combobox pattern, `aria-sort` tables, `aria-expanded`/`aria-controls` accordions, live regions for alerts and toasts; Modal and Drawer move focus in, trap Tab, close on Escape, lock page scroll and give focus back; Dropdown, Tabs, Rating and Combobox have full arrow-key support; `prefers-reduced-motion` slows animations.
+- **Theming:** CSS variables (`--ui-*`), dark mode follows the system or `<html data-theme="light|dark">`; the default palette now comes from the logo (teal and orange). **Behaviour change:** `Toggle` is a `<button role="switch">`, `Table` headers sort through buttons, `Modal` no longer swallows clicks with `stopPropagation` and its backdrop is detected by class, `Tooltip` is a focusable span with a real `role="tooltip"`, `Rating` is a radiogroup, `Pagination` is windowed with ellipsis, and `Stepper` is an ordered list.
+- New inputs on existing components (`type`, `block`, `disabled`, `readonly`, `required`, `hint`, `size`, `caption`, `dense`, `striped`, `rowKey`, `indeterminate`...) and `ToastService.show(message, type, ms)` with `ms: 0` for sticky toasts plus `clear()`.
+- Each component is marked pure, so a bundler keeps only the ones imported (a Button-only app is ~7 KB gzip smaller than importing everything); the `dist/angelite-ui.min.js` bundle with all of them is ~11.8 KB gzip (budget raised on purpose from 5.5 KB).
+- `src/ui/meta.js` (`@duvanjamid/angelite/ui/meta`): the documentation metadata (inputs, outputs, slots, accessibility notes) and `tests/ui-meta.test.mjs`, which fails if it drifts from the real components.
+- Found by the new tests: with delegated events `event.currentTarget` is the document, so overlays must test `event.target`.
+
 ### Documentation moved
 The documentation site (guide with live examples, component library, benchmarks page, feature comparison, gap analysis, performance and security guides) now lives in [`duvanjamid/angelite-docs`](https://github.com/duvanjamid/angelite-docs). `docs/` is gone from this repository; `npm run build:docs` only prints where to go. The docs repository's `scripts/sync.mjs` rebuilds the bundles from this repository and brings the benchmark results.
 
