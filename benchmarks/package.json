@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@angular/build": "^20.0.0",
-    "@angular/cli": "^20.3.40",
+    "@angular/cli": "^20.3.41",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
