@@ -1,9 +1,9 @@
 /* AngeLite UI stylesheet. Theme it with the --ui-* variables on :root (or any ancestor); dark mode follows the system
    unless <html data-theme="light|dark"> says otherwise. */
 export const css = `
-:root{--ui-bg:#fff;--ui-fg:#1b2430;--ui-muted:#566074;--ui-line:#dde2ea;--ui-soft:#f3f5f8;--ui-primary:#3d6c6f;--ui-primary-fg:#fff;--ui-accent:#ef7b4f;--ui-ok:#277a4c;--ui-warn:#a65d00;--ui-err:#c0392b;--ui-info:#2d65c8;--ui-radius:8px;--ui-font:inherit;--ui-ring:0 0 0 3px color-mix(in srgb,var(--ui-primary) 35%,transparent);--ui-shadow:0 12px 32px rgba(15,23,42,.18)}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--ui-bg:#14181f;--ui-fg:#e8ecf2;--ui-muted:#9aa5b8;--ui-line:#2a303c;--ui-soft:#1c222c;--ui-primary:#72a2ac;--ui-primary-fg:#0f171a;--ui-ok:#5cc08a;--ui-warn:#e0a13a;--ui-err:#f0766a;--ui-info:#7fa8f0;--ui-shadow:0 12px 32px rgba(0,0,0,.5)}}
-:root[data-theme=dark]{--ui-bg:#14181f;--ui-fg:#e8ecf2;--ui-muted:#9aa5b8;--ui-line:#2a303c;--ui-soft:#1c222c;--ui-primary:#72a2ac;--ui-primary-fg:#0f171a;--ui-ok:#5cc08a;--ui-warn:#e0a13a;--ui-err:#f0766a;--ui-info:#7fa8f0;--ui-shadow:0 12px 32px rgba(0,0,0,.5)}
+:root{--ui-bg:#fff;--ui-fg:#1d2330;--ui-muted:#5d667a;--ui-line:#e3e6ee;--ui-soft:#f5f6fa;--ui-primary:#d6336c;--ui-primary-fg:#fff;--ui-accent:#ef7b4f;--ui-ok:#277a4c;--ui-warn:#a65d00;--ui-err:#c0392b;--ui-info:#2d65c8;--ui-radius:8px;--ui-font:inherit;--ui-ring:0 0 0 3px color-mix(in srgb,var(--ui-primary) 35%,transparent);--ui-shadow:0 12px 32px rgba(15,23,42,.18)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--ui-bg:#14161d;--ui-fg:#e8eaf1;--ui-muted:#98a1b6;--ui-line:#2a2e3b;--ui-soft:#1a1d27;--ui-primary:#ff6b9a;--ui-primary-fg:#1a0610;--ui-ok:#5cc08a;--ui-warn:#e0a13a;--ui-err:#f0766a;--ui-info:#7fa8f0;--ui-shadow:0 12px 32px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--ui-bg:#14161d;--ui-fg:#e8eaf1;--ui-muted:#98a1b6;--ui-line:#2a2e3b;--ui-soft:#1a1d27;--ui-primary:#ff6b9a;--ui-primary-fg:#1a0610;--ui-ok:#5cc08a;--ui-warn:#e0a13a;--ui-err:#f0766a;--ui-info:#7fa8f0;--ui-shadow:0 12px 32px rgba(0,0,0,.5)}
 ui-button,ui-badge,ui-chip,ui-avatar,ui-tooltip,ui-toggle,ui-rating,ui-dropdown,ui-popover,ui-spinner,ui-checkbox{display:inline-block}
 ui-card,ui-alert,ui-progress,ui-skeleton,ui-tabs,ui-accordion-item,ui-table,ui-pagination,ui-stepper,ui-text-field,ui-textarea,ui-select,ui-combobox,ui-slider,ui-radio-group,ui-breadcrumb,ui-empty-state,ui-code-block,ui-divider,ui-toasts{display:block}
 :where(.ui-btn,.ui-toggle,.ui-chip button,.ui-pager button,.ui-tabs button,.ui-acc>button,.ui-dd .menu button,.ui-rating button,.ui-th,.ui-code button,.ui-pop>button,.ui-combo li,.ui-crumbs a,.ui-modal header button,.ui-drawer header button,.ui-alert button,.ui-tip):focus-visible{outline:none;box-shadow:var(--ui-ring)}
@@ -50,7 +50,7 @@ ui-button[block]{display:block}
 .ui-toggle .track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
 .ui-toggle[data-on=true] .track{background:var(--ui-primary)}.ui-toggle[data-on=true] .track::after{transform:translateX(16px)}
 .ui-field{display:block}.ui-field label.lbl{display:block;font-size:.85em;color:var(--ui-muted);margin-bottom:4px}.ui-field label.lbl .req{color:var(--ui-err)}
-.ui-field input:not([type=checkbox]):not([type=radio]):not([type=range]),.ui-field select,.ui-field textarea{width:100%;box-sizing:border-box;font:var(--ui-font);padding:8px 10px;border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-bg);color:var(--ui-fg)}
+.ui-field input:not([type=checkbox]):not([type=radio]):not([type=range])[type=color]{padding:3px;height:38px;cursor:pointer}.ui-field input:not([type=checkbox]):not([type=radio]):not([type=range]),.ui-field select,.ui-field textarea{width:100%;box-sizing:border-box;font:var(--ui-font);padding:8px 10px;border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-bg);color:var(--ui-fg)}
 .ui-field textarea{resize:vertical;min-height:4.5em}
 .ui-field input:focus,.ui-field select:focus,.ui-field textarea:focus{outline:none;border-color:var(--ui-primary);box-shadow:var(--ui-ring)}
 .ui-field input:disabled,.ui-field select:disabled,.ui-field textarea:disabled{opacity:.55;cursor:not-allowed;background:var(--ui-soft)}
