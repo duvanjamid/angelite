@@ -1,8 +1,13 @@
 name: Release
 
+# Publishes whatever version package.json declares on main, once: if the tag vX.Y.Z already exists, nothing happens.
+# To make a release: bump "version" in package.json, add a "## X.Y.Z" section to CHANGELOG.md and merge to main.
+
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,26 +18,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: v
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.v.outputs.exists == 'false'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
-      - run: npm ci
-      - run: npm run build
-      - run: npm test
-      - run: npm run size
-      - name: Check the tag matches package.json
-        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      - if: steps.v.outputs.exists == 'false'
+        run: npm ci && npm run build && npm test && npm run size
       - name: Release notes from CHANGELOG
+        if: steps.v.outputs.exists == 'false'
         run: |
-          awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## "v" " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
+          awk -v v="${{ steps.v.outputs.version }}" '$0 ~ "^## "v" " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
           test -s notes.md || echo "See CHANGELOG.md" > notes.md
-      - name: GitHub release
+      - name: GitHub release (creates the tag)
+        if: steps.v.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${GITHUB_REF_NAME}" --title "AngeLite ${GITHUB_REF_NAME#v}" --notes-file notes.md
+        run: gh release create "v${{ steps.v.outputs.version }}" --target "${GITHUB_SHA}" --title "AngeLite ${{ steps.v.outputs.version }}" --notes-file notes.md
       - name: Publish to npm (needs the NPM_TOKEN secret)
+        if: steps.v.outputs.exists == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
