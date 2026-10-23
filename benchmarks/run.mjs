@@ -7,8 +7,8 @@ import os from 'node:os';
 
 const root = resolve(import.meta.dirname);
 const dist = join(root, 'dist');
-// FW=lite-aot,preact runs a subset (quick mode, see compare.mjs); results then go to results.quick.json
-const FW = process.env.FW ? process.env.FW.split(',') : ['lite-aot', 'lite', 'preact', 'vue', 'react', 'angular'];
+// FW=angelite-aot,preact runs a subset (quick mode, see compare.mjs); results then go to results.quick.json
+const FW = process.env.FW ? process.env.FW.split(',') : ['angelite-aot', 'angelite', 'preact', 'vue', 'react', 'angular'];
 const OUT = process.env.FW ? 'results.quick.json' : 'results.json';
 const ROUNDS = Number(process.env.ROUNDS || 3);
 const ITER = Number(process.env.ITER || 7);
@@ -193,7 +193,7 @@ for (const fw of FW) {
     ops: Object.fromEntries(BENCHES.map(b => [b.id, { median: median(s.ops[b.id]), p10: pct(s.ops[b.id], 0.1), p90: pct(s.ops[b.id], 0.9), n: s.ops[b.id].length }]))
   };
 }
-results.versions.lite = JSON.parse(readFileSync(join(root, '..', 'package.json'), 'utf8')).version;
+results.versions.angelite = JSON.parse(readFileSync(join(root, '..', 'package.json'), 'utf8')).version;
 writeFileSync(join(root, OUT), JSON.stringify(results, null, 2));
 console.log(JSON.stringify(Object.fromEntries(FW.map(f => [f, Object.fromEntries(Object.entries(results.frameworks[f].ops).map(([k, v]) => [k, +v.median.toFixed(1)]))])), null, 1));
 await browser.close();

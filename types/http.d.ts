@@ -1,4 +1,4 @@
-import type { Signal } from './lite.js';
+import type { Signal } from './angelite.js';
 
 export interface HttpRequest {
   method: string;

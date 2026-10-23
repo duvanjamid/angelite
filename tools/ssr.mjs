@@ -7,7 +7,7 @@
  *   const html = await renderToString(App, { url: '/users/3' });             // markup of <div id="app">
  *   const page = await renderPage(App, { shell, url: req.url, state });      // shell with <!--app--> and <!--state--> filled in
  *
- * Client side, `hydrate(App, el)` (lite/hydrate.js) replaces the server markup with the live app in one go: the
+ * Client side, `hydrate(App, el)` (hydrate.js) replaces the server markup with the live app in one go: the
  * result looks the same, and the content is visible before the JavaScript arrives. It does not adopt the existing
  * nodes (a full hydration that reuses them is not implemented), so the client renders once more.
  *
@@ -25,7 +25,7 @@ const GLOBALS = ['document', 'window', 'location', 'history', 'Element', 'HTMLEl
   'addEventListener', 'removeEventListener', 'customElements', 'HTMLInputElement', 'getComputedStyle'];
 
 async function loadRuntime() {
-  return import('../src/lite/full.js');
+  return import('../src/full.js');
 }
 
 async function render(Comp, { url = 'http://localhost/', mount, shell, setup, ready, settle = 2, selector = '#app' }) {

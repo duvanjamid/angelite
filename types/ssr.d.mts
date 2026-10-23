@@ -1,4 +1,4 @@
-import type { Type } from './lite.js';
+import type { Type } from './angelite.js';
 
 export interface RenderOptions {
   /** Request URL (path and query) the router should see. */

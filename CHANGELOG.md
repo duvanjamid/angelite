@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Renamed: AngeLite is just AngeLite
+There is one framework now, so nothing carries the "lite" name any more. The package is new and unused, so this is a clean break with no aliases:
+- `@duvanjamid/angelite` is the framework (it used to be `@duvanjamid/angelite/lite`). Subpaths lose the prefix: `/runtime`, `/runtime-plus`, `/pipes`, `/testing`, `/forms`, `/http`, `/i18n`, `/devtools`, `/hydrate`, `/addons`, `/ui`, `/ui/meta`, `/tools/*.mjs`.
+- Bundles: `dist/angelite.min.js` and `dist/angelite.esm.js` (were `angelite-lite.*`); the global stays `AngeLite`.
+- Sources moved from `src/lite/` to `src/`; tests lost their `lite-` prefix; benchmark apps and result keys are `angelite` and `angelite-aot`.
+- The old, unhardened framework (`src/angelite.js`, `src/core`, `src/decorators`, `src/directives`, `src/forms`, `src/pipes`, `src/router`, `test-app/`, `examples/`) is removed; it stays in the git history.
+- New logo (pink mascot) and pink palette (`#d6336c`, `#ff6b9a` in dark mode) over slate neutrals; the UI library follows it.
+
 ### UI library v2 (`@duvanjamid/angelite/ui`)
 - **33 components** (was 21), all accessible and keyboard-operable: Button, Badge, Chip, Avatar, Divider, Card, Alert, Spinner, Progress, Skeleton, EmptyState; TextField, Textarea, Select, Checkbox, RadioGroup, Toggle, Slider, Rating, Combobox; Tabs, Breadcrumb, Pagination, Stepper, AccordionItem, Dropdown; Modal, Drawer, Popover, Tooltip, Toasts; Table, CodeBlock.
 - **Accessibility:** labels wired to controls (`for`/`id`, `aria-describedby`, `aria-invalid`), `role="switch"` toggle, radiogroup rating, combobox pattern, `aria-sort` tables, `aria-expanded`/`aria-controls` accordions, live regions for alerts and toasts; Modal and Drawer move focus in, trap Tab, close on Escape, lock page scroll and give focus back; Dropdown, Tabs, Rating and Combobox have full arrow-key support; `prefers-reduced-motion` slows animations.

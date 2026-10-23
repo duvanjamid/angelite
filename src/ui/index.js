@@ -5,7 +5,7 @@
  * ones you import.
  */
 
-import { signal, computed, effect, component, input, output, inject } from '../lite/index.js';
+import { signal, computed, effect, component, input, output, inject } from '../index.js';
 import { css } from './styles.js';
 import { installStyles } from './install.js';
 import { nextId, focusables, overlay, outsideClick } from './base.js';

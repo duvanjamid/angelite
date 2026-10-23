@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mountIn, tick, captureErrors } from './setup.mjs';
 
-const lite = await import('../src/lite/index.js');
-await import('../src/lite/portal.js');
-await import('../src/lite/defer.js');
-const { component, mount, signal, trustHtml } = lite;
+const angelite = await import('../src/index.js');
+await import('../src/portal.js');
+await import('../src/defer.js');
+const { component, mount, signal, trustHtml } = angelite;
 
 let n = 0;
 const define = (template, init = () => ({}), meta = {}) => {

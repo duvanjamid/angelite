@@ -2,16 +2,16 @@
 import {
   signal, computed, effect, untracked, component, Component, mount, input, output, inject, provide, viewChild,
   trustHtml, trustUrl, sanitizeUrl, registerPipe, provideRouter, router, enableDevWarnings
-} from '../src/lite/full.js';
-import type { OnInit, OnDestroy, OnError, Route, RouteGuard, Signal } from './lite.js';
-import { render, cleanup, flush } from '../src/lite/testing.js';
+} from '../src/full.js';
+import type { OnInit, OnDestroy, OnError, Route, RouteGuard, Signal } from './angelite.js';
+import { render, cleanup, flush } from '../src/testing.js';
 import { all, Button, ToastService } from '../src/ui/index.js';
 import { compileTemplate, checkTemplate, aotPlugin } from '../tools/aot.mjs';
-import { FormControl, FormGroup, FormArray, Validators } from '../src/lite/forms.js';
-import { createHttp, retry, resource, HttpError } from '../src/lite/http.js';
-import { createI18n } from '../src/lite/i18n.js';
-import { enableDevtools } from '../src/lite/devtools.js';
-import { hydrate } from '../src/lite/hydrate.js';
+import { FormControl, FormGroup, FormArray, Validators } from '../src/forms.js';
+import { createHttp, retry, resource, HttpError } from '../src/http.js';
+import { createI18n } from '../src/i18n.js';
+import { enableDevtools } from '../src/devtools.js';
+import { hydrate } from '../src/hydrate.js';
 import { renderToString, renderPage, serializeState } from '../tools/ssr.mjs';
 import vitePlugin from '../tools/vite.mjs';
 import { checkFolder } from '../tools/check.mjs';
@@ -49,7 +49,7 @@ const html = trustHtml('<b>x</b>'), url = trustUrl('app:open'), safe: string = s
 const guard: RouteGuard = async ({ params }) => (params.id === '1' ? true : '/login');
 const routes: Route[] = [
   { path: '/', component: Counter },
-  { path: 'a', load: () => import('../src/lite/full.js').then(() => Counter), canActivate: [guard], children: [{ path: '', component: Counter }] },
+  { path: 'a', load: () => import('../src/full.js').then(() => Counter), canActivate: [guard], children: [{ path: '', component: Counter }] },
   { path: 'old', redirectTo: '/' }
 ];
 provideRouter(routes);

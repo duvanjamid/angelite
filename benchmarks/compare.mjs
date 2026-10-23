@@ -1,8 +1,8 @@
 // Timing regression check that cancels the speed of the machine: it compares how AngeLite performs RELATIVE TO
 // PREACT in the same run with the same ratios stored in baseline.json.
 //
-//   FW=lite-aot,lite,preact BUILD=lite-aot,lite,preact node build.mjs     (build only the three apps)
-//   FW=lite-aot,lite,preact ROUNDS=5 ITER=15 node run.mjs                 (writes results.quick.json)
+//   FW=angelite-aot,angelite,preact BUILD=angelite-aot,angelite,preact node build.mjs     (build only the three apps)
+//   FW=angelite-aot,angelite,preact ROUNDS=5 ITER=15 node run.mjs                 (writes results.quick.json)
 //   node compare.mjs                                                       (exit 1 on a regression)
 //   node compare.mjs --update results.json                                 (rewrite baseline.json from a full run, on purpose)
 //
@@ -19,7 +19,7 @@ const root = resolve(import.meta.dirname);
 const TOLERANCE = Number(process.env.TOLERANCE || 0.35);
 const MEAN_TOLERANCE = Number(process.env.MEAN_TOLERANCE || 0.1);
 const BASELINE = join(root, 'baseline.json');
-const VARIANTS = ['lite-aot', 'lite'];
+const VARIANTS = ['angelite-aot', 'angelite'];
 
 const ratios = results => {
   const out = {};
@@ -43,7 +43,7 @@ if (process.argv[2] === '--update') {
 
 const file = join(root, 'results.quick.json');
 if (!existsSync(file) || !existsSync(BASELINE)) {
-  console.error('needs results.quick.json (run.mjs with FW=lite-aot,lite,preact) and baseline.json');
+  console.error('needs results.quick.json (run.mjs with FW=angelite-aot,angelite,preact) and baseline.json');
   process.exit(2);
 }
 const now = ratios(JSON.parse(readFileSync(file, 'utf8')));

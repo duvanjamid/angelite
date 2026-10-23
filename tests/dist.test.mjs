@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom';
 
 const has = f => existsSync(new URL(`../dist/${f}`, import.meta.url));
 const read = f => readFileSync(new URL(`../dist/${f}`, import.meta.url), 'utf8');
-const skip = !has('angelite-lite.min.js') && 'dist/ not built';
+const skip = !has('angelite.min.js') && 'dist/ not built';
 
 function page() {
   const dom = new JSDOM('<!doctype html><body><div id="app"></div></body>', { runScripts: 'outside-only', pretendToBeVisual: true, url: 'http://localhost/' });
@@ -14,9 +14,9 @@ function page() {
 }
 const tick = w => new Promise(r => w.setTimeout(r, 0));
 
-test('dist/angelite-lite.min.js works as a plain <script>: global AngeLite, signals, pipes, router', { skip }, async () => {
+test('dist/angelite.min.js works as a plain <script>: global AngeLite, signals, pipes, router', { skip }, async () => {
   const w = page();
-  w.eval(read('angelite-lite.min.js'));
+  w.eval(read('angelite.min.js'));
   const { signal, component, mount, registerPipe, provideRouter, router, inject, computed, effect } = w.AngeLite;
   for (const fn of [signal, component, mount, registerPipe, provideRouter, inject, computed, effect]) assert.equal(typeof fn, 'function');
   assert.ok(router);
@@ -47,9 +47,9 @@ test('dist/angelite-runtime.min.js is template-compiler free: it mounts precompi
   assert.equal(w.document.getElementById('i').textContent, '5');
 });
 
-test('dist/angelite-ui.min.js adds the component library on top of the lite bundle', { skip }, async () => {
+test('dist/angelite-ui.min.js adds the component library on top of the angelite bundle', { skip }, async () => {
   const w = page();
-  w.eval(read('angelite-lite.min.js'));
+  w.eval(read('angelite.min.js'));
   w.eval(read('angelite-ui.min.js'));
   const ui = w.AngeLiteUI;
   assert.equal(ui.all.length, 33);
@@ -63,37 +63,30 @@ test('dist/angelite-ui.min.js adds the component library on top of the lite bund
   assert.equal(w.document.querySelector('.ui-progress i').style.width, '40%');
 });
 
-test('dist/angelite.esm.js (lite) can be imported as an ES module', { skip: skip || !has('angelite-lite.esm.js') }, async () => {
+test('dist/angelite.esm.js (angelite) can be imported as an ES module', { skip: skip || !has('angelite.esm.js') }, async () => {
   const { window } = await import('./setup.mjs');
-  const mod = await import(new URL('../dist/angelite-lite.esm.js', import.meta.url).href);
+  const mod = await import(new URL('../dist/angelite.esm.js', import.meta.url).href);
   assert.equal(typeof mod.signal, 'function');
   assert.equal(typeof mod.mount, 'function');
   void window;
 });
 
-test('the legacy bundle still loads and defines window.AngeLite', { skip: !has('angelite.min.js') && 'dist/ not built' }, () => {
-  const w = page();
-  w.eval(read('angelite.min.js'));
-  assert.ok(w.AngeLite.Component);
-  assert.ok(w.AngeLite.FormControl);
-});
-
-test('dist add-ons (forms, http, i18n, devtools, hydrate, testing) share the lite bundle: one reactive core', { skip: !has('angelite-forms.esm.js') && 'dist/ not built' }, async () => {
+test('dist add-ons (forms, http, i18n, devtools, hydrate, testing) share the angelite bundle: one reactive core', { skip: !has('angelite-forms.esm.js') && 'dist/ not built' }, async () => {
   const { window, document } = await import('./setup.mjs');
-  const lite = await import('../dist/angelite-lite.esm.js');
+  const angelite = await import('../dist/angelite.esm.js');
   const { FormControl } = await import('../dist/angelite-forms.esm.js');
   const { resource } = await import('../dist/angelite-http.esm.js');
   const { createI18n } = await import('../dist/angelite-i18n.esm.js');
   const { enableDevtools } = await import('../dist/angelite-devtools.esm.js');
   const { hydrate } = await import('../dist/angelite-hydrate.esm.js');
   const testing = await import('../dist/angelite-testing.esm.js');
-  assert.equal(typeof lite.viewChild, 'function');
-  assert.equal(typeof lite.enableDevWarnings, 'function');
+  assert.equal(typeof angelite.viewChild, 'function');
+  assert.equal(typeof angelite.enableDevWarnings, 'function');
 
-  // an effect from the lite bundle reacts to a signal owned by the forms bundle
+  // an effect from the angelite bundle reacts to a signal owned by the forms bundle
   const control = new FormControl('', [v => (v ? null : { required: true })]);
   const seen = [];
-  lite.effect(() => { seen.push(control.valid()); });
+  angelite.effect(() => { seen.push(control.valid()); });
   control.value.set('x');
   await new Promise(r => setTimeout(r, 0));
   assert.deepEqual(seen, [false, true]);
@@ -102,11 +95,11 @@ test('dist add-ons (forms, http, i18n, devtools, hydrate, testing) share the lit
   await new Promise(r => setTimeout(r, 0));
   assert.equal(data.data(), 5);
 
-  // the i18n pipes register into the lite bundle's runtime
+  // the i18n pipes register into the angelite bundle's runtime
   const i18n = createI18n({ locale: 'en', messages: { en: { hi: 'Hello' }, es: { hi: 'Hola' } } });
   i18n.installPipes();
   class App {}
-  lite.component(App, { selector: 'x-distaddons', template: '<p id="p">{{ "hi" | t }}</p>' });
+  angelite.component(App, { selector: 'x-distaddons', template: '<p id="p">{{ "hi" | t }}</p>' });
   const t = testing.render(App);
   assert.equal(t.text('#p'), 'Hello');
   i18n.setLocale('es');

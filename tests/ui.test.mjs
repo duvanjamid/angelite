@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { window, document, mountIn, tick } from './setup.mjs';
 
-const { signal, component, mount, inject } = await import('../src/lite/index.js');
+const { signal, component, mount, inject } = await import('../src/index.js');
 const ui = await import('../src/ui/index.js');
 
 let n = 0;

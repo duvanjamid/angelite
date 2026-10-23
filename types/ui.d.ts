@@ -1,4 +1,4 @@
-import type { Type, Signal } from './lite.js';
+import type { Type, Signal } from './angelite.js';
 
 /** Every component class. Use them in a component's `imports`; their inputs and outputs are documented in the docs site. */
 export const Button: Type, Badge: Type, Chip: Type, Avatar: Type, Divider: Type, Card: Type, Alert: Type, Spinner: Type, Progress: Type, Skeleton: Type, EmptyState: Type, TextField: Type, Textarea: Type, Select: Type, Checkbox: Type, RadioGroup: Type, Toggle: Type, Slider: Type, Rating: Type, Combobox: Type, Tabs: Type, Breadcrumb: Type, Pagination: Type, Stepper: Type, AccordionItem: Type, Dropdown: Type, Modal: Type, Drawer: Type, Popover: Type, Tooltip: Type, Toasts: Type, Table: Type, CodeBlock: Type;

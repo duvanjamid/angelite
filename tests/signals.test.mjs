@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { tick, captureErrors } from './setup.mjs';
 
-const { signal, computed, effect, untracked } = await import('../src/lite/signals.js');
+const { signal, computed, effect, untracked } = await import('../src/signals.js');
 
 test('signal: get, set, update, peek and equality short-circuit', async () => {
   const s = signal(1);

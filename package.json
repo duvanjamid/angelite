@@ -1,17 +1,15 @@
 {
   "name": "@duvanjamid/angelite",
   "version": "2.0.0",
-  "description": "A lightweight Angular-inspired framework that runs directly in the browser",
-  "main": "dist/angelite.js",
+  "description": "A signals-based framework with Angular-style templates, small enough to run straight in the browser",
+  "main": "dist/angelite.min.js",
   "module": "dist/angelite.esm.js",
   "unpkg": "dist/angelite.min.js",
   "files": [
     "dist",
     "tools",
     "types",
-    "src/lite",
-    "src/ui",
-    "src/utils",
+    "src",
     "LICENSE",
     "README.md"
   ],
@@ -22,16 +20,17 @@
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
     "build:docs": "echo \"The documentation lives in https://github.com/duvanjamid/angelite-docs: run its scripts/sync.mjs against this checkout\"",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
     "size": "node scripts/check-size.mjs",
     "typecheck": "tsc -p types/tsconfig.json",
     "size:apps": "node scripts/check-app-size.mjs",
-    "perf": "cd benchmarks && BUILD=lite-aot,lite,preact node build.mjs && FW=lite-aot,lite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs && node compare.mjs"
+    "perf": "cd benchmarks && BUILD=angelite-aot,angelite,preact node build.mjs && FW=angelite-aot,angelite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs && node compare.mjs"
   },
   "keywords": [
     "framework",
     "frontend",
     "angular",
+    "signals",
     "lightweight",
     "browser",
     "components",
@@ -59,92 +58,85 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/angelite.js",
-    "./src/core/*",
-    "./src/decorators/*",
-    "./src/directives/*",
-    "./src/forms/*",
-    "./src/pipes/*",
-    "./src/router/*",
+    "./src/jit.js",
+    "./src/pipes.js",
+    "./src/full.js",
+    "./src/index.js",
+    "./src/portal.js",
+    "./src/defer.js",
+    "./src/refs.js",
+    "./src/animate.js",
     "./src/ui/*",
-    "./dist/angelite.js",
     "./dist/angelite.esm.js",
     "./dist/angelite.min.js",
-    "./dist/angelite-ui.esm.js",
-    "./dist/angelite-ui.min.js",
-    "./src/lite/jit.js",
-    "./src/lite/pipes.js",
-    "./src/lite/full.js",
-    "./src/lite/index.js",
-    "./dist/angelite-lite.esm.js",
-    "./dist/angelite-lite.min.js",
     "./dist/angelite-pipes.esm.js",
-    "./src/lite/portal.js",
-    "./src/lite/defer.js",
-    "./src/lite/refs.js",
     "./dist/angelite-runtime-plus.esm.js",
     "./dist/angelite-runtime-plus.min.js",
     "./dist/angelite-testing.esm.js",
-    "./src/lite/animate.js",
     "./dist/angelite-devtools.esm.js",
-    "./dist/angelite-addons.min.js"
+    "./dist/angelite-addons.min.js",
+    "./dist/angelite-ui.esm.js",
+    "./dist/angelite-ui.min.js"
   ],
   "exports": {
     ".": {
-      "types": "./types/legacy.d.ts",
+      "types": "./types/angelite.d.ts",
       "import": "./dist/angelite.esm.js",
-      "default": "./dist/angelite.js"
+      "default": "./dist/angelite.min.js"
     },
-    "./lite": {
-      "types": "./types/lite.d.ts",
-      "import": "./dist/angelite-lite.esm.js",
-      "default": "./dist/angelite-lite.min.js"
+    "./runtime": {
+      "types": "./types/angelite.d.ts",
+      "import": "./dist/angelite-runtime.esm.js",
+      "default": "./dist/angelite-runtime.min.js"
+    },
+    "./runtime-plus": {
+      "types": "./types/angelite.d.ts",
+      "import": "./dist/angelite-runtime-plus.esm.js",
+      "default": "./dist/angelite-runtime-plus.min.js"
+    },
+    "./pipes": {
+      "import": "./dist/angelite-pipes.esm.js"
+    },
+    "./testing": {
+      "types": "./types/testing.d.ts",
+      "import": "./dist/angelite-testing.esm.js"
+    },
+    "./forms": {
+      "types": "./types/forms.d.ts",
+      "import": "./dist/angelite-forms.esm.js"
+    },
+    "./http": {
+      "types": "./types/http.d.ts",
+      "import": "./dist/angelite-http.esm.js"
+    },
+    "./i18n": {
+      "types": "./types/i18n.d.ts",
+      "import": "./dist/angelite-i18n.esm.js"
+    },
+    "./devtools": {
+      "types": "./types/devtools.d.ts",
+      "import": "./dist/angelite-devtools.esm.js"
+    },
+    "./hydrate": {
+      "types": "./types/hydrate.d.ts",
+      "import": "./dist/angelite-hydrate.esm.js"
+    },
+    "./addons": {
+      "types": "./types/forms.d.ts",
+      "default": "./dist/angelite-addons.min.js"
     },
     "./ui": {
       "types": "./types/ui.d.ts",
       "import": "./dist/angelite-ui.esm.js",
       "default": "./dist/angelite-ui.min.js"
     },
-    "./lite/runtime": {
-      "types": "./types/lite.d.ts",
-      "import": "./dist/angelite-runtime.esm.js",
-      "default": "./dist/angelite-runtime.min.js"
-    },
-    "./lite/runtime-plus": {
-      "types": "./types/lite.d.ts",
-      "import": "./dist/angelite-runtime-plus.esm.js",
-      "default": "./dist/angelite-runtime-plus.min.js"
-    },
-    "./lite/pipes": {
-      "import": "./dist/angelite-pipes.esm.js"
-    },
-    "./lite/testing": {
-      "types": "./types/testing.d.ts",
-      "import": "./dist/angelite-testing.esm.js"
+    "./ui/meta": {
+      "types": "./types/ui-meta.d.ts",
+      "default": "./src/ui/meta.js"
     },
     "./tools/aot.mjs": {
       "types": "./types/aot.d.mts",
       "default": "./tools/aot.mjs"
-    },
-    "./lite/forms": {
-      "types": "./types/forms.d.ts",
-      "import": "./dist/angelite-forms.esm.js"
-    },
-    "./lite/http": {
-      "types": "./types/http.d.ts",
-      "import": "./dist/angelite-http.esm.js"
-    },
-    "./lite/i18n": {
-      "types": "./types/i18n.d.ts",
-      "import": "./dist/angelite-i18n.esm.js"
-    },
-    "./lite/devtools": {
-      "types": "./types/devtools.d.ts",
-      "import": "./dist/angelite-devtools.esm.js"
-    },
-    "./lite/hydrate": {
-      "types": "./types/hydrate.d.ts",
-      "import": "./dist/angelite-hydrate.esm.js"
     },
     "./tools/ssr.mjs": {
       "types": "./types/ssr.d.mts",
@@ -157,14 +149,6 @@
     "./tools/check.mjs": {
       "types": "./types/check.d.mts",
       "default": "./tools/check.mjs"
-    },
-    "./lite/addons": {
-      "types": "./types/forms.d.ts",
-      "default": "./dist/angelite-addons.min.js"
-    },
-    "./ui/meta": {
-      "types": "./types/ui-meta.d.ts",
-      "default": "./src/ui/meta.js"
     }
   },
   "engines": {
@@ -178,7 +162,7 @@
       "optional": true
     }
   },
-  "types": "types/lite.d.ts",
+  "types": "types/angelite.d.ts",
   "bin": {
     "angelite-check": "tools/check.mjs"
   }

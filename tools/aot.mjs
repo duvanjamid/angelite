@@ -2,7 +2,7 @@
  * AngeLite ahead-of-time template compiler.
  *
  * Compiles a template to a JS module so the app ships WITHOUT the in-browser template compiler or
- * expression parser (use the runtime-only build: `@duvanjamid/angelite/lite/runtime`).
+ * expression parser (use the runtime-only build: `@duvanjamid/angelite/runtime`).
  *
  *   node tools/aot.mjs counter.html counter.aot.js --components ui-button,ui-card
  *
@@ -15,9 +15,9 @@
 import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { parse } from '../src/utils/expression.js';
-import { templateToBlueprint } from '../src/lite/compiler.js';
-import { pipes } from '../src/lite/runtime.js';
-import '../src/lite/pipes.js';
+import { templateToBlueprint } from '../src/compiler.js';
+import { pipes } from '../src/runtime.js';
+import '../src/pipes.js';
 
 class Src {
   constructor(code) { this.code = code; }

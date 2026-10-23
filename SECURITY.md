@@ -48,8 +48,6 @@ without constructable stylesheets.
   same). Precompile templates with `tools/aot.mjs` in production: nothing is compiled in the browser.
 - **Unsafe values you wrap yourself.** `trustHtml()` and `trustUrl()` are explicit escape hatches, like Angular's
   `bypassSecurityTrust*`. Do not wrap user input.
-- **The legacy bundle** (`src/angelite.js` and the files under `src/core`, `src/directives`, `src/forms`,
-  `src/router`...). It predates the hardening, builds markup with `innerHTML` and is deprecated. Use `lite`.
 - **Your own code.** `(click)` handlers, services and anything you pass to `innerHTML` yourself.
 
 ## Verifying it

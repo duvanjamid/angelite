@@ -22,7 +22,7 @@ const quiet = () => { console.error = () => {}; console.warn = () => {}; };
 
 await (async () => {
   try {
-    const { signal, component, mount } = await import('../src/lite/index.js');
+    const { signal, component, mount } = await import('../src/index.js');
     let n = 0;
     const app = (template, init) => {
       class C { constructor() { Object.assign(this, init()); } }
@@ -32,17 +32,17 @@ await (async () => {
       return root;
     };
     let r = app('<a [href]="u()">x</a>', () => ({ u: signal(unsafe) }));
-    rec('lite', 'href javascript:', r.querySelector('a').getAttribute('href'));
+    rec('angelite', 'href javascript:', r.querySelector('a').getAttribute('href'));
     r = app('<div [attr.onclick]="s()">x</div>', () => ({ s: signal('alert(1)') }));
-    rec('lite', 'onclick as text', r.querySelector('div').getAttribute('onclick') ?? 'not set');
+    rec('angelite', 'onclick as text', r.querySelector('div').getAttribute('onclick') ?? 'not set');
     r = app('<div [innerHTML]="h()"></div>', () => ({ h: signal(evil) }));
-    rec('lite', 'innerHTML renders markup', !!r.querySelector('img'));
+    rec('angelite', 'innerHTML renders markup', !!r.querySelector('img'));
     r = app('<p>{{ h() }}</p>', () => ({ h: signal(evil) }));
-    rec('lite', 'text child escaped', !r.querySelector('img'));
+    rec('angelite', 'text child escaped', !r.querySelector('img'));
     window.__hit = () => 'ran';
     r = app('<p>{{ $el.ownerDocument.defaultView.__hit() }}</p>', () => ({}));
-    rec('lite', 'template reaches window via $el', r.querySelector('p').textContent === 'ran');
-  } catch (e) { rec('lite', 'ERROR', e.message); }
+    rec('angelite', 'template reaches window via $el', r.querySelector('p').textContent === 'ran');
+  } catch (e) { rec('angelite', 'ERROR', e.message); }
 })();
 
 guard('react', () => {

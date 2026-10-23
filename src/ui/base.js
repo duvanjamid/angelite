@@ -1,6 +1,6 @@
 /** Shared helpers for the UI components: ids, focus handling, overlays. */
 
-import { effect } from '../lite/index.js';
+import { effect } from '../index.js';
 
 let counter = 0;
 /** Unique id for label/aria wiring: nextId('field') -> "ui-field-3". */
