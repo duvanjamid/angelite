@@ -1,4 +1,4 @@
-import type { Type } from './lite.js';
+import type { Type } from './angelite.js';
 
 export interface RenderOptions {
   /** Inputs to set (signals get `.set(value)`; other properties are assigned). */

@@ -6,7 +6,7 @@ import { window, mountIn } from './setup.mjs';
 
 window.trustedTypes = { createPolicy() { throw new TypeError('Policy "angelite" disallowed by CSP'); } };
 
-const { component, mount } = await import('../src/lite/index.js');
+const { component, mount } = await import('../src/index.js');
 
 test('a CSP that forbids the policy does not break rendering in environments that accept strings', () => {
   class C {}

@@ -2,7 +2,7 @@
   "note": "Time and memory are ratios to Preact measured in the same run (1.0 = same as Preact); gzip is bytes. Regenerate with: node compare.mjs --update results.json",
   "generatedAt": "2026-10-22T17:37:01.714Z",
   "ratios": {
-    "lite-aot": {
+    "angelite-aot": {
       "gzip": 6223,
       "startup": 1.0845070422418204,
       "memory10k": 0.3849194454264439,
@@ -16,7 +16,7 @@
       "clear1k": 0.8472222221485644,
       "create10k": 0.8873581847649918
     },
-    "lite": {
+    "angelite": {
       "gzip": 10365,
       "startup": 1.2723004694652984,
       "memory10k": 0.3907200378521588,

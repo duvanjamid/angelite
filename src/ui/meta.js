@@ -1,0 +1,113 @@
+/**
+ * Documentation metadata of the UI components: the single source for the API tables on the documentation site.
+ * tests/ui-meta.test.mjs checks it against the real components (every input and output listed here exists, and every
+ * component is described), so the docs cannot drift from the code.
+ */
+
+const i = (name, type, def, desc) => ({ name, type, default: def, desc });
+const o = (name, payload, desc) => ({ name, payload, desc });
+const s = (name, desc) => ({ name, desc });
+
+const OPT = "Array<string | { value, label?, disabled? }>";
+
+export const groups = ['Básicos', 'Formularios', 'Navegación', 'Superposiciones', 'Datos'];
+
+export const meta = [
+  { id: 'button', name: 'Button', tag: 'ui-button', group: 'Básicos', summary: 'Botón con variantes, tamaños, estado de carga y ancho completo.',
+    inputs: [i('variant', "'default' | 'primary' | 'accent' | 'danger' | 'ghost'", "'default'", 'Estilo visual'), i('size', "'sm' | 'md' | 'lg'", "'md'", 'Tamaño'), i('disabled', 'boolean', 'false', 'Deshabilita el botón'), i('loading', 'boolean', 'false', 'Muestra un spinner, deshabilita y marca aria-busy'), i('type', "'button' | 'submit' | 'reset'", "'button'", 'Tipo del botón nativo'), i('block', 'boolean', 'false', 'Ocupa todo el ancho')],
+    outputs: [], slots: [s('(por defecto)', 'Contenido del botón')], a11y: 'Es un <button> nativo: foco, Enter y Espacio funcionan solos. Con loading="true" expone aria-busy.' },
+  { id: 'badge', name: 'Badge', tag: 'ui-badge', group: 'Básicos', summary: 'Etiqueta corta para estados y contadores.',
+    inputs: [i('variant', "'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info'", "'default'", 'Color'), i('dot', 'boolean', 'false', 'Añade un punto delante')],
+    outputs: [], slots: [s('(por defecto)', 'Texto')], a11y: 'Es texto: si el color transmite significado, di el estado también con palabras.' },
+  { id: 'chip', name: 'Chip', tag: 'ui-chip', group: 'Básicos', summary: 'Etiqueta que se puede quitar (filtros, destinatarios).',
+    inputs: [i('variant', "'default' | 'primary'", "'default'", 'Estilo'), i('removable', 'boolean', 'false', 'Muestra el botón para quitarla'), i('removeLabel', 'string', "'Quitar'", 'Etiqueta accesible del botón')],
+    outputs: [o('removed', 'void', 'Se pulsó el botón de quitar')], slots: [s('(por defecto)', 'Texto')], a11y: 'El botón de quitar tiene aria-label (configurable).' },
+  { id: 'avatar', name: 'Avatar', tag: 'ui-avatar', group: 'Básicos', summary: 'Imagen o iniciales de una persona, con indicador de estado.',
+    inputs: [i('name', 'string', "''", 'Nombre: da las iniciales y la etiqueta accesible'), i('src', 'string', "''", 'URL de la imagen (se sanea como cualquier src)'), i('size', 'number', '36', 'Tamaño en píxeles'), i('shape', "'circle' | 'square'", "'circle'", 'Forma'), i('status', "'' | 'online' | 'busy' | 'away'", "''", 'Punto de estado')],
+    outputs: [], slots: [], a11y: 'role="img" con aria-label igual al nombre.' },
+  { id: 'divider', name: 'Divider', tag: 'ui-divider', group: 'Básicos', summary: 'Línea separadora, con texto opcional.',
+    inputs: [i('label', 'string', "''", 'Texto centrado sobre la línea')], outputs: [], slots: [], a11y: 'role="separator".' },
+  { id: 'card', name: 'Card', tag: 'ui-card', group: 'Básicos', summary: 'Contenedor con título y pie opcionales.',
+    inputs: [i('title', 'string', "''", 'Título de la cabecera')], outputs: [], slots: [s('(por defecto)', 'Cuerpo'), s('footer', 'Pie (slot="footer")')], a11y: 'Es un contenedor neutro; el título es un h4.' },
+  { id: 'alert', name: 'Alert', tag: 'ui-alert', group: 'Básicos', summary: 'Aviso en línea, con título y cierre opcionales.',
+    inputs: [i('type', "'info' | 'success' | 'warning' | 'error'", "'info'", 'Tipo'), i('title', 'string', "''", 'Título en negrita'), i('dismissible', 'boolean', 'false', 'Muestra el botón de cerrar'), i('closeLabel', 'string', "'Cerrar'", 'Etiqueta accesible del botón')],
+    outputs: [o('closed', 'void', 'Se cerró el aviso')], slots: [s('(por defecto)', 'Mensaje')], a11y: 'error y warning usan role="alert" (se anuncian al instante); info y success, role="status".' },
+  { id: 'spinner', name: 'Spinner', tag: 'ui-spinner', group: 'Básicos', summary: 'Indicador de carga.',
+    inputs: [i('label', 'string', "'Cargando'", 'Texto para lectores de pantalla')], outputs: [], slots: [], a11y: 'role="status" con aria-label; la animación se ralentiza con prefers-reduced-motion.' },
+  { id: 'progress', name: 'Progress', tag: 'ui-progress', group: 'Básicos', summary: 'Barra de progreso determinada o indeterminada.',
+    inputs: [i('value', 'number', '0', 'Valor actual'), i('max', 'number', '100', 'Valor máximo'), i('label', 'string', "''", 'Texto sobre la barra (con porcentaje)'), i('variant', "'primary' | 'success' | 'warning' | 'danger'", "'primary'", 'Color'), i('indeterminate', 'boolean', 'false', 'Animación continua sin valor')],
+    outputs: [], slots: [], a11y: 'role="progressbar" con aria-valuenow/min/max; en modo indeterminado no hay aria-valuenow.' },
+  { id: 'skeleton', name: 'Skeleton', tag: 'ui-skeleton', group: 'Básicos', summary: 'Marcador de posición mientras carga el contenido.',
+    inputs: [i('height', 'number', '16', 'Alto en píxeles'), i('width', 'string', "'100%'", 'Ancho CSS'), i('circle', 'boolean', 'false', 'Forma circular')], outputs: [], slots: [], a11y: 'aria-hidden: avisa de la carga con otro elemento (por ejemplo un Spinner).' },
+  { id: 'empty-state', name: 'EmptyState', tag: 'ui-empty-state', group: 'Básicos', summary: 'Mensaje cuando no hay datos, con una acción opcional.',
+    inputs: [i('title', 'string', "'Sin resultados'", 'Título'), i('description', 'string', "''", 'Explicación')], outputs: [], slots: [s('(por defecto)', 'Acción (un botón, por ejemplo)')], a11y: 'Texto normal; pon la acción en el slot.' },
+
+  { id: 'text-field', name: 'TextField', tag: 'ui-text-field', group: 'Formularios', summary: 'Campo de texto con etiqueta, ayuda y error.',
+    inputs: [i('label', 'string', "''", 'Etiqueta'), i('value', 'string', "''", 'Valor'), i('type', 'string', "'text'", 'Tipo de input (email, password, date…)'), i('placeholder', 'string', "''", 'Texto de ejemplo'), i('hint', 'string', "''", 'Ayuda'), i('error', 'string', "''", 'Mensaje de error (sustituye a la ayuda)'), i('name', 'string', "''", 'Atributo name'), i('disabled', 'boolean', 'false', 'Deshabilitado'), i('readonly', 'boolean', 'false', 'Solo lectura'), i('required', 'boolean', 'false', 'Obligatorio (muestra *)')],
+    outputs: [o('valueChange', 'string', 'El usuario escribió')], slots: [], a11y: 'La etiqueta está enlazada al input (for/id); con error pone aria-invalid y aria-describedby apunta al mensaje.' },
+  { id: 'textarea', name: 'Textarea', tag: 'ui-textarea', group: 'Formularios', summary: 'Campo de texto de varias líneas.',
+    inputs: [i('label', 'string', "''", 'Etiqueta'), i('value', 'string', "''", 'Valor'), i('rows', 'number', '4', 'Filas visibles'), i('placeholder', 'string', "''", 'Texto de ejemplo'), i('hint', 'string', "''", 'Ayuda'), i('error', 'string', "''", 'Mensaje de error'), i('name', 'string', "''", 'Atributo name'), i('disabled', 'boolean', 'false', 'Deshabilitado'), i('readonly', 'boolean', 'false', 'Solo lectura'), i('required', 'boolean', 'false', 'Obligatorio')],
+    outputs: [o('valueChange', 'string', 'El usuario escribió')], slots: [], a11y: 'Igual que TextField.' },
+  { id: 'select', name: 'Select', tag: 'ui-select', group: 'Formularios', summary: 'Lista desplegable nativa con etiqueta.',
+    inputs: [i('label', 'string', "''", 'Etiqueta'), i('options', OPT, '[]', 'Opciones'), i('value', 'string', "''", 'Valor elegido'), i('hint', 'string', "''", 'Ayuda'), i('error', 'string', "''", 'Mensaje de error'), i('disabled', 'boolean', 'false', 'Deshabilitado'), i('required', 'boolean', 'false', 'Obligatorio')],
+    outputs: [o('valueChange', 'string', 'Se eligió una opción')], slots: [], a11y: '<select> nativo: teclado y lectores de pantalla funcionan como en cualquier formulario.' },
+  { id: 'checkbox', name: 'Checkbox', tag: 'ui-checkbox', group: 'Formularios', summary: 'Casilla de verificación, con estado indeterminado.',
+    inputs: [i('label', 'string', "''", 'Texto (o usa el slot)'), i('checked', 'boolean', 'false', 'Marcada'), i('indeterminate', 'boolean', 'false', 'Estado mixto'), i('disabled', 'boolean', 'false', 'Deshabilitada'), i('name', 'string', "''", 'Atributo name')],
+    outputs: [o('changed', 'boolean', 'Nuevo estado marcado')], slots: [s('(por defecto)', 'Texto de la casilla')], a11y: '<input type="checkbox"> nativo dentro de su <label>.' },
+  { id: 'radio-group', name: 'RadioGroup', tag: 'ui-radio-group', group: 'Formularios', summary: 'Grupo de opciones excluyentes.',
+    inputs: [i('label', 'string', "''", 'Leyenda del grupo'), i('options', OPT, '[]', 'Opciones'), i('value', 'string', "''", 'Valor elegido'), i('disabled', 'boolean', 'false', 'Deshabilita el grupo')],
+    outputs: [o('valueChange', 'string', 'Se eligió una opción')], slots: [], a11y: '<fieldset> con <legend> y radios nativos con el mismo name: las flechas cambian la opción.' },
+  { id: 'toggle', name: 'Toggle', tag: 'ui-toggle', group: 'Formularios', summary: 'Interruptor de encendido/apagado.',
+    inputs: [i('checked', 'boolean', 'false', 'Encendido'), i('label', 'string', "''", 'Texto'), i('disabled', 'boolean', 'false', 'Deshabilitado')],
+    outputs: [o('changed', 'boolean', 'Nuevo estado')], slots: [], a11y: 'role="switch" con aria-checked, en un <button>: Enter y Espacio lo accionan.' },
+  { id: 'slider', name: 'Slider', tag: 'ui-slider', group: 'Formularios', summary: 'Selector de un valor numérico en un rango.',
+    inputs: [i('label', 'string', "''", 'Etiqueta'), i('value', 'number', '0', 'Valor'), i('min', 'number', '0', 'Mínimo'), i('max', 'number', '100', 'Máximo'), i('step', 'number', '1', 'Paso'), i('disabled', 'boolean', 'false', 'Deshabilitado'), i('showValue', 'boolean', 'true', 'Muestra el valor')],
+    outputs: [o('valueChange', 'number', 'El valor cambió')], slots: [], a11y: '<input type="range"> nativo: flechas, Inicio/Fin y Re Pág/Av Pág funcionan solos.' },
+  { id: 'rating', name: 'Rating', tag: 'ui-rating', group: 'Formularios', summary: 'Valoración con estrellas.',
+    inputs: [i('value', 'number', '0', 'Valoración actual'), i('max', 'number', '5', 'Número de estrellas'), i('readonly', 'boolean', 'false', 'Solo muestra'), i('label', 'string', "'Valoración'", 'Etiqueta del grupo')],
+    outputs: [o('valueChange', 'number', 'Se eligió una valoración')], slots: [], a11y: 'role="radiogroup" con radios; flechas cambian el valor, tabindex itinerante.' },
+  { id: 'combobox', name: 'Combobox', tag: 'ui-combobox', group: 'Formularios', summary: 'Campo con búsqueda y lista de sugerencias.',
+    inputs: [i('label', 'string', "''", 'Etiqueta'), i('options', OPT, '[]', 'Opciones'), i('value', 'string', "''", 'Valor elegido'), i('placeholder', 'string', "'Buscar…'", 'Texto de ejemplo'), i('emptyText', 'string', "'Sin coincidencias'", 'Mensaje sin resultados'), i('disabled', 'boolean', 'false', 'Deshabilitado')],
+    outputs: [o('valueChange', 'string', 'Se eligió una opción')], slots: [], a11y: 'Patrón combobox: role="combobox", aria-expanded, aria-controls, aria-activedescendant; flechas, Inicio/Fin, Enter y Escape.' },
+
+  { id: 'tabs', name: 'Tabs', tag: 'ui-tabs', group: 'Navegación', summary: 'Pestañas; el contenido de cada una lo pones tú.',
+    inputs: [i('tabs', 'Array<{ id, label }>', '[]', 'Pestañas'), i('active', 'string', "''", 'Id de la activa'), i('label', 'string', "''", 'Etiqueta de la lista')],
+    outputs: [o('activeChange', 'string', 'Se eligió una pestaña')], slots: [], a11y: 'role="tablist"/"tab" con aria-selected y tabindex itinerante; flechas, Inicio y Fin.' },
+  { id: 'breadcrumb', name: 'Breadcrumb', tag: 'ui-breadcrumb', group: 'Navegación', summary: 'Ruta de navegación.',
+    inputs: [i('items', 'Array<{ label, href? }>', '[]', 'Tramos (el último es la página actual)'), i('separator', 'string', "'/'", 'Separador'), i('label', 'string', "'Ruta de navegación'", 'Etiqueta del nav')],
+    outputs: [], slots: [], a11y: '<nav aria-label> con lista ordenada; el último tramo lleva aria-current="page".' },
+  { id: 'pagination', name: 'Pagination', tag: 'ui-pagination', group: 'Navegación', summary: 'Paginación con ventana de páginas y puntos suspensivos.',
+    inputs: [i('total', 'number', '0', 'Total de elementos'), i('pageSize', 'number', '10', 'Elementos por página'), i('page', 'number', '1', 'Página actual'), i('siblings', 'number', '1', 'Páginas a cada lado de la actual'), i('prevLabel', 'string', "'Anterior'", 'Etiqueta del botón anterior'), i('nextLabel', 'string', "'Siguiente'", 'Etiqueta del botón siguiente'), i('label', 'string', "'Paginación'", 'Etiqueta del nav')],
+    outputs: [o('pageChange', 'number', 'Se pidió otra página')], slots: [], a11y: '<nav aria-label>, aria-current="page" en la actual y etiquetas en los botones.' },
+  { id: 'stepper', name: 'Stepper', tag: 'ui-stepper', group: 'Navegación', summary: 'Indicador de pasos.',
+    inputs: [i('steps', 'string[]', '[]', 'Nombres de los pasos'), i('current', 'number', '0', 'Índice del paso actual'), i('label', 'string', "'Progreso'", 'Etiqueta de la lista')],
+    outputs: [], slots: [], a11y: 'Lista ordenada; el paso actual lleva aria-current="step".' },
+  { id: 'accordion-item', name: 'AccordionItem', tag: 'ui-accordion-item', group: 'Navegación', summary: 'Sección que se abre y se cierra.',
+    inputs: [i('title', 'string', "''", 'Título'), i('open', 'boolean', 'false', 'Estado inicial')],
+    outputs: [o('toggled', 'boolean', 'Nuevo estado abierto')], slots: [s('(por defecto)', 'Contenido')], a11y: 'Botón con aria-expanded y aria-controls; el panel es role="region" etiquetado por el botón.' },
+  { id: 'dropdown', name: 'Dropdown', tag: 'ui-dropdown', group: 'Navegación', summary: 'Botón con menú de acciones.',
+    inputs: [i('label', 'string', "'Menú'", 'Texto del botón'), i('items', OPT, '[]', 'Acciones'), i('align', "'start' | 'end'", "'start'", 'Alineación del menú'), i('variant', 'string', "'default'", 'Variante del botón')],
+    outputs: [o('picked', 'valor', 'Se eligió una acción (su value)')], slots: [], a11y: 'aria-haspopup="menu" y role="menu"/"menuitem"; flechas, Inicio/Fin, Escape (devuelve el foco) y cierre al hacer clic fuera.' },
+
+  { id: 'modal', name: 'Modal', tag: 'ui-modal', group: 'Superposiciones', summary: 'Diálogo modal.',
+    inputs: [i('open', 'boolean', 'false', 'Visible'), i('title', 'string', "''", 'Título'), i('size', "'sm' | 'md' | 'lg'", "'md'", 'Ancho'), i('closeOnBackdrop', 'boolean', 'true', 'Cierra al pulsar el fondo'), i('closeLabel', 'string', "'Cerrar'", 'Etiqueta accesible del botón')],
+    outputs: [o('closed', 'void', 'Se pidió cerrar (X, Escape o fondo): tú decides si cerrar')], slots: [s('(por defecto)', 'Contenido')], a11y: 'role="dialog" aria-modal con aria-labelledby; el foco entra, Tab queda dentro, Escape cierra, el scroll de la página se bloquea y el foco vuelve al disparador.' },
+  { id: 'drawer', name: 'Drawer', tag: 'ui-drawer', group: 'Superposiciones', summary: 'Panel lateral o inferior.',
+    inputs: [i('open', 'boolean', 'false', 'Visible'), i('title', 'string', "''", 'Título'), i('side', "'left' | 'right' | 'bottom'", "'left'", 'Lado'), i('closeLabel', 'string', "'Cerrar'", 'Etiqueta accesible del botón')],
+    outputs: [o('closed', 'void', 'Se pidió cerrar (X, Escape o fondo)')], slots: [s('(por defecto)', 'Contenido')], a11y: 'Igual que Modal. Ideal para menús en móvil.' },
+  { id: 'popover', name: 'Popover', tag: 'ui-popover', group: 'Superposiciones', summary: 'Panel flotante junto a un botón.',
+    inputs: [i('label', 'string', "'Abrir'", 'Texto del botón'), i('placement', "'top' | 'bottom'", "'bottom'", 'Posición'), i('align', "'start' | 'end'", "'start'", 'Alineación'), i('variant', 'string', "'default'", 'Variante del botón')],
+    outputs: [o('toggled', 'boolean', 'Se abrió o se cerró')], slots: [s('(por defecto)', 'Contenido del panel')], a11y: 'Botón con aria-expanded y aria-controls; Escape cierra y devuelve el foco; clic fuera cierra.' },
+  { id: 'tooltip', name: 'Tooltip', tag: 'ui-tooltip', group: 'Superposiciones', summary: 'Texto de ayuda al pasar el ratón o enfocar.',
+    inputs: [i('text', 'string', "''", 'Texto de la ayuda'), i('placement', "'top' | 'bottom' | 'left' | 'right'", "'top'", 'Posición')],
+    outputs: [], slots: [s('(por defecto)', 'Elemento al que se refiere')], a11y: 'Enfocable con el teclado; el texto es role="tooltip" y el elemento lo referencia con aria-describedby.' },
+  { id: 'toasts', name: 'Toasts', tag: 'ui-toasts', group: 'Superposiciones', summary: 'Avisos temporales; se lanzan con ToastService.',
+    inputs: [i('closeLabel', 'string', "'Cerrar'", 'Etiqueta accesible del botón')], outputs: [], slots: [], a11y: 'Región aria-live="polite"; cada aviso tiene botón de cierre. ToastService.show(mensaje, tipo, ms) con ms=0 lo deja hasta cerrarlo.' },
+
+  { id: 'table', name: 'Table', tag: 'ui-table', group: 'Datos', summary: 'Tabla ordenable.',
+    inputs: [i('columns', 'Array<{ key, label?, sortable?, align? }>', '[]', 'Columnas'), i('rows', 'object[]', '[]', 'Filas'), i('caption', 'string', "''", 'Título de la tabla'), i('empty', 'string', "'Sin datos'", 'Mensaje sin filas'), i('dense', 'boolean', 'false', 'Filas compactas'), i('striped', 'boolean', 'false', 'Filas alternas'), i('rowKey', 'string', "''", 'Campo único de cada fila (mejora las actualizaciones)')],
+    outputs: [], slots: [], a11y: '<caption>, th scope="col", aria-sort y botones de ordenación operables con el teclado.' },
+  { id: 'code-block', name: 'CodeBlock', tag: 'ui-code-block', group: 'Datos', summary: 'Bloque de código con botón de copiar.',
+    inputs: [i('code', 'string', "''", 'Código'), i('language', 'string', "''", 'Nombre del lenguaje (etiqueta)'), i('copyLabel', 'string', "'Copiar'", 'Texto del botón'), i('copiedLabel', 'string', "'Copiado'", 'Texto tras copiar')],
+    outputs: [], slots: [], a11y: 'El botón anuncia el resultado con aria-live. Usa la API del portapapeles y, si no existe, un respaldo.' }
+];

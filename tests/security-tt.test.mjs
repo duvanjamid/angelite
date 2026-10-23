@@ -11,7 +11,7 @@ window.trustedTypes = {
   }
 };
 
-const { signal, component, mount, trustHtml } = await import('../src/lite/index.js');
+const { signal, component, mount, trustHtml } = await import('../src/index.js');
 
 test('templates are parsed through one Trusted Types policy named "angelite"', () => {
   class C {}

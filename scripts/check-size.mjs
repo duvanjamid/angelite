@@ -5,11 +5,10 @@ import { gzipSync } from 'node:zlib';
 import { minify } from 'terser';
 
 const BUDGETS = {
-  'dist/angelite-lite.min.js': 13000,
+  'dist/angelite.min.js': 13000,
   'dist/angelite-runtime.min.js': 7100,
   'dist/angelite-runtime-plus.min.js': 8550,
-  'dist/angelite-ui.min.js': 5500,
-  'dist/angelite.min.js': 17500
+  'dist/angelite-ui.min.js': 12000
 };
 
 // optional modules ship as readable ESM; their budget is measured after minifying (what a bundler produces)

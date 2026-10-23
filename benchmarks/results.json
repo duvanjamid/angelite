@@ -13,7 +13,7 @@
     "preact": "10.29.8",
     "vue": "3.5.44",
     "@angular/core": "20.3.34",
-    "lite": "2.0.0"
+    "angelite": "2.0.0"
   },
   "benches": [
     {
@@ -54,7 +54,7 @@
     }
   ],
   "frameworks": {
-    "lite-aot": {
+    "angelite-aot": {
       "size": {
         "raw": 14411,
         "gzip": 6223,
@@ -129,7 +129,7 @@
         }
       }
     },
-    "lite": {
+    "angelite": {
       "size": {
         "raw": 25213,
         "gzip": 10365,

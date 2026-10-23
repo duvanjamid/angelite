@@ -9,7 +9,7 @@ on:
     - cron: '17 5 * * 1'
   pull_request:
     paths:
-      - 'src/lite/**'
+      - 'src/**'
       - 'tools/aot.mjs'
       - 'benchmarks/**'
 
@@ -36,12 +36,12 @@ jobs:
           npx playwright-core install --with-deps chromium
       - name: Build the AngeLite and Preact apps
         working-directory: benchmarks
-        run: BUILD=lite-aot,lite,preact node build.mjs
+        run: BUILD=angelite-aot,angelite,preact node build.mjs
       - name: Run the benchmark (3 apps)
         working-directory: benchmarks
         run: |
           CHROMIUM="$(node -e "console.log(require('playwright-core').chromium.executablePath())")" \
-          FW=lite-aot,lite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs
+          FW=angelite-aot,angelite,preact ROUNDS=5 ITER=15 STARTUP_RUNS=25 node run.mjs
       - name: Compare with the baseline
         working-directory: benchmarks
         run: node compare.mjs | tee compare.txt

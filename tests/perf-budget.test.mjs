@@ -10,10 +10,10 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { window, tick } from './setup.mjs';
 
 // every optional module loaded: unused features must cost nothing on the hot paths
-const lite = await import('../src/lite/full.js');
-const { Effect } = await import('../src/lite/signals.js');
+const angelite = await import('../src/full.js');
+const { Effect } = await import('../src/signals.js');
 const { compileTemplate } = await import('../tools/aot.mjs');
-const { signal, component, mount } = lite;
+const { signal, component, mount } = angelite;
 
 const BUDGET = new URL('./perf-budget.json', import.meta.url);
 
@@ -52,7 +52,7 @@ wrap(Effect.prototype, 'run');
 
 const total = c => Object.entries(c).filter(([k]) => k !== 'run').reduce((s, [, v]) => s + v, 0);
 
-/* ---------- the benchmark app (same template as benchmarks/apps/lite-aot) ---------- */
+/* ---------- the benchmark app (same template as benchmarks/apps/angelite-aot) ---------- */
 
 const TEMPLATE = `<table class="table"><tbody>
   @for (r of rows(); track r.id) {

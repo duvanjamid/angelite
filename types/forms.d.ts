@@ -1,4 +1,4 @@
-import type { Signal, ReadonlySignal } from './lite.js';
+import type { Signal, ReadonlySignal } from './angelite.js';
 
 export type ValidationErrors = Record<string, any> | null;
 export type Validator<T = any> = (value: T) => ValidationErrors;

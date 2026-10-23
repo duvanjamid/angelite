@@ -1,4 +1,4 @@
-// Security behaviour of AngeLite Lite, for both the in-browser compiler and precompiled templates.
+// Security behaviour of AngeLite, for both the in-browser compiler and precompiled templates.
 // Every attack here must stay blocked: if one of these fails, a vulnerability was reintroduced.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,8 +8,8 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { window, mountIn, tick } from './setup.mjs';
 
-const lite = await import('../src/lite/index.js');
-const { signal, component, mount, trustHtml, trustUrl, sanitizeUrl } = lite;
+const angelite = await import('../src/index.js');
+const { signal, component, mount, trustHtml, trustUrl, sanitizeUrl } = angelite;
 const { compileTemplate } = await import('../tools/aot.mjs');
 
 function app(template, init = () => ({}), proto = {}) {
@@ -232,8 +232,8 @@ test('the sandbox does not break ordinary objects (even ones that have a "window
 });
 
 test('no source file uses eval or new Function', () => {
-  const dir = new URL('../src/lite/', import.meta.url);
-  for (const f of readdirSync(dir)) {
+  const dir = new URL('../src/', import.meta.url);
+  for (const f of readdirSync(dir).filter(f => f.endsWith('.js'))) {
     const src = readFileSync(new URL(f, dir), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
     assert.doesNotMatch(src, /\beval\s*\(|new\s+Function\b/, f);
   }
@@ -270,8 +270,8 @@ test('precompiled output contains no eval, no new Function and no imports', () =
   assert.doesNotMatch(src, /\beval\b|new\s+Function|import\s/);
 });
 
-test('built bundles contain no eval or new Function', { skip: !existsSync(new URL('../dist/angelite-lite.min.js', import.meta.url)) && 'dist/ not built' }, () => {
-  for (const f of ['angelite-lite.min.js', 'angelite-runtime.min.js', 'angelite-ui.min.js']) {
+test('built bundles contain no eval or new Function', { skip: !existsSync(new URL('../dist/angelite.min.js', import.meta.url)) && 'dist/ not built' }, () => {
+  for (const f of ['angelite.min.js', 'angelite-runtime.min.js', 'angelite-ui.min.js']) {
     const code = readFileSync(new URL(`../dist/${f}`, import.meta.url), 'utf8');
     assert.doesNotMatch(code, /\beval\s*\(|new Function/, f);
   }

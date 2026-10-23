@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { window, document } from './setup.mjs';
 
-const full = await import('../src/lite/full.js');
+const full = await import('../src/full.js');
 const { compileTemplate } = await import('../tools/aot.mjs');
 const { signal, computed, component, mount, input, output } = full;
 
@@ -41,7 +41,7 @@ function makeApp() {
   class App {
     n = signal(0);
     name = signal('');
-    label = 'lite';
+    label = 'angelite';
     log = signal('');
     items = signal([{ id: 1, t: 'a' }, { id: 2, t: 'b' }]);
     inc() { this.n.update(v => v + 1); }

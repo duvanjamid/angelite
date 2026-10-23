@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 
 await import('./setup.mjs');
 const { renderToString, renderPage, serializeState } = await import('../tools/ssr.mjs');
-const lite = await import('../src/lite/full.js');
-const { hydrate } = await import('../src/lite/hydrate.js');
-const { component, signal, input } = lite;
+const angelite = await import('../src/full.js');
+const { hydrate } = await import('../src/hydrate.js');
+const { component, signal, input } = angelite;
 
 let n = 0;
 const define = (template, init = () => ({}), meta = {}) => {
@@ -49,7 +49,7 @@ test('ready() lets async data settle before the markup is taken', async () => {
 
 test('router state: the url option decides the page', async () => {
   const Home = define('<h1>home</h1>'), About = define('<h1>about</h1>');
-  const { provideRouter } = lite;
+  const { provideRouter } = angelite;
   const App = define('<router-outlet></router-outlet>');
   const run = url => renderToString(App, { url, setup: () => { provideRouter([{ path: '/', component: Home }, { path: 'about', component: About }], { mode: 'history' }); } });
   assert.match(await run('/about'), /<h1>about<\/h1>/);
@@ -79,7 +79,7 @@ test('a custom shell/selector, a missing mount point, and failures that do not b
   const Bad = define('<p>{{ x }}</p>');
   await assert.rejects(renderToString(Bad, { ready: () => { throw new Error('data failed'); } }), /data failed/);
   assert.match(await renderToString(App), /<i>x<\/i>/, 'the queue recovers');
-  assert.match(await renderToString(App, { mount: lite.mount }), /<i>x<\/i>/, 'a custom mount is used');
+  assert.match(await renderToString(App, { mount: angelite.mount }), /<i>x<\/i>/, 'a custom mount is used');
 });
 
 test('hydrate(): replaces the server markup with the live app in one go', async () => {

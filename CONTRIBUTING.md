@@ -119,28 +119,25 @@ feat(router): añadir soporte para rutas anidadas
 
 ```
 angelite/
-├── src/                  # Código fuente
-│   ├── core/             # Funcionalidad central
-│   ├── decorators/       # Decoradores (@Component, @Directive, etc.)
-│   ├── directives/       # Directivas incorporadas
-│   ├── forms/            # Sistema de formularios
-│   ├── pipes/            # Pipes para transformación de datos
-│   └── router/           # Sistema de enrutamiento
-├── examples/             # Ejemplos de uso
+├── src/                  # Núcleo (señales, runtime, compilador, router) y módulos opcionales (forms, http, i18n…)
+│   ├── ui/               # Biblioteca de componentes
+│   └── utils/            # Evaluador de expresiones
+├── tools/                # AOT, SSR, plugin de Vite y angelite-check
+├── types/                # Definiciones de TypeScript
+├── tests/                # Pruebas (incluye presupuestos de rendimiento y seguridad)
+├── benchmarks/           # Benchmark frente a Preact, Vue, React y Angular
+├── scripts/              # Presupuestos de tamaño
 ├── (la documentación vive en el repositorio angelite-docs)
-├── test/                 # Pruebas
 └── dist/                 # Archivos compilados (generados)
 ```
 
 ## Paleta de Colores
 
-Cuando trabajes en componentes visuales o ejemplos, utiliza la paleta de colores oficial de AngeLite:
+Cuando trabajes en componentes visuales o ejemplos, usa la paleta oficial de AngeLite:
 
-- **Primary Red**: `#bf3f27` - Acciones primarias y énfasis
-- **Secondary Orange**: `#ef7b4f` - Elementos secundarios y destacados
-- **Neutral Tan**: `#cb9573` - Fondos y elementos neutrales
-- **Light Teal**: `#72a2ac` - Acentos y elementos de soporte
-- **Dark Teal**: `#3d6c6f` - Texto y elementos oscuros de la interfaz
+- **Rosa (primario)**: `#d6336c` (en modo oscuro `#ff6b9a`)
+- **Rosa suave**: `#fbd3e0`
+- **Pizarra (texto y fondos oscuros)**: `#1d2330` y `#14161d`
 
 ## Licencia
 
