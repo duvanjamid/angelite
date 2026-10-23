@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — first release
+
+AngeLite is a signals framework with Angular-style templates: a ~6 KB gzip core (precompiled), secure by default, with forms, HTTP, i18n, animations, router, SSR, DevTools and a 33-component accessible UI library as optional modules. Everything below landed in this release.
 
 ### Renamed: AngeLite is just AngeLite
 There is one framework now, so nothing carries the "lite" name any more. The package is new and unused, so this is a clean break with no aliases:
