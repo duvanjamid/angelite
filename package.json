@@ -165,5 +165,8 @@
   "types": "types/angelite.d.ts",
   "bin": {
     "angelite-check": "tools/check.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
