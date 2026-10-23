@@ -1,6 +1,6 @@
 // Performance budget that does not depend on timing: how much DOM work and how many effect runs each
 // benchmark scenario costs. The counts are deterministic, so any change that makes the core do more
-// work per operation fails here, however fast the machine is. See docs/performance.md.
+// work per operation fails here, however fast the machine is. See analysis/performance.md in the angelite-docs repository.
 //
 //   UPDATE_PERF=1 npm test      rewrites tests/perf-budget.json with the current counts (do it on purpose,
 //                               in the commit that explains why the work grew, or to lock in an improvement)

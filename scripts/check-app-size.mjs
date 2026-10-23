@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { aotPlugin } from '../tools/aot.mjs';
 
 const root = resolve(import.meta.dirname, '..', 'benchmarks', 'apps');
-// precompiled: runtime only; in-browser: runtime + template compiler. Preact's same app is 6385 B (see docs/benchmarks.html).
+// precompiled: runtime only; in-browser: runtime + template compiler. Preact's same app is 6385 B (see the benchmarks page in the angelite-docs repository).
 const APPS = [
   { name: 'precompiled app (lite-aot)', entry: 'lite-aot/main.js', budget: 6300, plugins: [aotPlugin({ check: false })] },
   { name: 'in-browser compiler app (lite)', entry: 'lite/main.js', budget: 10500, plugins: [] }

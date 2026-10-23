@@ -2,7 +2,7 @@
 
 <!-- What changes and why. -->
 
-## Performance checklist (see docs/performance.md)
+## Performance checklist (see https://github.com/duvanjamid/angelite-docs/blob/main/analysis/performance.md)
 
 - [ ] New functionality is an optional module or is hooked through `ops` (an app that does not import it pays nothing)
 - [ ] The hot paths (`instantiate`, `runView`, `ForState`, `removeView`) are untouched, or the budget below shows no change

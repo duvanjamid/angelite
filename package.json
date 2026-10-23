@@ -21,7 +21,7 @@
     "test": "node --test tests/*.test.mjs",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
-    "build:docs": "rollup -c && cp dist/angelite-lite.min.js dist/angelite-ui.min.js dist/angelite-addons.min.js docs/",
+    "build:docs": "echo \"The documentation lives in https://github.com/duvanjamid/angelite-docs: run its scripts/sync.mjs against this checkout\"",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/lite/**\" --test-coverage-include=\"src/utils/expression.js\" --test-coverage-include=\"src/ui/**\" --test-coverage-lines=95 --test-coverage-branches=88 --test-coverage-functions=95 tests/*.test.mjs",
     "size": "node scripts/check-size.mjs",
     "typecheck": "tsc -p types/tsconfig.json",

@@ -284,12 +284,7 @@ class RegistrationComponent {
 
 For detailed documentation, check out the following resources:
 
-- [API Reference](./docs/api-reference.md)
-- [Component Guide](./docs/components.md)
-- [Directives Guide](./docs/directives.md)
-- [Routing Guide](./docs/routing.md)
-- [Forms Guide](./docs/forms.md)
-- [Dependency Injection](./docs/dependency-injection.md)
+- Everything (guide with live examples, component library, benchmarks, feature comparison, analysis): [angelite-docs](https://github.com/duvanjamid/angelite-docs)
 
 ## Brand Colors
 
@@ -316,7 +311,7 @@ A signals-based core with Angular-style templates (`@if`, `@for`, `@defer`, `[(n
 
 What is in the box (optional pieces are separate modules, so they cost nothing if you do not import them): TypeScript types, reactive forms (`/lite/forms`), an HTTP client with interceptors and `resource()` (`/lite/http`), i18n with plurals (`/lite/i18n`), enter/leave animations, SSR (`tools/ssr.mjs`) and `hydrate()`, a history-mode router with query params and resolvers, `render()` test helpers (`/lite/testing`), `enableDevWarnings()`, `enableDevtools()`, a Vite plugin and `angelite-check`, portals, `@defer`, `viewChild()`, `ngOnError` error boundaries, `providers` per component, and a security model with URL sanitizing, `trustHtml()`, Trusted Types and CSP support.
 
-Documentation site (guide with live examples, components, benchmarks, comparison, analysis): [`duvanjamid/angelite-docs`](https://github.com/duvanjamid/angelite-docs). The same pages live in this repo's [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks and feature comparison vs React/Preact/Vue/Angular (including where each framework provides each feature): [`docs/benchmarks.html`](docs/benchmarks.html), gap analysis and roadmap: [`docs/gap-analysis.md`](docs/gap-analysis.md). Security model and reporting: [`SECURITY.md`](SECURITY.md).
+Documentation site (guide with live examples, components, benchmarks, comparison, analysis): [`duvanjamid/angelite-docs`](https://github.com/duvanjamid/angelite-docs) (published at <https://duvanjamid.github.io/angelite-docs/>). The benchmark numbers come from `benchmarks/results.json` in this repository. Security model and reporting: [`SECURITY.md`](SECURITY.md).
 
 ## Development
 

@@ -8,7 +8,7 @@ Al participar en este proyecto, te comprometes a mantener un ambiente respetuoso
 
 ## Rendimiento
 
-Cada función nueva debe llegar sin dañar el rendimiento del núcleo. Hay un presupuesto de tamaño, un presupuesto de trabajo determinista (`tests/perf-budget.test.mjs`) y una comparación de tiempos contra Preact. Las reglas y los comandos están en [`docs/performance.md`](docs/performance.md); la plantilla de PR trae la lista de comprobación.
+Cada función nueva debe llegar sin dañar el rendimiento del núcleo. Hay un presupuesto de tamaño, un presupuesto de trabajo determinista (`tests/perf-budget.test.mjs`) y una comparación de tiempos contra Preact. Las reglas y los comandos están en [`analysis/performance.md`](https://github.com/duvanjamid/angelite-docs/blob/main/analysis/performance.md) del repositorio de documentación; la plantilla de PR trae la lista de comprobación.
 
 ## Cómo Contribuir
 
@@ -127,7 +127,7 @@ angelite/
 │   ├── pipes/            # Pipes para transformación de datos
 │   └── router/           # Sistema de enrutamiento
 ├── examples/             # Ejemplos de uso
-├── docs/                 # Documentación
+├── (la documentación vive en el repositorio angelite-docs)
 ├── test/                 # Pruebas
 └── dist/                 # Archivos compilados (generados)
 ```

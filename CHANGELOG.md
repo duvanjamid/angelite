@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Documentation moved
+The documentation site (guide with live examples, component library, benchmarks page, feature comparison, gap analysis, performance and security guides) now lives in [`duvanjamid/angelite-docs`](https://github.com/duvanjamid/angelite-docs). `docs/` is gone from this repository; `npm run build:docs` only prints where to go. The docs repository's `scripts/sync.mjs` rebuilds the bundles from this repository and brings the benchmark results.
+
 ### Framework completeness, wave 2 (Lite)
 All of it is optional: separate modules built against the lite bundle (`dist/angelite-<name>.esm.js`, or `angelite-addons.min.js` with the global `AngeLiteAddons` for a plain `<script>`), so there is one reactive core and an app pays only for what it imports.
 - **Reactive forms** (`lite/forms`): `FormControl`, `FormGroup` (nested, `get('a.b')`, group validators), `FormArray`; `value`, `errors`, `valid`, `touched`, `dirty` are signals, and `value` binds with `[(ngModel)]`. Validators: `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `email`, `matches`. No async validators yet.
