@@ -1,0 +1,9 @@
+<table class="table"><tbody>
+  @for (r of rows(); track r.id) {
+    <tr [class.danger]="r.id === selected()">
+      <td class="col-id">{{ r.id }}</td>
+      <td class="col-label"><a (click)="select(r.id)">{{ r.label }}</a></td>
+      <td class="col-remove"><a (click)="remove(r.id)">×</a></td>
+    </tr>
+  }
+</tbody></table>

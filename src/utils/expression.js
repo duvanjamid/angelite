@@ -1,245 +1,150 @@
 /**
- * Safe template expression evaluator (no eval / new Function).
+ * Safe template expression compiler (no eval / new Function).
+ * One parser, pluggable backend: the default turns expressions into closures
+ * `(context) => value`; the AOT tool plugs in a backend that emits JS source.
  * Supports literals, identifiers, member access (. ?. []), calls, unary and
- * binary operators, ternary, array/object-free literals and parentheses.
+ * binary operators, ternary, array literals and parentheses.
  */
 
-const BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
+// Names a template can never read or call: prototype access, legacy accessor helpers, and DOM methods that
+// turn strings into markup or attributes. (Defense in depth: templates are still trusted code, see SECURITY.md.)
+const BLOCKED = new Set(['__proto__', 'constructor', 'prototype', '__defineGetter__', '__defineSetter__',
+  '__lookupGetter__', '__lookupSetter__', 'insertAdjacentHTML', 'insertAdjacentElement', 'setHTMLUnsafe',
+  'setAttribute', 'setAttributeNS', 'setAttributeNode', 'createContextualFragment', 'execCommand', 'write', 'writeln']);
 const cache = new Map();
+const LIT = new Map([['true', true], ['false', false], ['null', null], ['undefined', undefined]]);
 
-const BINARY = {
-  '??': 1, '||': 2, '&&': 3,
-  '==': 4, '!=': 4, '===': 4, '!==': 4,
-  '<': 5, '>': 5, '<=': 5, '>=': 5,
-  '+': 6, '-': 6, '*': 7, '/': 7, '%': 7
+/**
+ * Values that must never reach a template, however they were reached ($el.ownerDocument, $event.view,
+ * node.getRootNode(), event.composedPath()[n] ...): the global object and documents.
+ */
+export const guard = v => (v !== null && typeof v === 'object' && (v.window === v || v.nodeType === 9 || v === globalThis) ? undefined : v);
+
+export const prop = (o, k) => (o == null || BLOCKED.has(k) ? undefined : guard(o[k]));
+
+/** Default backend: turns expressions into closures `(context) => value`. */
+const call = (fn, recv, args, c) => {
+  if (typeof fn === 'function') return guard(fn.apply(recv, args.map(a => a(c))));
+  if (fn != null) throw new TypeError('Expression is not a function');
+};
+export const closures = {
+  lit: v => () => v,
+  id: name => c => prop(c, name),
+  arr: items => c => items.map(f => f(c)),
+  mem: (o, k) => c => prop(o(c), k(c)),
+  callm: (o, k, args) => c => { const r = o(c); return call(prop(r, k(c)), r, args, c); },
+  calli: (fn, args, self) => c => call(fn(c), self ? c : undefined, args, c),
+  un: (u, a) => c => UNARY[u](a(c)),
+  bin: (op, a, r) => op === '&&' ? c => a(c) && r(c)
+    : op === '||' ? c => a(c) || r(c)
+      : op === '??' ? c => a(c) ?? r(c)
+        : c => OPS[op][1](a(c), r(c)),
+  cond: (q, a, b) => c => (q(c) ? a(c) : b(c))
 };
 
-const OPS = ['===', '!==', '==', '!=', '<=', '>=', '&&', '||', '??', '?.',
-  '+', '-', '*', '/', '%', '<', '>', '!', '?', ':', '.', ',', '(', ')', '[', ']'];
+// [precedence, implementation]; && || ?? short-circuit and are handled in binary()
+export const OPS = {
+  '??': [1], '||': [2], '&&': [3],
+  '==': [4, (a, b) => a == b], '!=': [4, (a, b) => a != b], // eslint-disable-line eqeqeq
+  '===': [4, (a, b) => a === b], '!==': [4, (a, b) => a !== b],
+  '<': [5, (a, b) => a < b], '>': [5, (a, b) => a > b], '<=': [5, (a, b) => a <= b], '>=': [5, (a, b) => a >= b],
+  '+': [6, (a, b) => a + b], '-': [6, (a, b) => a - b],
+  '*': [7, (a, b) => a * b], '/': [7, (a, b) => a / b], '%': [7, (a, b) => a % b]
+};
+export const UNARY = { '!': a => !a, '-': a => -a, '+': a => +a };
+
+// number | string | identifier | operator
+const TOKEN = /\s*(?:(\d+\.?\d*|\.\d+)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([A-Za-z_$][\w$]*)|(===|!==|==|!=|<=|>=|&&|\|\||\?\?|\?\.|[-+*/%<>!?:.,()[\]]))/y;
 
 function tokenize(src) {
-  const tokens = [];
-  let i = 0;
-  while (i < src.length) {
-    const ch = src[i];
-    if (/\s/.test(ch)) { i++; continue; }
-    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1] || ''))) {
-      const m = /^(\d+\.?\d*|\.\d+)/.exec(src.slice(i));
-      tokens.push({ t: 'num', v: parseFloat(m[0]) });
-      i += m[0].length;
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      let j = i + 1, out = '';
-      while (j < src.length && src[j] !== ch) {
-        if (src[j] === '\\') j++;
-        out += src[j++];
-      }
-      if (j >= src.length) throw new SyntaxError(`Unterminated string in "${src}"`);
-      tokens.push({ t: 'str', v: out });
-      i = j + 1;
-      continue;
-    }
-    const id = /^[A-Za-z_$][\w$]*/.exec(src.slice(i));
-    if (id) { tokens.push({ t: 'id', v: id[0] }); i += id[0].length; continue; }
-    const op = OPS.find(o => src.startsWith(o, i));
-    if (!op) throw new SyntaxError(`Unexpected "${ch}" in "${src}"`);
-    tokens.push({ t: 'op', v: op });
-    i += op.length;
+  const out = [];
+  TOKEN.lastIndex = 0;
+  while (TOKEN.lastIndex < src.length) {
+    const m = TOKEN.exec(src);
+    if (!m) throw new SyntaxError(`Unexpected "${src[TOKEN.lastIndex]}" in "${src}"`);
+    out.push(m[1] ? [0, +m[1]] : m[2] ? [1, m[2].slice(1, -1).replace(/\\(.)/g, '$1')] : m[3] ? [2, m[3]] : [3, m[4]]);
   }
-  return tokens;
+  return out;
 }
 
-const LITERALS = { true: true, false: false, null: null, undefined: undefined };
-
-function parse(src) {
-  const tokens = tokenize(src);
-  let pos = 0;
-  const peek = () => tokens[pos];
-  const isOp = v => peek() && peek().t === 'op' && peek().v === v;
-  const expect = v => {
-    if (!isOp(v)) throw new SyntaxError(`Expected "${v}" in "${src}"`);
-    pos++;
+export function parse(src, E = closures) {
+  const t = tokenize(src.trim());
+  let i = 0;
+  const op = v => t[i] && t[i][0] === 3 && t[i][1] === v;
+  const eat = v => op(v) && ++i;
+  const need = v => { if (!eat(v)) throw new SyntaxError(`Expected "${v}" in "${src}"`); };
+  const list = close => {
+    const out = [];
+    while (!eat(close)) { out.push(ternary()); if (!op(close)) need(','); }
+    return out;
   };
 
-  function primary() {
-    const tok = tokens[pos++];
+  const primary = () => {
+    const tok = t[i++];
     if (!tok) throw new SyntaxError(`Unexpected end of "${src}"`);
-    if (tok.t === 'num' || tok.t === 'str') return { k: 'lit', v: tok.v };
-    if (tok.t === 'id') {
-      return Object.prototype.hasOwnProperty.call(LITERALS, tok.v) ? { k: 'lit', v: LITERALS[tok.v] } : { k: 'id', name: tok.v };
-    }
-    if (tok.v === '(') { const e = ternary(); expect(')'); return e; }
-    if (tok.v === '[') {
-      const items = [];
-      while (!isOp(']')) { items.push(ternary()); if (!isOp(']')) expect(','); }
-      expect(']');
-      return { k: 'arr', items };
-    }
-    throw new SyntaxError(`Unexpected "${tok.v}" in "${src}"`);
-  }
+    const [kind, v] = tok;
+    if (kind < 2) return E.lit(v);
+    if (kind === 2) return LIT.has(v) ? E.lit(LIT.get(v)) : E.id(v);
+    if (v === '(') { const e = ternary(); need(')'); return e; }
+    if (v === '[') return E.arr(list(']'));
+    throw new SyntaxError(`Unexpected "${v}" in "${src}"`);
+  };
 
-  function postfix() {
-    let node = primary();
+  const postfix = () => {
+    const first = t[i];
+    let f = primary();
+    // `o`/`k`: object and key of the last member access, so method calls keep their receiver
+    let o = 0, k = 0, ident = first[0] === 2 && !LIT.has(first[1]);
     for (;;) {
-      if (isOp('.') || isOp('?.')) {
-        const optional = tokens[pos++].v === '?.';
-        if (optional && (isOp('(') || isOp('['))) {
-          // a?.(args) / a?.[x]
-          if (isOp('[')) { pos++; const p = ternary(); expect(']'); node = { k: 'mem', obj: node, prop: p, opt: true }; }
-          else { pos++; node = { k: 'call', fn: node, args: args(), opt: true }; }
-          continue;
-        }
-        const name = tokens[pos++];
-        if (!name || name.t !== 'id') throw new SyntaxError(`Expected property name in "${src}"`);
-        node = { k: 'mem', obj: node, prop: { k: 'lit', v: name.v }, opt: optional };
-      } else if (isOp('[')) {
-        pos++; const p = ternary(); expect(']');
-        node = { k: 'mem', obj: node, prop: p };
-      } else if (isOp('(')) {
-        pos++; node = { k: 'call', fn: node, args: args() };
-      } else return node;
+      if (eat('.') || eat('?.')) {
+        if (op('(') || op('[')) continue;
+        const name = t[i++];
+        if (!name || name[0] !== 2) throw new SyntaxError(`Expected property name in "${src}"`);
+        const key = name[1];
+        o = f; k = E.lit(key); f = E.mem(o, k); ident = false;
+      } else if (eat('[')) {
+        o = f; k = ternary(); need(']'); f = E.mem(o, k); ident = false;
+      } else if (eat('(')) {
+        const args = list(')');
+        f = o ? E.callm(o, k, args) : E.calli(f, args, ident);
+        o = k = 0; ident = false;
+      } else return f;
     }
-  }
+  };
 
-  function args() {
-    const list = [];
-    while (!isOp(')')) { list.push(ternary()); if (!isOp(')')) expect(','); }
-    expect(')');
-    return list;
-  }
+  const unary = () => {
+    const u = Object.keys(UNARY).find(eat);
+    if (!u) return postfix();
+    return E.un(u, unary());
+  };
 
-  function unary() {
-    if (isOp('!') || isOp('-') || isOp('+')) {
-      const op = tokens[pos++].v;
-      return { k: 'un', op, arg: unary() };
-    }
-    return postfix();
-  }
-
-  function binary(min) {
-    let left = unary();
+  const binary = min => {
+    let l = unary();
     for (;;) {
-      const tok = peek();
-      const prec = tok && tok.t === 'op' ? BINARY[tok.v] : undefined;
-      if (!prec || prec < min) return left;
-      pos++;
-      left = { k: 'bin', op: tok.v, l: left, r: binary(prec + 1) };
+      const tok = t[i], e = tok && tok[0] === 3 && OPS[tok[1]];
+      if (!e || e[0] < min) return l;
+      i++;
+      l = E.bin(tok[1], l, binary(e[0] + 1));
     }
-  }
+  };
 
-  function ternary() {
-    const test = binary(1);
-    if (!isOp('?')) return test;
-    pos++;
+  const ternary = () => {
+    const q = binary(1);
+    if (!eat('?')) return q;
     const a = ternary();
-    expect(':');
-    return { k: 'cond', test, a, b: ternary() };
-  }
+    need(':');
+    return E.cond(q, a, ternary());
+  };
 
-  const ast = ternary();
-  if (pos < tokens.length) throw new SyntaxError(`Unexpected "${tokens[pos].v}" in "${src}"`);
-  return ast;
-}
-
-function member(obj, key) {
-  if (BLOCKED.has(key)) return undefined;
-  return obj[key];
-}
-
-const notFn = node => {
-  if (node.opt) return undefined;
-  throw new TypeError('Expression is not a function');
-};
-
-/** Turns an AST into a closure `(context) => value` (no per-eval allocation). */
-function compile(node) {
-  switch (node.k) {
-    case 'lit': { const v = node.v; return () => v; }
-    case 'arr': { const items = node.items.map(compile); return c => items.map(f => f(c)); }
-    case 'id': {
-      const name = node.name;
-      if (BLOCKED.has(name)) return () => undefined;
-      return c => (c == null ? undefined : c[name]);
-    }
-    case 'mem': {
-      const obj = compile(node.obj);
-      const lit = node.prop.k === 'lit';
-      const key = lit ? node.prop.v : null;
-      const prop = lit ? null : compile(node.prop);
-      return c => {
-        const o = obj(c);
-        return o == null ? undefined : member(o, lit ? key : prop(c));
-      };
-    }
-    case 'call': {
-      const args = node.args.map(compile);
-      const callee = node.fn;
-      const argv = c => args.map(a => a(c));
-      if (callee.k === 'mem') {
-        const obj = compile(callee.obj);
-        const lit = callee.prop.k === 'lit';
-        const key = lit ? callee.prop.v : null;
-        const prop = lit ? null : compile(callee.prop);
-        return c => {
-          const o = obj(c);
-          if (o == null) return undefined;
-          const fn = member(o, lit ? key : prop(c));
-          if (typeof fn !== 'function') return fn == null ? undefined : notFn(node);
-          return fn.apply(o, argv(c));
-        };
-      }
-      const f = compile(callee);
-      const self = callee.k === 'id';
-      return c => {
-        const fn = f(c);
-        if (typeof fn !== 'function') return fn == null ? undefined : notFn(node);
-        return fn.apply(self ? c : undefined, argv(c));
-      };
-    }
-    case 'un': {
-      const arg = compile(node.arg);
-      if (node.op === '!') return c => !arg(c);
-      if (node.op === '-') return c => -arg(c);
-      return c => +arg(c);
-    }
-    case 'cond': {
-      const t = compile(node.test), a = compile(node.a), b = compile(node.b);
-      return c => (t(c) ? a(c) : b(c));
-    }
-    case 'bin': {
-      const l = compile(node.l), r = compile(node.r);
-      switch (node.op) {
-        case '&&': return c => { const v = l(c); return v ? r(c) : v; };
-        case '||': return c => { const v = l(c); return v ? v : r(c); };
-        case '??': return c => { const v = l(c); return v != null ? v : r(c); };
-        case '+': return c => l(c) + r(c);
-        case '-': return c => l(c) - r(c);
-        case '*': return c => l(c) * r(c);
-        case '/': return c => l(c) / r(c);
-        case '%': return c => l(c) % r(c);
-        case '<': return c => l(c) < r(c);
-        case '>': return c => l(c) > r(c);
-        case '<=': return c => l(c) <= r(c);
-        case '>=': return c => l(c) >= r(c);
-        case '==': return c => l(c) == r(c); // eslint-disable-line eqeqeq
-        case '!=': return c => l(c) != r(c); // eslint-disable-line eqeqeq
-        case '===': return c => l(c) === r(c);
-        default: return c => l(c) !== r(c);
-      }
-    }
-    default:
-      throw new Error(`Unknown node ${node.k}`);
-  }
+  const fn = ternary();
+  if (i < t.length) throw new SyntaxError(`Unexpected "${t[i][1]}" in "${src}"`);
+  return fn;
 }
 
 /** Compiles (and caches) an expression into `(context) => value`. Throws on syntax errors. */
 export function compileExpression(expr) {
   let fn = cache.get(expr);
-  if (!fn) {
-    fn = compile(parse(expr));
-    cache.set(expr, fn);
-  }
+  if (!fn) cache.set(expr, fn = parse(expr));
   return fn;
 }
 

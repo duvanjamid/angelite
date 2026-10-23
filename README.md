@@ -284,12 +284,7 @@ class RegistrationComponent {
 
 For detailed documentation, check out the following resources:
 
-- [API Reference](./docs/api-reference.md)
-- [Component Guide](./docs/components.md)
-- [Directives Guide](./docs/directives.md)
-- [Routing Guide](./docs/routing.md)
-- [Forms Guide](./docs/forms.md)
-- [Dependency Injection](./docs/dependency-injection.md)
+- Everything (guide with live examples, component library, benchmarks, feature comparison, analysis): [angelite-docs](https://github.com/duvanjamid/angelite-docs)
 
 ## Brand Colors
 
@@ -312,7 +307,11 @@ AngeLite is [MIT licensed](./LICENSE).
 
 ## AngeLite Lite
 
-A ~8 KB (min+gzip) signals-based core, as fast as Preact/Vue and the lightest on memory in our benchmark, with Angular-style templates (`@if`, `@for`, `[(ngModel)]`, components, pipes, DI, router). Docs with live examples: [`docs/index.html`](docs/index.html), component library: [`docs/components.html`](docs/components.html), benchmarks vs React/Preact/Vue/Angular: [`docs/benchmarks.html`](docs/benchmarks.html).
+A signals-based core with Angular-style templates (`@if`, `@for`, `@defer`, `[(ngModel)]`, components with named slots, pipes, scoped DI, a router with nested routes, guards and lazy loading), about **10 KB** min+gzip with the in-browser compiler and **about 6 KB for an app with precompiled templates** (you only pay for what you import; the everything-included `lite` bundle is ~11.7 KB). As fast as or faster than Preact/Vue/React/Angular in our benchmark and the lightest on memory. Optional ahead-of-time template compilation (`tools/aot.mjs`) ships only the runtime and checks templates for unknown elements, pipes and names.
+
+What is in the box (optional pieces are separate modules, so they cost nothing if you do not import them): TypeScript types, reactive forms (`/lite/forms`), an HTTP client with interceptors and `resource()` (`/lite/http`), i18n with plurals (`/lite/i18n`), enter/leave animations, SSR (`tools/ssr.mjs`) and `hydrate()`, a history-mode router with query params and resolvers, `render()` test helpers (`/lite/testing`), `enableDevWarnings()`, `enableDevtools()`, a Vite plugin and `angelite-check`, portals, `@defer`, `viewChild()`, `ngOnError` error boundaries, `providers` per component, and a security model with URL sanitizing, `trustHtml()`, Trusted Types and CSP support.
+
+Documentation site (guide with live examples, components, benchmarks, comparison, analysis): [`duvanjamid/angelite-docs`](https://github.com/duvanjamid/angelite-docs) (published at <https://duvanjamid.github.io/angelite-docs/>). The benchmark numbers come from `benchmarks/results.json` in this repository. Security model and reporting: [`SECURITY.md`](SECURITY.md).
 
 ## Development
 

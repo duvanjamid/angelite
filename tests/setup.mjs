@@ -15,6 +15,7 @@ globalThis.history = window.history;
 globalThis.location = window.location;
 globalThis.localStorage = window.localStorage;
 globalThis.addEventListener = window.addEventListener.bind(window);
+globalThis.removeEventListener = window.removeEventListener.bind(window);
 globalThis.Event = window.Event;
 globalThis.HTMLInputElement = window.HTMLInputElement;
 

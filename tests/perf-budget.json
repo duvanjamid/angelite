@@ -1,0 +1,37 @@
+{
+  "note": "DOM calls and effect runs per scenario (1000 rows). Regenerate with UPDATE_PERF=1 npm test.",
+  "scenarios": {
+    "create1k": {
+      "dom": 5002,
+      "effects": 1001
+    },
+    "replace1k": {
+      "dom": 5004,
+      "effects": 1001
+    },
+    "update10th": {
+      "dom": 100,
+      "effects": 101
+    },
+    "select": {
+      "dom": 1,
+      "effects": 1000
+    },
+    "swap": {
+      "dom": 2,
+      "effects": 1
+    },
+    "remove": {
+      "dom": 1,
+      "effects": 1
+    },
+    "append1k": {
+      "dom": 5000,
+      "effects": 1001
+    },
+    "clear1k": {
+      "dom": 4,
+      "effects": 1
+    }
+  }
+}

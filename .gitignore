@@ -56,3 +56,4 @@ temp/
 
 # Angular build cache
 .angular/
+benchmarks/results.quick.json
