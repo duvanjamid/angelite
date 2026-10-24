@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — English by default
+
+- **UI defaults are English:** `closeLabel` is `'Close'`, `removeLabel` `'Remove'`, `Spinner` `'Loading'`, `Pagination` `'Previous'`/`'Next'`/`'Pagination'` and `'Page N'` on page buttons, `Combobox` `'Search…'`/`'No matches'`, `Table` `'No data'`, `CodeBlock` `'Copy'`/`'Copied'`, `Dropdown` `'Menu'`, `Popover` `'Open'`, `Progress`/`Stepper` `'Progress'`, `Rating` `'Rating'`, `Breadcrumb` `'Breadcrumb'`, `EmptyState` `'No results'`. Pass the inputs to localize them. **Behaviour change** for anyone relying on the old Spanish defaults.
+- `@duvanjamid/angelite/ui/meta` is in English and its groups are `Basics`, `Forms`, `Navigation`, `Overlays` and `Data`.
+- README, CONTRIBUTING and ROADMAP are in English; the documentation site is English first, with a Spanish version.
+
 ## 1.0.0 — first release
 
 AngeLite is a signals framework with Angular-style templates: a ~6 KB gzip core (precompiled), secure by default, with forms, HTTP, i18n, animations, router, SSR, DevTools and a 33-component accessible UI library as optional modules. Everything below landed in this release.

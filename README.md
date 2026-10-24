@@ -5,23 +5,23 @@
 <h1 align="center">AngeLite</h1>
 
 <p align="center">
-  Un framework de señales con plantillas al estilo de Angular: pequeño, rápido y seguro.
+  A signals framework with Angular-style templates: small, fast and secure.
 </p>
 
 <p align="center">
-  <a href="https://duvanjamid.github.io/angelite-docs/">Documentación</a> ·
-  <a href="https://duvanjamid.github.io/angelite-docs/ui.html">Componentes</a> ·
+  <a href="https://duvanjamid.github.io/angelite-docs/">Documentation</a> ·
+  <a href="https://duvanjamid.github.io/angelite-docs/ui.html">Components</a> ·
   <a href="https://duvanjamid.github.io/angelite-docs/benchmarks.html">Benchmark</a>
 </p>
 
-## Por qué AngeLite
+## Why AngeLite
 
-- **Pequeño:** el núcleo pesa unos 6 KB gzip con las plantillas precompiladas (Preact: 6,2 KB).
-- **Rápido:** actualiza solo lo que cambia, sin Zone.js ni DOM virtual. Un presupuesto de rendimiento en el CI evita que una función nueva lo dañe.
-- **Seguro por defecto:** la interpolación siempre es texto, las URL se filtran, no usa `eval` ni `new Function` y funciona con Trusted Types.
-- **Completo, pero a la carta:** formularios, HTTP, i18n, animaciones, router, SSR, DevTools y 33 componentes accesibles son módulos opcionales; solo pagas por los que importas.
+- **Small:** the core is about 6 KB gzip with precompiled templates (Preact: 6.2 KB).
+- **Fast:** it updates only what changes, with no Zone.js and no virtual DOM. A performance budget in CI keeps new features from hurting it.
+- **Secure by default:** interpolation is always text, URLs are filtered, it uses no `eval` or `new Function`, and it works with Trusted Types.
+- **Complete, but à la carte:** forms, HTTP, i18n, animations, router, SSR, DevTools and 33 accessible components are optional modules; you only pay for what you import.
 
-## Empezar
+## Getting started
 
 ```bash
 npm install @duvanjamid/angelite
@@ -37,13 +37,13 @@ class Counter {
 
 component(Counter, {
   selector: 'app-counter',
-  template: `<button (click)="inc()">Clics: {{ count() }}</button>`
+  template: `<button (click)="inc()">Clicks: {{ count() }}</button>`
 });
 
 mount(Counter, document.body);
 ```
 
-Sin bundler, con una etiqueta `<script>`:
+Without a bundler, with a `<script>` tag:
 
 ```html
 <script src="https://unpkg.com/@duvanjamid/angelite/dist/angelite.min.js"></script>
@@ -52,39 +52,39 @@ Sin bundler, con una etiqueta `<script>`:
 </script>
 ```
 
-## Módulos
+## Modules
 
-| Importa | Para |
+| Import | For |
 |---|---|
-| `@duvanjamid/angelite` | señales, plantillas (`@if`, `@for`, `@defer`), componentes, DI, pipes y router |
-| `@duvanjamid/angelite/runtime` | solo el runtime, para plantillas precompiladas |
-| `@duvanjamid/angelite/forms` | formularios reactivos |
-| `@duvanjamid/angelite/http` | cliente HTTP, interceptores y `resource()` |
-| `@duvanjamid/angelite/i18n` | idiomas, plurales y formatos |
-| `@duvanjamid/angelite/ui` | biblioteca de 33 componentes accesibles |
-| `@duvanjamid/angelite/testing` | utilidades de test |
-| `@duvanjamid/angelite/devtools` | inspector de componentes y señales |
-| `@duvanjamid/angelite/hydrate` | hidratación de HTML renderizado en el servidor |
-| `@duvanjamid/angelite/tools/aot.mjs` | compilador de plantillas para el build |
-| `@duvanjamid/angelite/tools/ssr.mjs` | renderizado en servidor |
-| `@duvanjamid/angelite/tools/vite.mjs` | plugin de Vite |
+| `@duvanjamid/angelite` | signals, templates (`@if`, `@for`, `@defer`), components, DI, pipes and router |
+| `@duvanjamid/angelite/runtime` | the runtime only, for precompiled templates |
+| `@duvanjamid/angelite/forms` | reactive forms |
+| `@duvanjamid/angelite/http` | HTTP client, interceptors and `resource()` |
+| `@duvanjamid/angelite/i18n` | languages, plurals and formats |
+| `@duvanjamid/angelite/ui` | library of 33 accessible components |
+| `@duvanjamid/angelite/testing` | testing utilities |
+| `@duvanjamid/angelite/devtools` | component and signal inspector |
+| `@duvanjamid/angelite/hydrate` | hydration of server-rendered HTML |
+| `@duvanjamid/angelite/tools/aot.mjs` | template compiler for the build |
+| `@duvanjamid/angelite/tools/ssr.mjs` | server-side rendering |
+| `@duvanjamid/angelite/tools/vite.mjs` | Vite plugin |
 
-La guía completa, con ejemplos que se ejecutan, está en <https://duvanjamid.github.io/angelite-docs/>
-(repositorio: [`angelite-docs`](https://github.com/duvanjamid/angelite-docs)).
+The full guide, with runnable examples, is at <https://duvanjamid.github.io/angelite-docs/>
+(repository: [`angelite-docs`](https://github.com/duvanjamid/angelite-docs)).
 
-## Desarrollo
+## Development
 
 ```bash
 npm ci
-npm run build       # genera dist/
-npm test            # tests unitarios y de seguridad
-npm run typecheck   # tipos del paquete
-npm run size        # presupuesto de tamaño
-npm run perf        # benchmark rápido frente a Preact
+npm run build       # builds dist/
+npm test            # unit and security tests
+npm run typecheck   # the package types
+npm run size        # size budget
+npm run perf        # quick benchmark against Preact
 ```
 
-Lee [CONTRIBUTING.md](./CONTRIBUTING.md) antes de abrir un PR y [SECURITY.md](./SECURITY.md) para el modelo de seguridad.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR and [SECURITY.md](./SECURITY.md) for the security model.
 
-## Licencia
+## License
 
 MIT

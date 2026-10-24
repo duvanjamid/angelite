@@ -1,16 +1,16 @@
-# Hoja de ruta
+# Roadmap
 
-Lo que falta, ordenado por el valor que aporta. El rendimiento manda: ninguna función entra si rompe el presupuesto (ver `CONTRIBUTING.md`).
+What is missing, ordered by the value it adds. Performance comes first: no feature lands if it breaks the budget (see `CONTRIBUTING.md`).
 
-## Siguiente
-- Hidratación que adopte los nodos existentes del servidor (hoy `hydrate()` vuelve a renderizar) y renderizado en *streaming*.
-- Animaciones: transiciones entre rutas y reordenado de listas (FLIP).
-- Formularios: `FormBuilder` y validadores asíncronos.
-- Herramientas: autocompletado de plantillas en el editor y línea de tiempo en DevTools.
-- i18n: extracción de mensajes.
+## Next
+- Hydration that adopts the server's existing nodes (today `hydrate()` renders again) and streaming rendering.
+- Animations: route transitions and list reordering (FLIP).
+- Forms: `FormBuilder` and asynchronous validators.
+- Tooling: editor autocompletion for templates and a timeline in DevTools.
+- i18n: message extraction.
 
-## Más adelante
-- Chequeo de tipos de las plantillas en el compilador.
-- Más componentes de la biblioteca (DatePicker, árbol, tabla virtualizada).
+## Later
+- Type checking of templates in the compiler.
+- More library components (DatePicker, tree, virtualized table).
 
-La comparación detallada con otros frameworks está en la documentación: <https://duvanjamid.github.io/angelite-docs/comparativa.html>
+The detailed comparison with other frameworks is in the documentation: <https://duvanjamid.github.io/angelite-docs/comparison.html>

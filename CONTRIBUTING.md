@@ -1,148 +1,108 @@
-# Guía para Contribuir a AngeLite
+# Contributing to AngeLite
 
-¡Gracias por tu interés en contribuir a AngeLite! Este documento proporciona las pautas y mejores prácticas para contribuir al proyecto.
+Thanks for your interest in contributing to AngeLite! This document explains how to work on the project.
 
-## Código de Conducta
+## Code of conduct
 
-Al participar en este proyecto, te comprometes a mantener un ambiente respetuoso y colaborativo. Esperamos que todos los contribuyentes sean amables, pacientes y acogedores con los demás.
+By taking part in this project you agree to keep the space respectful and collaborative. Be kind, patient and welcoming to everyone.
 
-## Rendimiento
+## Performance
 
-Cada función nueva debe llegar sin dañar el rendimiento del núcleo. Hay un presupuesto de tamaño, un presupuesto de trabajo determinista (`tests/perf-budget.test.mjs`) y una comparación de tiempos contra Preact. Las reglas y los comandos están en [`analysis/performance.md`](https://github.com/duvanjamid/angelite-docs/blob/main/analysis/performance.md) del repositorio de documentación; la plantilla de PR trae la lista de comprobación.
+Every new feature must arrive without hurting the performance of the core. There is a size budget, a deterministic work budget (`tests/perf-budget.test.mjs`) and a timing comparison against Preact. The rules and commands are in [`analysis/performance.md`](https://github.com/duvanjamid/angelite-docs/blob/main/analysis/performance.md) of the documentation repository; the pull request template carries the checklist.
 
-## Cómo Contribuir
+## Ways to contribute
 
-Hay varias formas de contribuir a AngeLite:
+1. **Report bugs**: open an issue describing the problem, how to reproduce it and the expected behavior.
+2. **Suggest improvements**: propose new features or changes to existing ones.
+3. **Send code**: implement features or fix bugs.
+4. **Improve the documentation**: help keep it current and clear (it lives in [angelite-docs](https://github.com/duvanjamid/angelite-docs), in English and Spanish).
+5. **Share examples**: show what AngeLite can do.
 
-1. **Reportar bugs**: Abre un issue describiendo el problema, cómo reproducirlo y el comportamiento esperado.
-2. **Sugerir mejoras**: Propón nuevas características o mejoras a las existentes.
-3. **Enviar código**: Implementa nuevas características o corrige bugs existentes.
-4. **Mejorar la documentación**: Ayuda a mantener la documentación actualizada y clara.
-5. **Compartir ejemplos**: Crea ejemplos de uso que muestren las capacidades de AngeLite.
+## Development
 
-## Proceso de Desarrollo
+### Setup
 
-### Configuración del Entorno
-
-1. Clona el repositorio:
-   ```bash
-   git clone git@github.com:duvanjamid/angelite.git
-   cd angelite
-   ```
-
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-
-3. Ejecuta las pruebas:
-   ```bash
-   npm test
-   ```
-
-### Flujo de Trabajo con Git
-
-1. Crea una rama para tu contribución:
-   ```bash
-   git checkout -b feature/nombre-de-tu-caracteristica
-   ```
-   o
-   ```bash
-   git checkout -b fix/nombre-del-bug
-   ```
-
-2. Realiza tus cambios siguiendo las convenciones de código.
-
-3. Asegúrate de que las pruebas pasen:
-   ```bash
-   npm test
-   ```
-
-4. Haz commit de tus cambios con mensajes descriptivos:
-   ```bash
-   git commit -m "feat: añadir nueva directiva @defer"
-   ```
-
-5. Envía tu rama al repositorio remoto:
-   ```bash
-   git push origin feature/nombre-de-tu-caracteristica
-   ```
-
-6. Crea un Pull Request en GitHub.
-
-## Convenciones de Código
-
-### Estilo de Código
-
-- Usa 2 espacios para la indentación.
-- Usa punto y coma al final de cada declaración.
-- Sigue el estilo de código existente en el proyecto.
-- Usa nombres descriptivos para variables, funciones y clases.
-
-### Convenciones de Commit
-
-Seguimos el formato de [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat`: Nueva característica
-- `fix`: Corrección de un bug
-- `docs`: Cambios en la documentación
-- `style`: Cambios que no afectan el significado del código (espacios, formato, etc.)
-- `refactor`: Cambios en el código que no corrigen bugs ni añaden características
-- `perf`: Cambios que mejoran el rendimiento
-- `test`: Añadir o corregir pruebas
-- `chore`: Cambios en el proceso de construcción o herramientas auxiliares
-
-Ejemplo:
-```
-feat(router): añadir soporte para rutas anidadas
+```bash
+git clone git@github.com:duvanjamid/angelite.git
+cd angelite
+npm install
+npm test
 ```
 
-### Documentación
+### Git workflow
 
-- Documenta todas las APIs públicas.
-- Incluye ejemplos de uso cuando sea apropiado.
-- Mantén la documentación actualizada cuando cambies el código.
+1. Create a branch: `git checkout -b feature/your-feature` or `git checkout -b fix/the-bug`.
+2. Make your changes following the code conventions.
+3. Make sure the checks pass: `npm test`, `npm run typecheck`, `npm run size`.
+4. Commit with a descriptive message, for example `git commit -m "feat: add the @defer block"`.
+5. Push the branch and open a pull request on GitHub.
 
-## Pruebas
+## Code conventions
 
-- Escribe pruebas para cualquier nueva característica o corrección de bug.
-- Asegúrate de que todas las pruebas pasen antes de enviar un Pull Request.
-- Cubre tanto los casos de éxito como los de error.
+### Style
 
-## Revisión de Código
+- Two spaces for indentation.
+- Semicolons at the end of every statement.
+- Follow the existing code style.
+- Use descriptive names for variables, functions and classes.
 
-- Todos los Pull Requests serán revisados por al menos un mantenedor del proyecto.
-- Aborda todos los comentarios y sugerencias de la revisión.
-- Sé respetuoso y constructivo en tus comentarios.
+### Commits
 
-## Estructura del Proyecto
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat`: a new feature
+- `fix`: a bug fix
+- `docs`: documentation changes
+- `style`: changes that do not affect the meaning of the code (whitespace, formatting…)
+- `refactor`: code changes that neither fix a bug nor add a feature
+- `perf`: changes that improve performance
+- `test`: adding or fixing tests
+- `chore`: changes to the build process or tooling
+
+Example: `feat(router): add support for nested routes`.
+
+### Documentation
+
+- Document every public API.
+- Include usage examples where it helps.
+- Keep the documentation up to date when you change the code.
+
+## Tests
+
+- Write tests for every new feature or bug fix.
+- Make sure all tests pass before opening a pull request.
+- Cover both the success and the error cases.
+
+## Code review
+
+- Every pull request is reviewed by at least one maintainer.
+- Address all review comments and suggestions.
+- Be respectful and constructive.
+
+## Project structure
 
 ```
 angelite/
-├── src/                  # Núcleo (señales, runtime, compilador, router) y módulos opcionales (forms, http, i18n…)
-│   ├── ui/               # Biblioteca de componentes
-│   └── utils/            # Evaluador de expresiones
-├── tools/                # AOT, SSR, plugin de Vite y angelite-check
-├── types/                # Definiciones de TypeScript
-├── tests/                # Pruebas (incluye presupuestos de rendimiento y seguridad)
-├── benchmarks/           # Benchmark frente a Preact, Vue, React y Angular
-├── scripts/              # Presupuestos de tamaño
-├── (la documentación vive en el repositorio angelite-docs)
-└── dist/                 # Archivos compilados (generados)
+├── src/                  # Core (signals, runtime, compiler, router) and optional modules (forms, http, i18n…)
+│   ├── ui/               # Component library
+│   └── utils/            # Expression evaluator
+├── tools/                # AOT, SSR, the Vite plugin and angelite-check
+├── types/                # TypeScript definitions
+├── tests/                # Tests (including the performance and security budgets)
+├── benchmarks/           # Benchmark against Preact, Vue, React and Angular
+├── scripts/              # Size budgets
+├── (the documentation lives in the angelite-docs repository)
+└── dist/                 # Built files (generated)
 ```
 
-## Paleta de Colores
+## Color palette
 
-Cuando trabajes en componentes visuales o ejemplos, usa la paleta oficial de AngeLite:
+For visual components or examples, use the official AngeLite palette:
 
-- **Rosa (primario)**: `#d6336c` (en modo oscuro `#ff6b9a`)
-- **Rosa suave**: `#fbd3e0`
-- **Pizarra (texto y fondos oscuros)**: `#1d2330` y `#14161d`
+- **Pink (primary)**: `#d6336c` (`#ff6b9a` in dark mode)
+- **Soft pink**: `#fbd3e0`
+- **Slate (text and dark backgrounds)**: `#1d2330` and `#14161d`
 
-## Licencia
+## License
 
-Al contribuir a este proyecto, aceptas que tus contribuciones estarán bajo la misma licencia que el proyecto (MIT).
-
----
-
-¡Gracias por contribuir a AngeLite! Tu apoyo es fundamental para hacer de este framework una herramienta poderosa y fácil de usar para la comunidad.
+By contributing you agree that your contributions are released under the project's license (MIT).

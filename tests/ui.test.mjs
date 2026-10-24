@@ -233,7 +233,7 @@ test('Rating: radiogroup semantics, roving tabindex, arrows, readonly', async ()
   const { root } = mountIn(mount, page(
     `<ui-rating id="r" [value]="stars()" (valueChange)="stars.set($event)"></ui-rating><ui-rating id="ro" [readonly]="true" [value]="ro()" (valueChange)="ro.set($event)"></ui-rating>`, () => ({ stars, ro })));
   const btns = () => [...root.querySelectorAll('#r button')];
-  assert.equal(root.querySelector('#r [role=radiogroup]').getAttribute('aria-label'), 'Valoración');
+  assert.equal(root.querySelector('#r [role=radiogroup]').getAttribute('aria-label'), 'Rating');
   assert.deepEqual(btns().map(b => b.getAttribute('aria-checked')), ['false', 'true', 'false', 'false', 'false']);
   assert.deepEqual(btns().map(b => b.getAttribute('tabindex')), ['-1', '0', '-1', '-1', '-1']);
   btns()[3].click(); await tick();
@@ -279,7 +279,7 @@ test('Combobox: filters while typing, keyboard selection, Escape, outside click,
   key(input, 'Escape'); await tick();
   assert.equal(root.querySelector('[role=listbox]'), null);
   input.value = 'zzz'; fire(input, 'input'); await tick();
-  assert.equal(root.querySelector('.none').textContent, 'Sin coincidencias');
+  assert.equal(root.querySelector('.none').textContent, 'No matches');
   click(root.querySelector('[id="out"]')); await tick();
   assert.equal(root.querySelector('[role=listbox]'), null, 'outside click closes');
   input.value = ''; fire(input, 'input'); await tick();
@@ -319,7 +319,7 @@ test('Tabs: aria-selected, roving tabindex and arrow/Home/End keys', async () =>
 
 test('Breadcrumb: links except the last item, which is aria-current', async () => {
   const { root } = mountIn(mount, page(`<ui-breadcrumb [items]="items" separator=">"></ui-breadcrumb>`, () => ({ items: [{ label: 'Home', href: '/' }, { label: 'Docs', href: '/docs' }, { label: 'Page' }] })));
-  assert.equal(root.querySelector('nav').getAttribute('aria-label'), 'Ruta de navegación');
+  assert.equal(root.querySelector('nav').getAttribute('aria-label'), 'Breadcrumb');
   const lis = [...root.querySelectorAll('li')];
   assert.equal(lis.length, 3);
   assert.equal(lis[0].querySelector('a').getAttribute('href'), '/');
@@ -332,20 +332,20 @@ test('Breadcrumb: links except the last item, which is aria-current', async () =
 test('Pagination: windowed with ellipsis, aria-current, disabled ends, labels', async () => {
   const p = signal(1);
   const { root } = mountIn(mount, page(`<ui-pagination [total]="1000" [pageSize]="10" [page]="p()" (pageChange)="p.set($event)"></ui-pagination><ui-pagination id="s" [total]="25" [pageSize]="10" [page]="1"></ui-pagination>`, () => ({ p })));
-  const shown = () => [...root.querySelectorAll('nav')[0].querySelectorAll('button:not([aria-label=Anterior]):not([aria-label=Siguiente]), .gap')].map(e => e.textContent);
+  const shown = () => [...root.querySelectorAll('nav')[0].querySelectorAll('button:not([aria-label=Previous]):not([aria-label=Next]), .gap')].map(e => e.textContent);
   assert.deepEqual(shown(), ['1', '2', '…', '100']);
   const nav = root.querySelector('nav');
-  assert.equal(nav.getAttribute('aria-label'), 'Paginación');
-  assert.equal(nav.querySelector('[aria-label=Anterior]').disabled, true);
+  assert.equal(nav.getAttribute('aria-label'), 'Pagination');
+  assert.equal(nav.querySelector('[aria-label=Previous]').disabled, true);
   p.set(50); await tick();
   assert.deepEqual(shown(), ['1', '…', '49', '50', '51', '…', '100']);
   assert.equal(nav.querySelector('[aria-current=page]').textContent, '50');
-  nav.querySelector('[aria-label=Siguiente]').click(); await tick();
+  nav.querySelector('[aria-label=Next]').click(); await tick();
   assert.equal(p(), 51);
-  nav.querySelector('[aria-label="Página 100"]').click(); await tick();
+  nav.querySelector('[aria-label="Page 100"]').click(); await tick();
   assert.equal(p(), 100);
-  assert.equal(nav.querySelector('[aria-label=Siguiente]').disabled, true);
-  nav.querySelector('[aria-label="Página 100"]').click(); await tick();
+  assert.equal(nav.querySelector('[aria-label=Next]').disabled, true);
+  nav.querySelector('[aria-label="Page 100"]').click(); await tick();
   assert.equal(p(), 100, 'clicking the current page does nothing');
   assert.equal(root.querySelectorAll('#s button').length, 5, 'prev + 3 pages + next when short');
 });
@@ -353,7 +353,7 @@ test('Pagination: windowed with ellipsis, aria-current, disabled ends, labels', 
 test('Stepper: ordered list, done/now classes and aria-current=step', async () => {
   const step = signal(0);
   const { root } = mountIn(mount, page(`<ui-stepper [steps]="['one','two','three']" [current]="step()"></ui-stepper>`, () => ({ step })));
-  assert.equal(root.querySelector('ol').getAttribute('aria-label'), 'Progreso');
+  assert.equal(root.querySelector('ol').getAttribute('aria-label'), 'Progress');
   step.set(1); await tick();
   assert.equal(root.querySelectorAll('.st.done').length, 1);
   assert.equal(root.querySelector('.st.now').textContent.includes('two'), true);

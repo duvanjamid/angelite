@@ -1,6 +1,6 @@
 {
   "name": "@duvanjamid/angelite",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A signals-based framework with Angular-style templates, small enough to run straight in the browser",
   "main": "dist/angelite.min.js",
   "module": "dist/angelite.esm.js",

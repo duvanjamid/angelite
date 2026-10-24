@@ -42,7 +42,7 @@ export const Badge = /* @__PURE__ */ component(class Badge {
 export const Chip = /* @__PURE__ */ component(class Chip {
   variant = input('default');
   removable = input(false);
-  removeLabel = input('Quitar');
+  removeLabel = input('Remove');
   removed = output();
 }, {
   selector: 'ui-chip',
@@ -81,7 +81,7 @@ export const Alert = /* @__PURE__ */ component(class Alert {
   type = input('info');
   title = input('');
   dismissible = input(false);
-  closeLabel = input('Cerrar');
+  closeLabel = input('Close');
   closed = output();
   visible = signal(true);
   isUrgent = computed(() => this.type() === 'error' || this.type() === 'warning');
@@ -94,7 +94,7 @@ export const Alert = /* @__PURE__ */ component(class Alert {
 });
 
 export const Spinner = /* @__PURE__ */ component(class Spinner {
-  label = input('Cargando');
+  label = input('Loading');
 }, { selector: 'ui-spinner', template: `<span class="ui-spinner" role="status" [attr.aria-label]="label()"></span>` });
 
 export const Progress = /* @__PURE__ */ component(class Progress {
@@ -119,7 +119,7 @@ export const Skeleton = /* @__PURE__ */ component(class Skeleton {
 }, { selector: 'ui-skeleton', template: `<div class="ui-skeleton" aria-hidden="true" [attr.data-circle]="circle() ? 'true' : 'false'" [style.height.px]="height()" [style.width]="width()"></div>` });
 
 export const EmptyState = /* @__PURE__ */ component(class EmptyState {
-  title = input('Sin resultados');
+  title = input('No results');
   description = input('');
 }, {
   selector: 'ui-empty-state',
@@ -258,7 +258,7 @@ export const Rating = /* @__PURE__ */ component(class Rating {
   value = input(0);
   max = input(5);
   readonly = input(false);
-  label = input('Valoración');
+  label = input('Rating');
   valueChange = output();
   stars = computed(() => Array.from({ length: this.max() }, (_, i) => i + 1));
   focusable = computed(() => (this.value() >= 1 ? this.value() : 1));
@@ -282,8 +282,8 @@ export const Combobox = /* @__PURE__ */ component(class Combobox {
   label = input('');
   options = input([]);
   value = input('');
-  placeholder = input('Buscar…');
-  emptyText = input('Sin coincidencias');
+  placeholder = input('Search…');
+  emptyText = input('No matches');
   disabled = input(false);
   valueChange = output();
   id = nextId('combo');
@@ -358,7 +358,7 @@ export const Tabs = /* @__PURE__ */ component(class Tabs {
 export const Breadcrumb = /* @__PURE__ */ component(class Breadcrumb {
   items = input([]);
   separator = input('/');
-  label = input('Ruta de navegación');
+  label = input('Breadcrumb');
 }, {
   selector: 'ui-breadcrumb',
   template: `<nav class="ui-crumbs" [attr.aria-label]="label()"><ol>@for (it of items(); track $index)
@@ -370,9 +370,9 @@ export const Pagination = /* @__PURE__ */ component(class Pagination {
   pageSize = input(10);
   page = input(1);
   siblings = input(1);
-  prevLabel = input('Anterior');
-  nextLabel = input('Siguiente');
-  label = input('Paginación');
+  prevLabel = input('Previous');
+  nextLabel = input('Next');
+  label = input('Pagination');
   pageChange = output();
   count = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize())));
   items = computed(() => {
@@ -392,14 +392,14 @@ export const Pagination = /* @__PURE__ */ component(class Pagination {
 }, {
   selector: 'ui-pagination',
   template: `<nav class="ui-pager" [attr.aria-label]="label()"><button type="button" [attr.aria-label]="prevLabel()" [disabled]="page() <= 1" (click)="go(page() - 1)">‹</button>
-    @for (it of items(); track it.key) {@if (it.gap) {<span class="gap" aria-hidden="true">…</span>} @else {<button type="button" [class.active]="it.n === page()" [attr.aria-current]="it.n === page() ? 'page' : null" [attr.aria-label]="'Página ' + it.n" (click)="go(it.n)">{{ it.n }}</button>}}
+    @for (it of items(); track it.key) {@if (it.gap) {<span class="gap" aria-hidden="true">…</span>} @else {<button type="button" [class.active]="it.n === page()" [attr.aria-current]="it.n === page() ? 'page' : null" [attr.aria-label]="'Page ' + it.n" (click)="go(it.n)">{{ it.n }}</button>}}
     <button type="button" [attr.aria-label]="nextLabel()" [disabled]="page() >= count()" (click)="go(page() + 1)">›</button></nav>`
 });
 
 export const Stepper = /* @__PURE__ */ component(class Stepper {
   steps = input([]);
   current = input(0);
-  label = input('Progreso');
+  label = input('Progress');
 }, {
   selector: 'ui-stepper',
   template: `<ol class="ui-stepper" [attr.aria-label]="label()">@for (s of steps(); track $index) {
@@ -422,7 +422,7 @@ export const AccordionItem = /* @__PURE__ */ component(class AccordionItem {
 });
 
 export const Dropdown = /* @__PURE__ */ component(class Dropdown {
-  label = input('Menú');
+  label = input('Menu');
   items = input([]);
   align = input('start');
   variant = input('default');
@@ -471,7 +471,7 @@ export const Modal = /* @__PURE__ */ component(class Modal {
   title = input('');
   size = input('md');
   closeOnBackdrop = input(true);
-  closeLabel = input('Cerrar');
+  closeLabel = input('Close');
   closed = output();
   id = nextId('modal');
   release = overlay(this.open, () => this.$el.querySelector('.ui-modal'), () => this.close());
@@ -490,7 +490,7 @@ export const Drawer = /* @__PURE__ */ component(class Drawer {
   open = input(false);
   title = input('');
   side = input('left');
-  closeLabel = input('Cerrar');
+  closeLabel = input('Close');
   closed = output();
   id = nextId('drawer');
   release = overlay(this.open, () => this.$el.querySelector('.ui-drawer'), () => this.close());
@@ -505,7 +505,7 @@ export const Drawer = /* @__PURE__ */ component(class Drawer {
 });
 
 export const Popover = /* @__PURE__ */ component(class Popover {
-  label = input('Abrir');
+  label = input('Open');
   placement = input('bottom');
   align = input('start');
   variant = input('default');
@@ -558,7 +558,7 @@ export class ToastService {
 
 export const Toasts = /* @__PURE__ */ component(class Toasts {
   toast = inject(ToastService);
-  closeLabel = input('Cerrar');
+  closeLabel = input('Close');
 }, {
   selector: 'ui-toasts',
   template: `<div class="ui-toasts" aria-live="polite" aria-atomic="false">@for (t of toast.items(); track t.id) {<div class="ui-toast" role="status" [attr.data-type]="t.type"><span class="m">{{ t.message }}</span>
@@ -571,7 +571,7 @@ export const Table = /* @__PURE__ */ component(class Table {
   columns = input([]);
   rows = input([]);
   caption = input('');
-  empty = input('Sin datos');
+  empty = input('No data');
   dense = input(false);
   striped = input(false);
   rowKey = input('');
@@ -601,8 +601,8 @@ export const Table = /* @__PURE__ */ component(class Table {
 export const CodeBlock = /* @__PURE__ */ component(class CodeBlock {
   code = input('');
   language = input('');
-  copyLabel = input('Copiar');
-  copiedLabel = input('Copiado');
+  copyLabel = input('Copy');
+  copiedLabel = input('Copied');
   copied = signal(false);
   timer = null;
   ngOnDestroy() { clearTimeout(this.timer); }
